@@ -1,0 +1,47 @@
+[project]
+name = "school-management-backend-django"
+version = "0.1.0"
+description = "Django School Management System"
+authors = [{ name = "Bharat Upadhyay", email = "bpositiveu@gmail.com" }]
+license = { text = "Proprietary" }
+readme = "README.md"
+requires-python = ">=3.13, <3.14"
+
+# Main dependencies
+dependencies = [
+    "django>=5.0,<6.0",
+    "django-environ>=0.11.2", # For environment management
+    "psycopg[binary]>=3.1.0", # PostgreSQL adapter (binary for performance)
+    "python-dotenv (>=1.0.1,<2.0.0)",
+    "django-cors-headers (>=4.7.0,<5.0.0)",
+    "django-storages (>=1.14.5,<2.0.0)",
+    "dj-database-url (>=2.3.0,<3.0.0)",
+]
+
+[project.optional-dependencies]
+# Development and testing tools
+dev = [
+    "pytest-django>=4.5.2",        # For testing Django apps
+    "black>=23.0",                 # Code formatting
+    "isort>=5.12.0",               # Import sorting
+    "django-debug-toolbar>=4.2.0", # Debugging
+    "mypy>=1.8.0",                 # Static type checking
+]
+
+# Poetry-specific configuration for package discovery
+[tool.poetry]
+packages = [{ include = "school_management_backend", from = "src" }]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "school_management_backend.settings.development"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
