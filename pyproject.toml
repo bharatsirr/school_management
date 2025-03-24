@@ -16,6 +16,7 @@ dependencies = [
     "django-cors-headers (>=4.7.0,<5.0.0)",
     "django-storages (>=1.14.5,<2.0.0)",
     "dj-database-url (>=2.3.0,<3.0.0)",
+    "reportlab (>=4.3.1,<5.0.0)",
 ]
 
 [project.optional-dependencies]
@@ -31,6 +32,9 @@ dev = [
 # Poetry-specific configuration for package discovery
 [tool.poetry]
 packages = [{ include = "school_management_backend", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+djlint = "^1.36.4"
 
 [tool.black]
 line-length = 88

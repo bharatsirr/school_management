@@ -122,5 +122,8 @@ AUTH_USER_MODEL = 'core.User'
 
 AUTHENTICATION_BACKENDS = [
     'apps.core.auth_backend.CustomAuthBackend',
-    'django.contrib.auth.backends.ModelBackend',
 ]
+
+LOGIN_REDIRECT_URL = 'home'
+
+LOGOUT_REDIRECT_URL = 'home'
