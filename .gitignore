@@ -186,3 +186,24 @@ school_management.code-workspace
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.egg-info
+
+# css output
+static/css/styles.css
+
+# node modules
+node_modules/
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Yarn Cache
+.yarn-cache
+
+# Yarn Debug Log
+yarn-debug.log
+
+# Yarn Metadata
+yarn-error.log
+
+# Yarn Global Folder
+.Yarn
