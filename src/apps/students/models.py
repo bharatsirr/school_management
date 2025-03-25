@@ -195,3 +195,26 @@ class StudentAdmission(models.Model):
         if not self.pk:  # Ensure roll number is assigned only for new entries
             self.roll_number = self.get_roll_number(self.student_class, self.section, self.session)
         super().save(*args, **kwargs)
+
+
+class PreviousInstitutionDetail(models.Model):
+    student = models.OneToOneField('Student', on_delete=models.CASCADE, related_name='previous_institution')
+    last_institution = models.CharField(max_length=255, help_text="Name of the last attended institution")
+    score = models.DecimalField(max_digits=7, decimal_places=2, help_text="Obtained marks")
+    mm = models.DecimalField(max_digits=7, decimal_places=2, help_text="Maximum marks")
+    percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
+    rte = models.BooleanField(default=False, help_text="Right to Education (RTE) beneficiary?")
+
+    def __str__(self):
+        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.last_institution}"
+    
+    def calculate_percent(self):
+        """Auto-calculate percentage."""
+        if self.mm > 0:
+            return (self.score / self.mm) * 100
+        return 0
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate percentage before saving
+        self.percent = self.calculate_percent()
+        super().save(*args, **kwargs)
