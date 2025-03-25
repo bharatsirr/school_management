@@ -1,27 +1,49 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
+from PIL import Image
+import io
 
 User = get_user_model()
 
 GENDER_CHOICES = [
+    ('Other', 'Other'),
     ('Male', 'Male'),
     ('Female', 'Female'),
-    ('Other', 'Other'),
 ]
 
 BLOOD_GROUPS = [
-    ('A+', 'A+'), ('A-', 'A-'),
+    ('Unknown', 'Unknown'), ('A+', 'A+'), ('A-', 'A-'),
     ('B+', 'B+'), ('B-', 'B-'),
     ('AB+', 'AB+'), ('AB-', 'AB-'),
-    ('O+', 'O+'), ('O-', 'O-'),
+    ('O+', 'O+'), ('O-', 'O-'), 
 ]
 
 class UserCreationForm(forms.ModelForm):
-    password1 = forms.CharField(label="Password", widget=forms.PasswordInput())
+    password1 = forms.CharField(
+        label="Password", 
+        widget=forms.PasswordInput(),
+        validators=[
+            RegexValidator(
+                regex=r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$',
+                message='Password must be at least 8 characters long, contain a letter, a number, and a special character'
+            )
+        ]
+    )
     password2 = forms.CharField(label="Confirm Password", widget=forms.PasswordInput())
-
-    phone_number = forms.CharField(max_length=15, required=False)
+    cropped_image = forms.FileField(required=True)
+    phone_number = forms.CharField(
+        max_length=15, 
+        required=False,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$', 
+                message='Enter a valid 10-digit phone number.'
+            )
+        ]
+    )
 
     blood_group = forms.ChoiceField(choices=BLOOD_GROUPS, required=False)
 
@@ -57,14 +79,60 @@ class UserCreationForm(forms.ModelForm):
         cleaned_data["email"] = cleaned_data.get("email", "").strip().lower()
 
         return cleaned_data
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Check if email already exists
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("This email is already in use.")
+        return email
+
+    def clean_cropped_image(self):
+        image = self.cleaned_data.get('cropped_image')
+        if image:
+            if image.content_type not in ['image/jpeg', 'image/png']:
+                raise forms.ValidationError("Invalid image type. Use JPEG or PNG.")
+
+            if image.size > 1/2 * 1024 * 1024:  # .5 MB limit
+                raise forms.ValidationError("Image size exceeds 5MB.")
+
+            # Optional: Validate image dimensions
+            try:
+                with Image.open(image) as img:
+                    width, height = img.size
+                    if width < 300 or height < 400:
+                        raise forms.ValidationError("Image must be at least 300x400 pixels.")
+            except Exception:
+                raise forms.ValidationError("Invalid image file.")
+
+            return image
+        raise forms.ValidationError("Profile image is required.")
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        
         if commit:
             user.save()
+            
             # Save phone number
             phone_number = self.cleaned_data.get('phone_number')
             if phone_number:
+                # Assuming there's a related PhoneNumber model
+                # You might need to adjust this based on your exact model
                 user.phones.create(phone_number=phone_number)
+            
+            # Save profile photo
+            profile_photo = self.cleaned_data.get('cropped_image')
+            if profile_photo:
+                # Assuming you have a Documents model for storing files
+                # Adjust the creation method to match your exact model
+                user.documents.create(
+                    file_path=profile_photo,
+                    document_name='profile_photo',
+                    document_type='profile_photo',
+                    document_context='general',
+                )
+        
         return user

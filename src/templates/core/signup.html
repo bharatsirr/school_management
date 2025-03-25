@@ -1,25 +1,220 @@
-{% extends 'base.html' %}
-{% block title %}
-    Sign Up - School Management
-{% endblock title %}
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Sign Up{% endblock %}
 {% block content %}
-    <h2 class="text-3xl font-semibold mb-6 text-gray-800">Create an Account</h2>
-    <form method="post" class="space-y-4 bg-white shadow-md rounded-lg p-8">
-        {% csrf_token %}
-        {% for field in form %}
-            <div>
-                <label class="block font-semibold text-gray-700 mb-1"
-                       for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}<p class="text-sm text-gray-500">{{ field.help_text }}</p>{% endif %}
-                {% for error in field.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-lg p-8 mt-10">
+        <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Create Your Account</h2>
+        <form method="post"
+              enctype="multipart/form-data"
+              class="space-y-4"
+              id="signup-form">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_first_name">First Name</label>
+                    {{ form.first_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.first_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.first_name.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_last_name">Last Name</label>
+                    {{ form.last_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.last_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.last_name.errors }}</p>{% endif %}
+                </div>
             </div>
-        {% endfor %}
-        <button type="submit"
-                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Sign Up</button>
-    </form>
-    <p class="mt-4 text-gray-700">
-        Already have an account?
-        <a href="{% url 'login' %}" class="text-blue-500 hover:underline">Log in here</a>.
-    </p>
-{% endblock content %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_father_name">Father's Name</label>
+                    {{ form.father_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.father_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.father_name.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_mother_name">Mother's Name</label>
+                    {{ form.mother_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.mother_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mother_name.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_username">Username</label>
+                    {{ form.username|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.username.errors %}<p class="text-red-500 text-sm mt-1">{{ form.username.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_email">Email</label>
+                    {{ form.email|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.email.errors %}<p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_password1">Password</label>
+                    {{ form.password1|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.password1.errors %}<p class="text-red-500 text-sm mt-1">{{ form.password1.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_password2">Confirm Password</label>
+                    {{ form.password2|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.password2.errors %}<p class="text-red-500 text-sm mt-1">{{ form.password2.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_village">Village</label>
+                    {{ form.village|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.village.errors %}<p class="text-red-500 text-sm mt-1">{{ form.village.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_pincode">Pincode</label>
+                    {{ form.pincode|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.pincode.errors %}<p class="text-red-500 text-sm mt-1">{{ form.pincode.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_phone_number">Phone Number</label>
+                    {{ form.phone_number|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.phone_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_dob">Date of Birth</label>
+                    {{ form.dob|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.dob.errors %}<p class="text-red-500 text-sm mt-1">{{ form.dob.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_gender">Gender</label>
+                    {{ form.gender|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.gender.errors %}<p class="text-red-500 text-sm mt-1">{{ form.gender.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_blood_group">Blood Group</label>
+                    {{ form.blood_group|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    {% if form.blood_group.errors %}<p class="text-red-500 text-sm mt-1">{{ form.blood_group.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <!-- Profile Photo Upload -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Profile Photo (3:4 Ratio, Min 300x400px)</label>
+                <input type="file"
+                       id="profile_photo"
+                       accept="image/*"
+                       class="hidden"
+                       required>
+                <button type="button"
+                        id="upload-btn"
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Upload Profile Photo
+                </button>
+                <!-- Image preview and cropping container -->
+                <div id="crop-container" class="mt-4 hidden">
+                    <img id="crop-image" class="max-w-full">
+                </div>
+            </div>
+            <!-- Hidden input for cropped image -->
+            <input type="file" name="cropped_image" id="cropped-image-input" hidden>
+            <button type="submit"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                Create Account
+            </button>
+        </form>
+        <p class="mt-4 text-center text-gray-600">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-blue-500 hover:underline">Log in</a>
+        </p>
+    </div>
+    <!-- Cropper.js Library -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('profile_photo');
+            const uploadBtn = document.getElementById('upload-btn');
+            const imageContainer = document.getElementById('crop-container');
+            const cropImage = document.getElementById('crop-image');
+            const croppedImageInput = document.getElementById('cropped-image-input');
+            const signupForm = document.getElementById('signup-form');
+        
+            let cropper = null;
+        
+            // Max width and height for the cropped image
+            const maxWidth = 1200;  // Max width in pixels
+            const maxHeight = 1600; // Max height in pixels
+        
+            // Trigger file input when upload button is clicked
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+        
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        cropImage.src = e.target.result;
+                        imageContainer.classList.remove('hidden');
+                        
+                        // Destroy existing cropper if any
+                        if (cropper) {
+                            cropper.destroy();
+                        }
+        
+                        // Initialize Cropper.js with more flexible options
+                        cropper = new Cropper(cropImage, {
+                            aspectRatio: 3 / 4,
+                            viewMode: 1,
+                            autoCropArea: 0.5,  // Allow more freedom in cropping
+                            movable: true,
+                            zoomable: true,
+                            guides: true,
+                            dragMode: 'move',
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        
+            // Capture cropped image before form submission
+            signupForm.addEventListener('submit', (e) => {
+                if (cropper) {
+                    e.preventDefault();  // Stop form submission
+        
+                    // Get the original image dimensions
+                    const originalWidth = cropper.getImageData().naturalWidth;
+                    const originalHeight = cropper.getImageData().naturalHeight;
+        
+                    // Calculate the scale factor based on maxWidth and maxHeight
+                    let scale = 1;
+                    if (originalWidth > maxWidth || originalHeight > maxHeight) {
+                        const widthScale = maxWidth / originalWidth;
+                        const heightScale = maxHeight / originalHeight;
+                        scale = Math.min(widthScale, heightScale); // Maintain aspect ratio
+                    }
+        
+                    // Get the cropped canvas with the calculated dimensions
+                    const croppedCanvas = cropper.getCroppedCanvas({
+                        width: originalWidth * scale,
+                        height: originalHeight * scale,
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high'
+                    });
+        
+                    croppedCanvas.toBlob((blob) => {
+                        // Create a new file from the blob
+                        const croppedFile = new File([blob], "profile_photo.jpg", { type: "image/jpeg" });
+                        
+                        // Create a new DataTransfer object to attach the cropped image
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(croppedFile);
+                        
+                        // Set the cropped image as the file input
+                        croppedImageInput.files = dataTransfer.files;
+                        
+                        // Submit the form
+                        signupForm.submit();
+                    }, "image/jpeg");
+                }
+            });
+        });
+        
+    </script>
+{% endblock %}
