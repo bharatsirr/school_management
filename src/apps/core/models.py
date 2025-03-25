@@ -1,6 +1,7 @@
+import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-
+from django.conf import settings
 class UserManager(BaseUserManager):
     def create_user(self, username, first_name, last_name, password, **extra_fields):
         if not username:
@@ -71,3 +72,36 @@ class Phone(models.Model):
 
     def __str__(self):
         return self.phone_number
+    
+
+def user_document_upload_path(instance, filename):
+    # Extract file extension
+    ext = filename.split('.')[-1]
+    # Generate unique filename
+    new_filename = f"user_document/{instance.user.id}/{instance.document_name.replace(' ', '_')}_{uuid.uuid4().hex}.{ext}"
+    return new_filename
+
+class UserDocument(models.Model):
+    DOCUMENT_CONTEXT_CHOICES = [
+        ('student_admission', 'Student Admission'),
+        ('staff_certification', 'Staff Certification'),
+        ('previous_institution', 'Previous Institution'),
+        ('rte', 'Right to Education (RTE)'),
+        ('general', 'General'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='documents')
+    file_path = models.FileField(upload_to=user_document_upload_path)
+    document_name = models.CharField(max_length=100)  # e.g., Aadhar, PAN Card
+    document_number = models.CharField(max_length=100, blank=True, null=True)  # Optional for non-ID docs
+    document_type = models.CharField(max_length=50)  # e.g., ID Card, Certificate, Passport, License
+    document_context = models.CharField(max_length=50, choices=DOCUMENT_CONTEXT_CHOICES)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+        verbose_name = "User Document"
+        verbose_name_plural = "User Documents"
+
+    def __str__(self):
+        return f"{self.document_name} - {self.user.username}"

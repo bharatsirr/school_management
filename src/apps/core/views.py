@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.views import View
 from .forms import UserCreationForm
+from django.contrib import messages
 
 
 class HomeView(View):
@@ -14,11 +15,34 @@ class SignupView(View):
         return render(request, 'core/signup.html', {'form': form})
 
     def post(self, request):
-        form = UserCreationForm(request.POST)
+        # Pass both POST data and FILES
+        form = UserCreationForm(request.POST, request.FILES)
+        
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('home')
+            try:
+                # Save the user
+                user = form.save()
+                
+                # Log the user in
+                login(request, user)
+                
+                # Add a success message
+                messages.success(request, 'Account created successfully!')
+                
+                # Redirect to home page
+                return redirect('home')
+            
+            except Exception as e:
+                # Log the error (you might want to use Django's logging)
+                messages.error(request, f'An error occurred: {str(e)}')
+                return render(request, 'core/signup.html', {'form': form})
+        
+        else:
+            # If form is not valid, add form-level errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.capitalize()}: {error}')
+        
         return render(request, 'core/signup.html', {'form': form})
     
 

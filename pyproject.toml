@@ -17,6 +17,7 @@ dependencies = [
     "django-storages (>=1.14.5,<2.0.0)",
     "dj-database-url (>=2.3.0,<3.0.0)",
     "reportlab (>=4.3.1,<5.0.0)",
+    "django-widget-tweaks (>=1.5.0,<2.0.0)",
 ]
 
 [project.optional-dependencies]

@@ -7,6 +7,9 @@ module.exports = {
             center: true,
         },
         extend: {
+            boxShadow: {
+                'inset-bharat': '10 10 -10 1px rgba(255, 255, 255, 0.1)',
+            },
             colors: {
                 customBlue: '#1e40af',
             },
