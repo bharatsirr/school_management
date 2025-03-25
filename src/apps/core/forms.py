@@ -4,7 +4,9 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
-import io
+
+from apps.core.models import Family, FamilyMember
+
 
 User = get_user_model()
 
@@ -15,7 +17,7 @@ GENDER_CHOICES = [
 ]
 
 BLOOD_GROUPS = [
-    ('Unknown', 'Unknown'), ('A+', 'A+'), ('A-', 'A-'),
+    ('None', 'None'), ('A+', 'A+'), ('A-', 'A-'),
     ('B+', 'B+'), ('B-', 'B-'),
     ('AB+', 'AB+'), ('AB-', 'AB-'),
     ('O+', 'O+'), ('O-', 'O-'), 
@@ -76,6 +78,7 @@ class UserCreationForm(forms.ModelForm):
         cleaned_data["last_name"] = cleaned_data.get("last_name", "").strip().title()
         cleaned_data["father_name"] = cleaned_data.get("father_name", "").strip().title()
         cleaned_data["mother_name"] = cleaned_data.get("mother_name", "").strip().title()
+        cleaned_data["village"] = cleaned_data.get("village", "").strip().title()
         cleaned_data["email"] = cleaned_data.get("email", "").strip().lower()
 
         return cleaned_data
@@ -136,3 +139,25 @@ class UserCreationForm(forms.ModelForm):
                 )
         
         return user
+    
+
+
+class FamilyForm(forms.ModelForm):
+    class Meta:
+        model = Family
+        fields = ['family_name']
+
+
+class FamilyMemberForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        family = kwargs.pop('family', None)
+        super().__init__(*args, **kwargs)
+
+        existing_users = family.members.values_list('user', flat=True) if family else []
+        self.fields['user'].queryset = User.objects.exclude(id__in=existing_users).order_by('-created_at')
+    class Meta:
+        model = FamilyMember
+        fields = ['user','member_type', 'is_alive']
+        widgets = {
+            'member_type': forms.Select(choices=FamilyMember.MemberType.choices),
+        }

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Create Family{% endblock %}
+{% block content %}
+    <h2 class="text-2xl font-semibold mb-6">Create Family</h2>
+    <form method="post" class="space-y-4 bg-white p-6 shadow rounded-lg">
+        {% csrf_token %}
+        <div>
+            <label class="block text-gray-700 mb-2">Family Name</label>
+            {{ form.family_name }}
+        </div>
+        <button type="submit"
+                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Family</button>
+    </form>
+    <a href="{% url 'family-list' %}"
+       class="text-blue-600 mt-4 inline-block">Back to Families</a>
+    <style>
+    input {
+        @apply border border-gray-300 p-2 rounded w-full;
+    }
+    </style>
+{% endblock %}

@@ -105,3 +105,28 @@ class UserDocument(models.Model):
 
     def __str__(self):
         return f"{self.document_name} - {self.user.username}"
+    
+
+
+class Family(models.Model):
+    family_name = models.CharField(max_length=255, unique=True)
+    wallet_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return self.family_name
+
+
+class FamilyMember(models.Model):
+    class MemberType(models.TextChoices):
+        CHILD = 'child', 'Child'
+        PARENT = 'parent', 'Parent'
+        GRANDPARENT = 'grandparent', 'Grandparent'
+        OTHER = 'other', 'Other'
+
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='members')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='family_member')
+    member_type = models.CharField(max_length=20, choices=MemberType.choices)
+    is_alive = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.member_type}"
