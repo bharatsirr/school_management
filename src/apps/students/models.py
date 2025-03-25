@@ -1,3 +1,197 @@
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Max
+from datetime import datetime
+User = get_user_model()
+class Student(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student')
+    height = models.FloatField(help_text="Height in cm")
+    weight = models.FloatField(help_text="Weight in kg")
+    apaar_id = models.CharField(max_length=20, unique=True)
+    pen_number = models.CharField(max_length=20, unique=True)
+    is_active = models.BooleanField(default=True)
 
-# Create your models here.
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+    
+
+class StudentSerial(models.Model):
+    SCHOOL_CHOICES = [
+        ('KDIC', 'KDIC'),
+        ('KDPV', 'KDPV'),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='serials')
+    school_name = models.CharField(max_length=10, choices=SCHOOL_CHOICES)
+    serial_number = models.CharField(max_length=20, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.student.user.first_name} {self.student.user.last_name} - { self.school_name} - {self.serial_number}"
+    
+
+
+class StudentAdmission(models.Model):
+
+    def generate_session():
+        today = datetime.today()  # Get the current date
+        year = today.year
+        month = today.month
+        
+        if month >= 4:  # From April to December
+            session = f"{year}-{year + 1}"
+        else:  # From January to March
+            session = f"{year - 1}-{year}"
+        
+        return session
+
+    SECTION_CHOICES = [
+        ('A', 'A'),
+        ('B', 'B'),
+        ('C', 'C'),
+        ('D', 'D'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('passed', 'Passed'),
+        ('failed', 'Failed'),
+    ]
+
+    CLASS_CHOICES = [
+        ('NUR', 'NUR'),
+        ('LKG', 'LKG'),
+        ('UKG', 'UKG'),
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('5', '5'),
+        ('6', '6'),
+        ('7', '7'),
+        ('8', '8'),
+        ('9', '9'),
+        ('10', '10'),
+        ('11', '11'),
+        ('12', '12'),
+    ]
+    
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admissions')
+    section = models.CharField(max_length=1, choices=SECTION_CHOICES, default='A')
+    serial_no = models.ForeignKey(StudentSerial, on_delete=models.CASCADE, related_name='admissions')
+    is_rte = models.BooleanField(default=False)
+    admission_date = models.DateTimeField(auto_now_add=True)
+    session = models.CharField(max_length=9, help_text="e.g., 2023-2024 leave blank to set to current session", default=generate_session)
+    student_class = models.CharField(max_length=20, help_text="Class (e.g., 10, 12, etc.)" , choices=CLASS_CHOICES)
+    fee_structure = models.TextField(help_text="Details about the fee structure")
+    total_fee = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total fee amount")
+    no_dues = models.BooleanField(default=False)
+    roll_number = models.PositiveIntegerField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+
+    def __str__(self):
+        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.student_class} {self.section}"
+
+
+    @staticmethod
+    def get_roll_number(student_class, section, session):
+        """
+        Returns the next roll number for a given class, section, and session.
+        """
+        last_roll_number = StudentAdmission.objects.filter(
+            student_class=student_class,
+            section=section,
+            session=session
+        ).aggregate(Max('roll_number'))
+
+        # If no previous roll numbers, start from 1. Otherwise, increment the last roll number by 1.
+        if last_roll_number['roll_number__max']:
+            return last_roll_number['roll_number__max'] + 1
+        return 1  # Start from 1 if no roll number exists yet.
+    
+
+    def generate_kdpv_serial(self, student):
+        """
+        Generate or retrieve the KDPV serial number for students in class below 6.
+        """
+        year = datetime.now().year
+        school_code = 'kdpv'
+        
+        # Check if the student already has a KDPV serial number for this year
+        serial = StudentSerial.objects.filter(
+            student=student,
+            school_name='KDPV'
+        ).order_by('-serial_number').first()  # Get the last created serial for KDPV
+        
+        if serial:
+            return serial.serial_number
+        
+        # If no serial exists, generate a new one
+        last_serial = StudentSerial.objects.filter(
+            school_name='KDPV'
+        ).order_by('-serial_number').first()
+        
+        new_serial_number = f"{school_code}{year}00001" if not last_serial else f"{school_code}{year}{int(last_serial.serial_number[-5:]) + 1:05}"
+        
+        # Create and return the new serial number
+        new_serial = StudentSerial.objects.create(
+            student=student,
+            school_name='KDPV',
+            serial_number=new_serial_number
+        )
+        return new_serial.serial_number
+
+    def generate_kdic_serial(self, student):
+        """
+        Generate or retrieve the KDIC serial number for students in class 6-12.
+        """
+        year = datetime.now().year
+        school_code = 'kdic'
+        
+        # Check if the student already has a KDIC serial number for this section
+        serial = StudentSerial.objects.filter(
+            student=student,
+            school_name='KDIC'
+        ).order_by('-serial_number').first()  # Get the last created serial for KDIC
+        
+        if serial:
+            return serial.serial_number
+        
+        # If no serial exists, generate a new one
+        last_serial = StudentSerial.objects.filter(
+            school_name='KDIC'
+        ).order_by('-serial_number').first()
+        
+        new_serial_number = f"{school_code}{year}00001" if not last_serial else f"{school_code}{year}{int(last_serial.serial_number[-5:]) + 1:05}"
+        
+        # Create and return the new serial number
+        new_serial = StudentSerial.objects.create(
+            student=student,
+            school_name='KDIC',
+            serial_number=new_serial_number
+        )
+        return new_serial.serial_number
+
+    def save(self, *args, **kwargs):
+        # Ensure serial number is created based on the class and student
+        if not self.pk:  # Only do this for new records
+            if self.student_class in ['NUR', 'LKG', 'UKG', '1', '2', '3', '4', '5']:  # Class below 6
+                serial_number = self.generate_kdpv_serial(self.student)
+                serial = StudentSerial.objects.get_or_create(
+                    student=self.student,
+                    school_name='KDPV',
+                    serial_number=serial_number
+                )[0]  # [0] to get the instance
+                self.serial_no = serial
+            elif self.student_class in ['6', '7', '8', '9', '10', '11', '12']:  # Class 6 and above
+                serial_number = self.generate_kdic_serial(self.student)
+                serial = StudentSerial.objects.get_or_create(
+                    student=self.student,
+                    school_name='KDIC',
+                    serial_number=serial_number
+                )[0]  # [0] to get the instance
+                self.serial_no = serial
+        
+        if not self.pk:  # Ensure roll number is assigned only for new entries
+            self.roll_number = self.get_roll_number(self.student_class, self.section, self.session)
+        super().save(*args, **kwargs)
