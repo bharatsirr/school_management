@@ -2,6 +2,9 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Max
 from datetime import datetime
+from apps.finance.models import PaymentTransaction
+
+
 User = get_user_model()
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student')
@@ -218,3 +221,77 @@ class PreviousInstitutionDetail(models.Model):
         # Auto-calculate percentage before saving
         self.percent = self.calculate_percent()
         super().save(*args, **kwargs)
+
+
+
+
+
+class ActiveFeeStructureManager(models.Manager):
+    """Custom manager to return only active fee structures."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+class FeeStructure(models.Model):
+    name = models.CharField(max_length=255, unique=True, help_text="e.g., class_6_fees")
+    is_active = models.BooleanField(default=True)
+    start_date = models.DateField(help_text="Fee structure validity start date")
+    end_date = models.DateField(help_text="Fee structure validity end date")
+
+    # Custom manager for active fee structures
+    objects = models.Manager()  # Default manager
+    active_objects = ActiveFeeStructureManager()  # Custom manager
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Fee Structure"
+        verbose_name_plural = "Fee Structures"
+
+    def deactivate(self):
+        """Deactivate this fee structure."""
+        self.is_active = False
+        self.save()
+
+
+
+class FeeType(models.Model):
+    fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="fee_types")
+    name = models.CharField(max_length=100, help_text="e.g., tuition, exam")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount for this fee type")
+
+    def __str__(self):
+        return f"{self.name} - {self.amount}"
+
+    class Meta:
+        verbose_name = "Fee Type"
+        verbose_name_plural = "Fee Types"
+
+
+
+from django.utils import timezone
+
+class FeeDue(models.Model):
+    admission = models.ForeignKey('StudentAdmission', on_delete=models.CASCADE, related_name="fee_dues")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Due amount")
+    fee_type = models.ForeignKey(FeeType, on_delete=models.CASCADE, related_name="fee_dues")
+    transaction = models.ForeignKey('finance.PaymentTransaction', on_delete=models.SET_NULL, null=True, blank=True, related_name="fee_dues")
+    paid = models.BooleanField(default=False, help_text="Has this fee been paid?")
+    paid_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when fee was paid")
+
+    def __str__(self):
+        return f"Due: {self.amount} for {self.fee_type.name}"
+
+    class Meta:
+        verbose_name = "Fee Due"
+        verbose_name_plural = "Fee Dues"
+
+    def mark_as_paid(self, transaction=None):
+        """Mark the fee as paid."""
+        self.paid = True
+        self.paid_at = timezone.now()
+        if transaction:
+            self.transaction = transaction
+        self.save()
+
+

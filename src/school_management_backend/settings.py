@@ -34,6 +34,12 @@ INSTALLED_APPS = [
     # Add your apps here
     'apps.core',
     'apps.students',
+    'apps.staff',
+    'apps.office',
+    'apps.finance',
+    'apps.reports',
+    'apps.sales',
+    'apps.attendance',
 ]
 
 MIDDLEWARE = [

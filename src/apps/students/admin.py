@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, StudentSerial, StudentAdmission
+from .models import Student, StudentSerial, StudentAdmission, FeeStructure, PreviousInstitutionDetail, FeeDue, FeeType
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -15,3 +15,8 @@ class StudentSerialAdmin(admin.ModelAdmin):
 class StudentAdmissionAdmin(admin.ModelAdmin):
     list_display = ('student', 'student_class', 'section', 'session', 'roll_number', 'status')
     search_fields = ('student__user__username', 'student_class', 'session')
+    
+admin.site.register(PreviousInstitutionDetail)
+admin.site.register(FeeStructure)
+admin.site.register(FeeDue)
+admin.site.register(FeeType)
