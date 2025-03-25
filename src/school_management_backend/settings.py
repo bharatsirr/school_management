@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     # Add your apps here
     'apps.core',
+    'apps.students',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +131,12 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_REDIRECT_URL = 'home'
 
 LOGOUT_REDIRECT_URL = 'home'
+
+
+# settings.py
+if DEBUG:
+    MIDDLEWARE += ['django.middleware.cache.UpdateCacheMiddleware', 'django.middleware.cache.FetchFromCacheMiddleware']
+
+    CACHE_MIDDLEWARE_ALIAS = 'default'
+    CACHE_MIDDLEWARE_SECONDS = 0  # Disable caching entirely
+    CACHE_MIDDLEWARE_KEY_PREFIX = 'no_cache_'
