@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.db.models import Max
 from datetime import datetime
 from apps.finance.models import PaymentTransaction
@@ -7,7 +8,7 @@ from apps.finance.models import PaymentTransaction
 
 User = get_user_model()
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student', unique=True)
     height = models.FloatField(help_text="Height in cm")
     weight = models.FloatField(help_text="Weight in kg")
     apaar_id = models.CharField(max_length=20, unique=True)
@@ -28,6 +29,19 @@ class StudentSerial(models.Model):
     school_name = models.CharField(max_length=10, choices=SCHOOL_CHOICES)
     serial_number = models.CharField(max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
+
+    def clean(self):
+        # Check if a StudentSerial already exists for this student and school_name
+        if StudentSerial.objects.filter(student=self.student, school_name=self.school_name).exists():
+            raise ValidationError(f"A serial number already exists for {self.student} at {self.school_name}.")
+
+    def save(self, *args, **kwargs):
+        # Ensure validation before saving
+        self.full_clean()  # Calls the clean() method
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.school_name} - {self.serial_number}"
 
     def __str__(self):
         return f"{self.student.user.first_name} {self.student.user.last_name} - { self.school_name} - {self.serial_number}"

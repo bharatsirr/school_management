@@ -17,7 +17,7 @@ class HomeView(View):
 class SignupView(View):
     def get(self, request):
         form = UserCreationForm()
-        return render(request, 'core/signup.html', {'form': form})
+        return render(request, 'registration/signup.html', {'form': form})
 
     def post(self, request):
         # Pass both POST data and FILES
@@ -40,7 +40,7 @@ class SignupView(View):
             except Exception as e:
                 # Log the error (you might want to use Django's logging)
                 messages.error(request, f'An error occurred: {str(e)}')
-                return render(request, 'core/signup.html', {'form': form})
+                return render(request, 'registration/signup.html', {'form': form})
         
         else:
             # If form is not valid, add form-level errors to messages
