@@ -1,6 +1,8 @@
 {% extends "base.html" %}
-{% load widget_tweaks %}
-{% block title %}Sign Up{% endblock %}
+{% load tailwind_filters %}
+{% block title %}
+    Sign Up
+{% endblock title %}
 {% block content %}
     <div class="max-w-xl mx-auto bg-white shadow-lg rounded-lg p-8 mt-10">
         <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Create Your Account</h2>
@@ -12,82 +14,146 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_first_name">First Name</label>
-                    {{ form.first_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="first_name"
+                           id="id_first_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.first_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.first_name.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_last_name">Last Name</label>
-                    {{ form.last_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="last_name"
+                           id="id_last_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.last_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.last_name.errors }}</p>{% endif %}
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_father_name">Father's Name</label>
-                    {{ form.father_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="father_name"
+                           id="id_father_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.father_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.father_name.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_mother_name">Mother's Name</label>
-                    {{ form.mother_name|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="mother_name"
+                           id="id_mother_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.mother_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mother_name.errors }}</p>{% endif %}
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_username">Username</label>
-                    {{ form.username|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="username"
+                           id="id_username"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.username.errors %}<p class="text-red-500 text-sm mt-1">{{ form.username.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_email">Email</label>
-                    {{ form.email|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="email"
+                           name="email"
+                           id="id_email"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.email.errors %}<p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>{% endif %}
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_password1">Password</label>
-                    {{ form.password1|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="password"
+                           name="password1"
+                           id="id_password1"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.password1.errors %}<p class="text-red-500 text-sm mt-1">{{ form.password1.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_password2">Confirm Password</label>
-                    {{ form.password2|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="password"
+                           name="password2"
+                           id="id_password2"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.password2.errors %}<p class="text-red-500 text-sm mt-1">{{ form.password2.errors }}</p>{% endif %}
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_village">Village</label>
-                    {{ form.village|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="village"
+                           id="id_village"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.village.errors %}<p class="text-red-500 text-sm mt-1">{{ form.village.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_pincode">Pincode</label>
-                    {{ form.pincode|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="pincode"
+                           id="id_pincode"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.pincode.errors %}<p class="text-red-500 text-sm mt-1">{{ form.pincode.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_phone_number">Phone Number</label>
-                    {{ form.phone_number|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="text"
+                           name="phone_number"
+                           id="id_phone_number"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.phone_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors }}</p>{% endif %}
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_dob">Date of Birth</label>
-                    {{ form.dob|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <input type="date"
+                           name="dob"
+                           id="id_dob"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     {% if form.dob.errors %}<p class="text-red-500 text-sm mt-1">{{ form.dob.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_gender">Gender</label>
-                    {{ form.gender|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <select name="gender"
+                            id="id_gender"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.gender.field.choices %}
+                            <option value="{{ choice.0 }}"
+                                    {% if form.gender.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                        {% endfor %}
+                    </select>
                     {% if form.gender.errors %}<p class="text-red-500 text-sm mt-1">{{ form.gender.errors }}</p>{% endif %}
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_blood_group">Blood Group</label>
-                    {{ form.blood_group|add_class:"border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                    <select name="blood_group"
+                            id="id_blood_group"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.blood_group.field.choices %}
+                            <option value="{{ choice.0 }}"
+                                    {% if form.blood_group.value == choice.0 %}selected{% endif %}>
+                                {{ choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
                     {% if form.blood_group.errors %}<p class="text-red-500 text-sm mt-1">{{ form.blood_group.errors }}</p>{% endif %}
                 </div>
             </div>
@@ -106,7 +172,11 @@
                 </button>
                 <!-- Image preview and cropping container -->
                 <div id="crop-container" class="mt-4 hidden">
-                    <img id="crop-image" class="max-w-full">
+                    <img id="crop-image"
+                         class="max-w-full"
+                         width="100%"
+                         height="100%"
+                         alt="Profile Photo">
                 </div>
             </div>
             <!-- Hidden input for cropped image -->
@@ -217,4 +287,4 @@
         });
         
     </script>
-{% endblock %}
+{% endblock content %}

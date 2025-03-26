@@ -95,7 +95,7 @@ class UserDocument(models.Model):
     document_name = models.CharField(max_length=100)  # e.g., Aadhar, PAN Card
     document_number = models.CharField(max_length=100, blank=True, null=True)  # Optional for non-ID docs
     document_type = models.CharField(max_length=50)  # e.g., ID Card, Certificate, Passport, License
-    document_context = models.CharField(max_length=50, choices=DOCUMENT_CONTEXT_CHOICES)
+    document_context = models.CharField(max_length=50, choices=DOCUMENT_CONTEXT_CHOICES, default='general')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

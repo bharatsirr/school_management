@@ -30,7 +30,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third-party apps
-    'widget_tweaks',
+    'crispy_forms',
+    'crispy_tailwind',
     # Add your apps here
     'apps.core',
     'apps.students',
@@ -138,8 +139,11 @@ LOGIN_REDIRECT_URL = 'home'
 
 LOGOUT_REDIRECT_URL = 'home'
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 
-# settings.py
+CRISPY_TEMPLATE_PACK = "tailwind"
+
+
 if DEBUG:
     MIDDLEWARE += ['django.middleware.cache.UpdateCacheMiddleware', 'django.middleware.cache.FetchFromCacheMiddleware']
 

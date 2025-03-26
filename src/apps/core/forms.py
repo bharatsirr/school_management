@@ -1,3 +1,4 @@
+from django.db import transaction
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
@@ -113,32 +114,33 @@ class UserCreationForm(forms.ModelForm):
         raise forms.ValidationError("Profile image is required.")
 
     def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
-        
-        if commit:
-            user.save()
+        with transaction.atomic():
+            user = super().save(commit=False)
+            user.set_password(self.cleaned_data["password1"])
             
-            # Save phone number
-            phone_number = self.cleaned_data.get('phone_number')
-            if phone_number:
-                # Assuming there's a related PhoneNumber model
-                # You might need to adjust this based on your exact model
-                user.phones.create(phone_number=phone_number)
+            if commit:
+                user.save()
+                
+                # Save phone number
+                phone_number = self.cleaned_data.get('phone_number')
+                if phone_number:
+                    # Assuming there's a related PhoneNumber model
+                    # You might need to adjust this based on your exact model
+                    user.phones.create(phone_number=phone_number)
+                
+                # Save profile photo
+                profile_photo = self.cleaned_data.get('cropped_image')
+                if profile_photo:
+                    # Assuming you have a Documents model for storing files
+                    # Adjust the creation method to match your exact model
+                    user.documents.create(
+                        file_path=profile_photo,
+                        document_name='profile_photo',
+                        document_type='profile_photo',
+                        document_context='general',
+                    )
             
-            # Save profile photo
-            profile_photo = self.cleaned_data.get('cropped_image')
-            if profile_photo:
-                # Assuming you have a Documents model for storing files
-                # Adjust the creation method to match your exact model
-                user.documents.create(
-                    file_path=profile_photo,
-                    document_name='profile_photo',
-                    document_type='profile_photo',
-                    document_context='general',
-                )
-        
-        return user
+            return user
     
 
 
