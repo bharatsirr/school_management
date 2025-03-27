@@ -99,7 +99,7 @@ class UserCreationForm(forms.ModelForm):
                 raise forms.ValidationError("Invalid image type. Use JPEG or PNG.")
 
             if image.size > 1/2 * 1024 * 1024:  # .5 MB limit
-                raise forms.ValidationError("Image size exceeds 5MB.")
+                raise forms.ValidationError("Image size exceeds 0.5MB.")
 
             # Optional: Validate image dimensions
             try:

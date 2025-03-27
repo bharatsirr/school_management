@@ -148,7 +148,8 @@ class StudentAdmission(models.Model):
             school_name='KDPV'
         ).order_by('-serial_number').first()
         
-        new_serial_number = f"{school_code}{year}00001" if not last_serial else f"{school_code}{year}{int(last_serial.serial_number[-5:]) + 1:05}"
+        new_serial_number = f"{school_code}{year}0001" if not last_serial else f"{school_code}{year}{int(last_serial.serial_number[-4:]) + 1:04}"
+
         
         # Create and return the new serial number
         new_serial = StudentSerial.objects.create(
@@ -179,7 +180,8 @@ class StudentAdmission(models.Model):
             school_name='KDIC'
         ).order_by('-serial_number').first()
         
-        new_serial_number = f"{school_code}{year}00001" if not last_serial else f"{school_code}{year}{int(last_serial.serial_number[-5:]) + 1:05}"
+        new_serial_number = f"{school_code}{year}0001" if not last_serial else f"{school_code}{year}{int(last_serial.serial_number[-4:]) + 1:04}"
+
         
         # Create and return the new serial number
         new_serial = StudentSerial.objects.create(

@@ -2,6 +2,9 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.conf import settings
+
+
+
 class UserManager(BaseUserManager):
     def create_user(self, username, first_name, last_name, password, **extra_fields):
         if not username:
