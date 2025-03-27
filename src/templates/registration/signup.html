@@ -18,7 +18,7 @@
                            name="first_name"
                            id="id_first_name"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.first_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.first_name.errors }}</p>{% endif %}
                 </div>
                 <div>
@@ -27,7 +27,7 @@
                            name="last_name"
                            id="id_last_name"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.last_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.last_name.errors }}</p>{% endif %}
                 </div>
             </div>
@@ -38,7 +38,7 @@
                            name="father_name"
                            id="id_father_name"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.father_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.father_name.errors }}</p>{% endif %}
                 </div>
                 <div>
@@ -47,7 +47,7 @@
                            name="mother_name"
                            id="id_mother_name"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.mother_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mother_name.errors }}</p>{% endif %}
                 </div>
             </div>
@@ -58,7 +58,7 @@
                            name="username"
                            id="id_username"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.username.errors %}<p class="text-red-500 text-sm mt-1">{{ form.username.errors }}</p>{% endif %}
                 </div>
                 <div>
@@ -67,7 +67,7 @@
                            name="email"
                            id="id_email"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.email.errors %}<p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>{% endif %}
                 </div>
             </div>
@@ -78,7 +78,7 @@
                            name="password1"
                            id="id_password1"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.password1.errors %}<p class="text-red-500 text-sm mt-1">{{ form.password1.errors }}</p>{% endif %}
                 </div>
                 <div>
@@ -87,7 +87,7 @@
                            name="password2"
                            id="id_password2"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.password2.errors %}<p class="text-red-500 text-sm mt-1">{{ form.password2.errors }}</p>{% endif %}
                 </div>
             </div>
@@ -98,7 +98,7 @@
                            name="village"
                            id="id_village"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.village.errors %}<p class="text-red-500 text-sm mt-1">{{ form.village.errors }}</p>{% endif %}
                 </div>
                 <div>
@@ -107,7 +107,7 @@
                            name="pincode"
                            id="id_pincode"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.pincode.errors %}<p class="text-red-500 text-sm mt-1">{{ form.pincode.errors }}</p>{% endif %}
                 </div>
                 <div>
@@ -116,25 +116,25 @@
                            name="phone_number"
                            id="id_phone_number"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.phone_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors }}</p>{% endif %}
                 </div>
-            </div>
-            <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_dob">Date of Birth</label>
                     <input type="date"
                            name="dob"
                            id="id_dob"
                            required
-                           class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.dob.errors %}<p class="text-red-500 text-sm mt-1">{{ form.dob.errors }}</p>{% endif %}
                 </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_gender">Gender</label>
                     <select name="gender"
                             id="id_gender"
-                            class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                         {% for choice in form.gender.field.choices %}
                             <option value="{{ choice.0 }}"
                                     {% if form.gender.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
@@ -146,7 +146,7 @@
                     <label class="block text-gray-700 font-medium mb-2" for="id_blood_group">Blood Group</label>
                     <select name="blood_group"
                             id="id_blood_group"
-                            class="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                         {% for choice in form.blood_group.field.choices %}
                             <option value="{{ choice.0 }}"
                                     {% if form.blood_group.value == choice.0 %}selected{% endif %}>
