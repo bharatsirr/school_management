@@ -200,6 +200,20 @@ class StudentRegistrationForm(forms.Form):
             self.cleaned_data["rte"] = False
         return self.cleaned_data["rte"]
     
+    def clean_apaar_id(self):
+        apaar_id = self.cleaned_data.get("apaar_id")
+        if apaar_id:
+            if apaar_id == "":
+                self.cleaned_data["apaar_id"] = None
+        return self.cleaned_data["apaar_id"]
+    
+    def clean_pen_number(self):
+        pen_number = self.cleaned_data.get("pen_number")
+        if pen_number:
+            if pen_number == "":
+                self.cleaned_data["pen_number"] = None
+        return self.cleaned_data["pen_number"]
+    
     def clean_is_whatsapp(self):
         is_whatsapp = self.cleaned_data.get("is_whatsapp")
         if is_whatsapp == True:
