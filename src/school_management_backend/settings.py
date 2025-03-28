@@ -118,6 +118,7 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Email configuration (example)
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND') if not DEBUG else 'django.core.mail.backends.console.EmailBackend'

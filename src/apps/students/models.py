@@ -3,16 +3,18 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Max
 from datetime import datetime
-from apps.finance.models import PaymentTransaction
+
 
 
 User = get_user_model()
+
+
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student', unique=True)
-    height = models.FloatField(help_text="Height in cm")
-    weight = models.FloatField(help_text="Weight in kg")
-    apaar_id = models.CharField(max_length=20, unique=True)
-    pen_number = models.CharField(max_length=20, unique=True)
+    height = models.FloatField(help_text="Height in cm", blank=True, null=True)
+    weight = models.FloatField(help_text="Weight in kg", blank=True, null=True)
+    apaar_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    pen_number = models.CharField(max_length=20, unique=True, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -43,13 +45,11 @@ class StudentSerial(models.Model):
     def __str__(self):
         return f"{self.student.user.first_name} {self.student.user.last_name} - {self.school_name} - {self.serial_number}"
 
-    def __str__(self):
-        return f"{self.student.user.first_name} {self.student.user.last_name} - { self.school_name} - {self.serial_number}"
     
 
 
 class StudentAdmission(models.Model):
-
+    
     def generate_session():
         today = datetime.today()  # Get the current date
         year = today.year
@@ -61,6 +61,22 @@ class StudentAdmission(models.Model):
             session = f"{year - 1}-{year}"
         
         return session
+    
+    @staticmethod
+    def get_roll_number(student_class, section, session):
+        """
+        Returns the next roll number for a given class, section, and session.
+        """
+        last_roll_number = StudentAdmission.objects.filter(
+            student_class=student_class,
+            section=section,
+            session=session
+        ).aggregate(Max('roll_number'))
+
+        # If no previous roll numbers, start from 1. Otherwise, increment the last roll number by 1.
+        if last_roll_number['roll_number__max']:
+            return last_roll_number['roll_number__max'] + 1
+        return 1  # Start from 1 if no roll number exists yet.
 
     SECTION_CHOICES = [
         ('A', 'A'),
@@ -110,22 +126,6 @@ class StudentAdmission(models.Model):
         return f"{self.student.user.first_name} {self.student.user.last_name} - {self.student_class} {self.section}"
 
 
-    @staticmethod
-    def get_roll_number(student_class, section, session):
-        """
-        Returns the next roll number for a given class, section, and session.
-        """
-        last_roll_number = StudentAdmission.objects.filter(
-            student_class=student_class,
-            section=section,
-            session=session
-        ).aggregate(Max('roll_number'))
-
-        # If no previous roll numbers, start from 1. Otherwise, increment the last roll number by 1.
-        if last_roll_number['roll_number__max']:
-            return last_roll_number['roll_number__max'] + 1
-        return 1  # Start from 1 if no roll number exists yet.
-    
 
     def generate_kdpv_serial(self, student):
         """
@@ -203,6 +203,18 @@ class StudentAdmission(models.Model):
                 )[0]  # [0] to get the instance
                 self.serial_no = serial
             elif self.student_class in ['6', '7', '8', '9', '10', '11', '12']:  # Class 6 and above
+                # deactivate existing kdpv serial
+                existing_kdpv_serial = StudentSerial.objects.filter(
+                    student=self.student,
+                    school_name='KDPV',
+                    is_active=True
+                )
+                # deactivate existing kdpv serial
+                if existing_kdpv_serial:
+                    existing_kdpv_serial.is_active = False
+                    existing_kdpv_serial.save()
+
+                # generate new kdic serial
                 serial_number = self.generate_kdic_serial(self.student)
                 serial = StudentSerial.objects.get_or_create(
                     student=self.student,
@@ -211,6 +223,11 @@ class StudentAdmission(models.Model):
                 )[0]  # [0] to get the instance
                 self.serial_no = serial
         
+        # auto assign fee structure
+        fee_structure_name = f"class_{self.student_class}_fees".lower()
+        fee_structure = FeeStructure.active_objects.get(name=fee_structure_name)
+        self.fee_structure = fee_structure
+        
         if not self.pk:  # Ensure roll number is assigned only for new entries
             self.roll_number = self.get_roll_number(self.student_class, self.section, self.session)
         super().save(*args, **kwargs)
@@ -218,14 +235,14 @@ class StudentAdmission(models.Model):
 
 class PreviousInstitutionDetail(models.Model):
     student = models.OneToOneField('Student', on_delete=models.CASCADE, related_name='previous_institution')
-    last_institution = models.CharField(max_length=255, help_text="Name of the last attended institution")
+    previous_institution = models.CharField(max_length=255, help_text="Name of the last attended institution")
     score = models.DecimalField(max_digits=7, decimal_places=2, help_text="Obtained marks")
     mm = models.DecimalField(max_digits=7, decimal_places=2, help_text="Maximum marks")
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
-    rte = models.BooleanField(default=False, help_text="Right to Education (RTE) beneficiary?")
+    rte = models.BooleanField(default=False, help_text="Was the student a Right to Education (RTE) beneficiary in the previous institution ?")
 
     def __str__(self):
-        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.last_institution}"
+        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.previous_institution}"
     
     def calculate_percent(self):
         """Auto-calculate percentage."""
@@ -248,10 +265,10 @@ class ActiveFeeStructureManager(models.Manager):
         return super().get_queryset().filter(is_active=True)
 
 class FeeStructure(models.Model):
-    name = models.CharField(max_length=255, unique=True, help_text="e.g., class_6_fees")
+    name = models.CharField(max_length=255, help_text="e.g., class_6_fees")
     is_active = models.BooleanField(default=True)
-    start_date = models.DateField(help_text="Fee structure validity start date")
-    end_date = models.DateField(help_text="Fee structure validity end date")
+    start_date = models.DateField(help_text="Fee structure validity start date", default=datetime.now)
+    end_date = models.DateField(help_text="Fee structure validity end date", blank=True, null=True)
 
     # Custom manager for active fee structures
     objects = models.Manager()  # Default manager

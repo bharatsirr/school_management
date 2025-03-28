@@ -11,18 +11,7 @@ from apps.core.models import Family, FamilyMember
 
 User = get_user_model()
 
-GENDER_CHOICES = [
-    ('Other', 'Other'),
-    ('Male', 'Male'),
-    ('Female', 'Female'),
-]
 
-BLOOD_GROUPS = [
-    ('None', 'None'), ('A+', 'A+'), ('A-', 'A-'),
-    ('B+', 'B+'), ('B-', 'B-'),
-    ('AB+', 'AB+'), ('AB-', 'AB-'),
-    ('O+', 'O+'), ('O-', 'O-'), 
-]
 
 class UserCreationForm(forms.ModelForm):
     password1 = forms.CharField(
@@ -48,9 +37,9 @@ class UserCreationForm(forms.ModelForm):
         ]
     )
 
-    blood_group = forms.ChoiceField(choices=BLOOD_GROUPS, required=False)
+    blood_group = forms.ChoiceField(choices=User.BLOOD_GROUPS, required=False)
 
-    gender = forms.ChoiceField(choices=GENDER_CHOICES, required=False)
+    gender = forms.ChoiceField(choices=User.GENDER_CHOICES, required=False)
     dob = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
         required=False,
@@ -109,8 +98,9 @@ class UserCreationForm(forms.ModelForm):
                         raise forms.ValidationError("Image must be at least 300x400 pixels.")
             except Exception:
                 raise forms.ValidationError("Invalid image file.")
-
-            return image
+            
+            self.cleaned_data["cropped_image"] = image
+            return self.cleaned_data["cropped_image"]
         raise forms.ValidationError("Profile image is required.")
 
     def save(self, commit=True):
