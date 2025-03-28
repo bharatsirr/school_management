@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% block content %}
+    <div class="container bg-white max-w-2xl rounded-lg shadow-md mx-auto px-4 py-8">
+        {% if form.errors %}
+            <div class="errors mb-4 bg-red-500 text-2xl text-white p-4 rounded-lg">
+                <ul>
+                    {% for field, error in form.errors.items %}<li>{{ field }}: {{ error }}</li>{% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <h1 class="text-2xl font-bold mb-4">Student Registration</h1>
+        <form method="post"
+              enctype="multipart/form-data"
+              class="space-y-4"
+              id="student-registration-form">
+            {% csrf_token %}
+            <!-- User Creation Fields -->
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_first_name">First Name</label>
+                    <input type="text"
+                           name="first_name"
+                           id="id_first_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.first_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.first_name.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_last_name">Last Name</label>
+                    <input type="text"
+                           name="last_name"
+                           id="id_last_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.last_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.last_name.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_father_name">Father's Name</label>
+                    <input type="text"
+                           name="father_name"
+                           id="id_father_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.father_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.father_name.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_mother_name">Mother's Name</label>
+                    <input type="text"
+                           name="mother_name"
+                           id="id_mother_name"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.mother_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mother_name.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_email">Email</label>
+                    <input type="email"
+                           name="email"
+                           id="id_email"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.email.errors %}<p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_village">Village</label>
+                    <input type="text"
+                           name="village"
+                           id="id_village"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.village.errors %}<p class="text-red-500 text-sm mt-1">{{ form.village.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_pincode">Pincode</label>
+                    <input type="text"
+                           name="pincode"
+                           id="id_pincode"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.pincode.errors %}<p class="text-red-500 text-sm mt-1">{{ form.pincode.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_dob">Date of Birth</label>
+                    <input type="date"
+                           name="dob"
+                           id="id_dob"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.dob.errors %}<p class="text-red-500 text-sm mt-1">{{ form.dob.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_blood_group">Blood Group</label>
+                    <select name="blood_group"
+                            id="id_blood_group"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.blood_group.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+                    </select>
+                    {% if form.blood_group.errors %}<p class="text-red-500 text-sm mt-1">{{ form.blood_group.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_gender">Gender</label>
+                    <select name="gender"
+                            id="id_gender"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.gender.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+                    </select>
+                    {% if form.gender.errors %}<p class="text-red-500 text-sm mt-1">{{ form.gender.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_phone_number">Phone Number</label>
+                    <input type="text"
+                           name="phone_number"
+                           id="id_phone_number"
+                           required
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.phone_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_is_whatsapp">Is Whatsapp?</label>
+                    <div class="flex gap-4">
+                        <div>
+                            <input type="radio"
+                                   name="is_whatsapp"
+                                   id="id_is_whatsapp_yes"
+                                   value="True"
+                                   required>
+                            <label class="text-gray-700 font-medium ml-2" for="id_is_whatsapp_yes">Yes</label>
+                        </div>
+                        <div>
+                            <input type="radio"
+                                   name="is_whatsapp"
+                                   id="id_is_whatsapp_no"
+                                   value="False"
+                                   required>
+                            <label class="text-gray-700 font-medium ml-2" for="id_is_whatsapp_no">No</label>
+                        </div>
+                    </div>
+                    {% if form.is_whatsapp.errors %}<p class="text-red-500 text-sm mt-1">{{ form.is_whatsapp.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <!-- Profile Photo Upload -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Profile Photo (3:4 Ratio, Min 300x400px)</label>
+                <input type="file"
+                       id="profile_photo"
+                       accept="image/*"
+                       class="hidden"
+                       required>
+                <button type="button"
+                        id="upload-btn"
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Upload Profile Photo
+                </button>
+                <!-- Image preview and cropping container -->
+                <div id="crop-container" class="mt-4 hidden">
+                    <img id="crop-image"
+                         class="max-w-full"
+                         width="100%"
+                         height="100%"
+                         alt="Profile Photo">
+                </div>
+            </div>
+            <!-- Hidden input for cropped image -->
+            <input type="file" name="cropped_image" id="cropped-image-input" hidden>
+            <!-- Student Creation Fields -->
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_height">Height (in cm)</label>
+                    <input type="number"
+                           step="any"
+                           name="height"
+                           id="id_height"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.height.errors %}<p class="text-red-500 text-sm mt-1">{{ form.height.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_weight">Weight (in Kg)</label>
+                    <input type="number"
+                           step="any"
+                           name="weight"
+                           id="id_weight"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.weight.errors %}<p class="text-red-500 text-sm mt-1">{{ form.weight.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_apaar_id">Apaar ID</label>
+                    <input type="text"
+                           name="apaar_id"
+                           id="id_apaar_id"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.apaar_id.errors %}<p class="text-red-500 text-sm mt-1">{{ form.apaar_id.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_pen_number">Pen Number</label>
+                    <input type="text"
+                           name="pen_number"
+                           id="id_pen_number"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.pen_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.pen_number.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <!-- Student Admission Creation Fields -->
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_section">Section</label>
+                    <select name="section"
+                            id="id_section"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.section.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+                    </select>
+                    {% if form.section.errors %}<p class="text-red-500 text-sm mt-1">{{ form.section.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_is_rte">Is RTE</label>
+                    <select name="is_rte"
+                            id="id_is_rte"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.is_rte.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+                    </select>
+                    {% if form.is_rte.errors %}<p class="text-red-500 text-sm mt-1">{{ form.is_rte.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_student_class">Student Class</label>
+                    <select name="student_class"
+                            id="id_student_class"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.student_class.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+                    </select>
+                    {% if form.student_class.errors %}<p class="text-red-500 text-sm mt-1">{{ form.student_class.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <!-- Previous Institution Detail Creation Fields -->
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_last_institution">Last Institution</label>
+                    <input type="text"
+                           name="last_institution"
+                           id="id_last_institution"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.last_institution.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.last_institution.errors }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_score">Score</label>
+                    <input type="number"
+                           step="any"
+                           name="score"
+                           id="id_score"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.score.errors %}<p class="text-red-500 text-sm mt-1">{{ form.score.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_mm">Maximum Marks</label>
+                    <input type="number"
+                           step="any"
+                           name="mm"
+                           id="id_mm"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.mm.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mm.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_rte">RTE</label>
+                    <select name="rte"
+                            id="id_rte"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.rte.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+                    </select>
+                    {% if form.rte.errors %}<p class="text-red-500 text-sm mt-1">{{ form.rte.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <!-- Bank Details Creation Fields -->
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_account_holder_name">Bank Account Holder Name</label>
+                    <input type="text"
+                           name="account_holder_name"
+                           id="id_account_holder_name"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.account_holder_name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.account_holder_name.errors }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_account_number">Bank Account Number</label>
+                    <input type="text"
+                           name="account_number"
+                           id="id_account_number"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.account_number.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.account_number.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_ifsc">IFSC Code</label>
+                    <input type="text"
+                           name="ifsc"
+                           id="id_ifsc"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.ifsc.errors %}<p class="text-red-500 text-sm mt-1">{{ form.ifsc.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_branch_name">Branch Name</label>
+                    <input type="text"
+                           name="branch_name"
+                           id="id_branch_name"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.branch_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.branch_name.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_account_type">Account Type</label>
+                    <select name="account_type"
+                            id="id_account_type"
+                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                        {% for choice in form.account_type.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+                    </select>
+                    {% if form.account_type.errors %}<p class="text-red-500 text-sm mt-1">{{ form.account_type.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <!-- Student Document Upload Fields -->
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_aadhar_card">Aadhar Card</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="aadhar_card"
+                           id="id_aadhar_card"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.aadhar_card.errors %}<p class="text-red-500 text-sm mt-1">{{ form.aadhar_card.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_birth_certificate">Birth Certificate</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="birth_certificate"
+                           id="id_birth_certificate"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.birth_certificate.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.birth_certificate.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_caste_certificate">Caste Certificate</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="caste_certificate"
+                           id="id_caste_certificate"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.caste_certificate.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.caste_certificate.errors }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_mark_sheet">Mark Sheet</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="mark_sheet"
+                           id="id_mark_sheet"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.mark_sheet.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mark_sheet.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_transfer_certificate">Transfer Certificate</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="transfer_certificate"
+                           id="id_transfer_certificate"
+                           class="border border-gray-300 p-2 bg-blue-300 hover:bg-blue-400 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.transfer_certificate.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.transfer_certificate.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <button type="submit"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                Submit
+            </button>
+        </form>
+    </div>
+    <!-- Cropper.js Library -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('profile_photo');
+            const uploadBtn = document.getElementById('upload-btn');
+            const imageContainer = document.getElementById('crop-container');
+            const cropImage = document.getElementById('crop-image');
+            const croppedImageInput = document.getElementById('cropped-image-input');
+            const studentRegistrationForm = document.getElementById('student-registration-form');
+        
+            let cropper = null;
+        
+            // Max width and height for the cropped image
+            const maxWidth = 1200;  // Max width in pixels
+            const maxHeight = 1600; // Max height in pixels
+        
+            // Trigger file input when upload button is clicked
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+        
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        cropImage.src = e.target.result;
+                        imageContainer.classList.remove('hidden');
+
+                        // remove required attribute from file input
+                        fileInput.removeAttribute('required');
+                        
+                        // Destroy existing cropper if any
+                        if (cropper) {
+                            cropper.destroy();
+                        }
+        
+                        // Initialize Cropper.js with more flexible options
+                        cropper = new Cropper(cropImage, {
+                            aspectRatio: 3 / 4,
+                            viewMode: 1,
+                            autoCropArea: 0.5,  // Allow more freedom in cropping
+                            movable: true,
+                            zoomable: true,
+                            guides: true,
+                            dragMode: 'move',
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        
+            // Capture cropped image before form submission
+            studentRegistrationForm.addEventListener('submit', (e) => {
+                if (cropper) {
+                    e.preventDefault();  // Stop form submission
+        
+                    // Get the original image dimensions
+                    const originalWidth = cropper.getImageData().naturalWidth;
+                    const originalHeight = cropper.getImageData().naturalHeight;
+        
+                    // Calculate the scale factor based on maxWidth and maxHeight
+                    let scale = 1;
+                    if (originalWidth > maxWidth || originalHeight > maxHeight) {
+                        const widthScale = maxWidth / originalWidth;
+                        const heightScale = maxHeight / originalHeight;
+                        scale = Math.min(widthScale, heightScale); // Maintain aspect ratio
+                    }
+        
+                    // Get the cropped canvas with the calculated dimensions
+                    const croppedCanvas = cropper.getCroppedCanvas({
+                        width: originalWidth * scale,
+                        height: originalHeight * scale,
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high'
+                    });
+        
+                    croppedCanvas.toBlob((blob) => {
+                        // Create a new file from the blob
+                        const croppedFile = new File([blob], "profile_photo.jpg", { type: "image/jpeg" });
+                        
+                        // Create a new DataTransfer object to attach the cropped image
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(croppedFile);
+                        
+                        // Set the cropped image as the file input
+                        croppedImageInput.files = dataTransfer.files;
+                        
+                        // Submit the form
+                        studentRegistrationForm.submit();
+                    }, "image/jpeg");
+                }
+            });
+        });
+        
+    </script>
+{% endblock content %}

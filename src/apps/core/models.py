@@ -42,6 +42,17 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    GENDER_CHOICES = [
+    ('Other', 'Other'),
+    ('Male', 'Male'),
+    ('Female', 'Female'),
+    ]
+    BLOOD_GROUPS = [
+    ('None', 'None'), ('A+', 'A+'), ('A-', 'A-'),
+    ('B+', 'B+'), ('B-', 'B-'),
+    ('AB+', 'AB+'), ('AB-', 'AB-'),
+    ('O+', 'O+'), ('O-', 'O-'), 
+    ]
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
@@ -53,8 +64,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     village = models.CharField(max_length=255, null=True, blank=True)
     pincode = models.CharField(max_length=10, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
-    blood_group = models.CharField(max_length=5, null=True, blank=True)
-    gender = models.CharField(max_length=10, null=True, blank=True)
+    blood_group = models.CharField(max_length=5, null=True, blank=True, choices=BLOOD_GROUPS)
+    gender = models.CharField(max_length=10, null=True, blank=True, choices=GENDER_CHOICES)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -81,7 +92,7 @@ def user_document_upload_path(instance, filename):
     # Extract file extension
     ext = filename.split('.')[-1]
     # Generate unique filename
-    new_filename = f"user_document/{instance.user.id}/{instance.document_name.replace(' ', '_')}_{uuid.uuid4().hex}.{ext}"
+    new_filename = f"user_document/{instance.user.username}/{instance.document_name.replace(' ', '_')}_{uuid.uuid4().hex}.{ext}"
     return new_filename
 
 class UserDocument(models.Model):
