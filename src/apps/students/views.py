@@ -5,7 +5,6 @@ from .forms import StudentForm, StudentAdmissionForm, StudentRegistrationForm
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.utils import timezone
 from django.views.decorators.cache import never_cache
 # Student Creation View
 class StudentCreateView(CreateView):
@@ -41,9 +40,6 @@ class StudentRegistrationView(View):
 
         # Disable caching to ensure the form is always freshly rendered
         response = render(request, self.template_name, {'form': form})
-        response['Cache-Control'] = 'no-store'  # Prevent caching
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
         
         return response
 
@@ -52,12 +48,6 @@ class StudentRegistrationView(View):
         form = StudentRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-
-            # Set session flag to indicate the form has been submitted
-            request.session['form_submitted'] = True
-
-            # Store the submission time as a string (use isoformat() for datetime)
-            request.session['form_submission_time'] = timezone.now().isoformat()
 
             messages.success(request, 'Student registered successfully')
             return redirect(self.success_url)

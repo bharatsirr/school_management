@@ -437,9 +437,6 @@
                     reader.onload = (e) => {
                         cropImage.src = e.target.result;
                         imageContainer.classList.remove('hidden');
-
-                        // remove required attribute from file input
-                        fileInput.removeAttribute('required');
                         
                         // Destroy existing cropper if any
                         if (cropper) {

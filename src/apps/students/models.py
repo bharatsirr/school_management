@@ -20,6 +20,13 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
     
+    def save(self, *args, **kwargs):
+        if self.apaar_id == "":
+            self.apaar_id = None
+        if self.pen_number == "":
+            self.pen_number = None
+        super().save(*args, **kwargs)
+    
 
 class StudentSerial(models.Model):
     SCHOOL_CHOICES = [
