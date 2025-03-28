@@ -1,3 +1,4 @@
+import logging
 from django.db import transaction
 from django import forms
 from django.core.exceptions import ValidationError
@@ -5,9 +6,12 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
+from apps.core.utils import delete_files_from_local, delete_files_from_s3
+from django.conf import settings
 
 from apps.core.models import Family, FamilyMember
 
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -104,34 +108,52 @@ class UserCreationForm(forms.ModelForm):
         raise forms.ValidationError("Profile image is required.")
 
     def save(self, commit=True):
-        with transaction.atomic():
-            user = super().save(commit=False)
-            user.set_password(self.cleaned_data["password1"])
-            
-            if commit:
-                user.save()
+        try:
+            with transaction.atomic():
+                user = super().save(commit=False)
+                user.set_password(self.cleaned_data["password1"])
                 
-                # Save phone number
-                phone_number = self.cleaned_data.get('phone_number')
-                if phone_number:
-                    # Assuming there's a related PhoneNumber model
-                    # You might need to adjust this based on your exact model
-                    user.phones.create(phone_number=phone_number)
-                
-                # Save profile photo
-                profile_photo = self.cleaned_data.get('cropped_image')
-                if profile_photo:
-                    # Assuming you have a Documents model for storing files
-                    # Adjust the creation method to match your exact model
-                    user.documents.create(
-                        file_path=profile_photo,
-                        document_name='profile_photo',
-                        document_type='profile_photo',
-                        document_context='general',
-                    )
+                if commit:
+                    user.save()
+                    
+                    # Save phone number
+                    phone_number = self.cleaned_data.get('phone_number')
+                    if phone_number:
+                        # Assuming there's a related PhoneNumber model
+                        # You might need to adjust this based on your exact model
+                        user.phones.create(phone_number=phone_number)
+                    
+                    # Save profile photo
+                    profile_photo = self.cleaned_data.get('cropped_image')
+                    if profile_photo:
+                        # Assuming you have a Documents model for storing files
+                        # Adjust the creation method to match your exact model
+                        user.documents.create(
+                            file_path=profile_photo,
+                            document_name='profile_photo',
+                            document_type='profile_photo',
+                            document_context='general',
+                        )
             
             return user
-    
+        except Exception as e:
+            existingUser = User.objects.filter(username=self.cleaned_data["username"]).exists()
+            if not existingUser:
+                
+                if settings.DEBUG:
+                    try:
+                        delete_files_from_local(f"user_document/{self.cleaned_data['username']}")
+                    except Exception as delete_error:
+                        # Log deletion error but continue the process
+                        logger.error(f"Failed to delete files locally: {delete_error}")
+                else:
+                    try:
+                        delete_files_from_s3(f"user_document/{self.cleaned_data['username']}")
+                    except Exception as delete_error:
+                        # Log deletion error but continue the process
+                        logger.error(f"Failed to delete files from S3: {delete_error}")
+                # Re-raise the original error to propagate further
+                raise e
 
 
 class FamilyForm(forms.ModelForm):
