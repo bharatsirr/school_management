@@ -272,7 +272,6 @@ class StudentRegistrationForm(forms.Form):
                     section=self.cleaned_data["section"],
                     is_rte=self.cleaned_data["is_rte"],
                     student_class=self.cleaned_data["student_class"],
-                    total_fee=2000
                     
                 )
 
