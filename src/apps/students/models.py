@@ -1,9 +1,13 @@
+from django.db import transaction
+from django.db.models import Sum
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Max
 from datetime import datetime
+import logging
 
+logger = logging.getLogger(__name__)
 
 
 User = get_user_model()
@@ -27,6 +31,104 @@ class Student(models.Model):
             self.pen_number = None
         super().save(*args, **kwargs)
     
+
+
+
+class PreviousInstitutionDetail(models.Model):
+    student = models.OneToOneField('Student', on_delete=models.CASCADE, related_name='previous_institution')
+    previous_institution = models.CharField(max_length=255, help_text="Name of the last attended institution")
+    score = models.DecimalField(max_digits=7, decimal_places=2, help_text="Obtained marks")
+    mm = models.DecimalField(max_digits=7, decimal_places=2, help_text="Maximum marks")
+    percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
+    rte = models.BooleanField(default=False, help_text="Was the student a Right to Education (RTE) beneficiary in the previous institution ?")
+
+    def __str__(self):
+        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.previous_institution}"
+    
+    def calculate_percent(self):
+        """Auto-calculate percentage."""
+        if self.mm > 0:
+            return (self.score / self.mm) * 100
+        return 0
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate percentage before saving
+        self.percent = self.calculate_percent()
+        super().save(*args, **kwargs)
+
+
+
+
+
+class ActiveFeeStructureManager(models.Manager):
+    """Custom manager to return only active fee structures."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+    
+
+class FeeStructure(models.Model):
+    name = models.CharField(max_length=255, help_text="e.g., class_6_fees")
+    is_active = models.BooleanField(default=True)
+    start_date = models.DateField(help_text="Fee structure validity start date", default=datetime.now)
+    end_date = models.DateField(help_text="Fee structure validity end date", blank=True, null=True)
+
+    # Custom manager for active fee structures
+    objects = models.Manager()  # Default manager
+    active_objects = ActiveFeeStructureManager()  # Custom manager
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Fee Structure"
+        verbose_name_plural = "Fee Structures"
+
+    def deactivate(self):
+        """Deactivate this fee structure."""
+        self.is_active = False
+        self.save()
+
+
+
+class FeeType(models.Model):
+    fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="fee_types")
+    name = models.CharField(max_length=100, help_text="e.g., tuition, exam")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount for this fee type")
+
+    def __str__(self):
+        return f"{self.name} - {self.amount}"
+
+    class Meta:
+        verbose_name = "Fee Type"
+        verbose_name_plural = "Fee Types"
+
+
+
+from django.utils import timezone
+
+class FeeDue(models.Model):
+    admission = models.ForeignKey('StudentAdmission', on_delete=models.CASCADE, related_name="fee_dues")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Due amount")
+    fee_type = models.ForeignKey(FeeType, on_delete=models.CASCADE, related_name="fee_dues")
+    transaction = models.ForeignKey('finance.PaymentTransaction', on_delete=models.SET_NULL, null=True, blank=True, related_name="fee_dues")
+    paid = models.BooleanField(default=False, help_text="Has this fee been paid?")
+    paid_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when fee was paid")
+
+    def __str__(self):
+        return f"Due: {self.amount} for {self.fee_type.name}"
+
+    class Meta:
+        verbose_name = "Fee Due"
+        verbose_name_plural = "Fee Dues"
+
+    def mark_as_paid(self, transaction=None):
+        """Mark the fee as paid."""
+        self.paid = True
+        self.paid_at = timezone.now()
+        if transaction:
+            self.transaction = transaction
+        self.save()
+
 
 class StudentSerial(models.Model):
     SCHOOL_CHOICES = [
@@ -123,7 +225,7 @@ class StudentAdmission(models.Model):
     admission_date = models.DateTimeField(auto_now_add=True)
     session = models.CharField(max_length=9, help_text="e.g., 2023-2024 leave blank to set to current session", default=generate_session)
     student_class = models.CharField(max_length=20, help_text="Class (e.g., 10, 12, etc.)" , choices=CLASS_CHOICES)
-    fee_structure = models.TextField(help_text="Details about the fee structure")
+    fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="student_admissions")
     total_fee = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total fee amount")
     no_dues = models.BooleanField(default=False)
     roll_number = models.PositiveIntegerField(blank=True, null=True)
@@ -133,6 +235,7 @@ class StudentAdmission(models.Model):
         return f"{self.student.user.first_name} {self.student.user.last_name} - {self.student_class} {self.section}"
 
 
+        super().save(*args, **kwargs)
 
     def generate_kdpv_serial(self, student):
         """
@@ -199,139 +302,49 @@ class StudentAdmission(models.Model):
         return new_serial.serial_number
 
     def save(self, *args, **kwargs):
-        # Ensure serial number is created based on the class and student
-        if not self.pk:  # Only do this for new records
-            if self.student_class in ['NUR', 'LKG', 'UKG', '1', '2', '3', '4', '5']:  # Class below 6
-                serial_number = self.generate_kdpv_serial(self.student)
-                serial = StudentSerial.objects.get_or_create(
-                    student=self.student,
-                    school_name='KDPV',
-                    serial_number=serial_number
-                )[0]  # [0] to get the instance
-                self.serial_no = serial
-            elif self.student_class in ['6', '7', '8', '9', '10', '11', '12']:  # Class 6 and above
-                # deactivate existing kdpv serial
-                existing_kdpv_serial = StudentSerial.objects.filter(
-                    student=self.student,
-                    school_name='KDPV',
-                    is_active=True
-                )
-                # deactivate existing kdpv serial
-                if existing_kdpv_serial:
-                    existing_kdpv_serial.is_active = False
-                    existing_kdpv_serial.save()
+        try:
+            with transaction.atomic():
+                # Ensure serial number is created based on the class and student
+                if not self.pk:  # Only do this for new records
 
-                # generate new kdic serial
-                serial_number = self.generate_kdic_serial(self.student)
-                serial = StudentSerial.objects.get_or_create(
-                    student=self.student,
-                    school_name='KDIC',
-                    serial_number=serial_number
-                )[0]  # [0] to get the instance
-                self.serial_no = serial
-        
-        # auto assign fee structure
-        fee_structure_name = f"class_{self.student_class}_fees".lower()
-        fee_structure = FeeStructure.active_objects.get(name=fee_structure_name)
-        self.fee_structure = fee_structure
-        
-        if not self.pk:  # Ensure roll number is assigned only for new entries
-            self.roll_number = self.get_roll_number(self.student_class, self.section, self.session)
-        super().save(*args, **kwargs)
+                    # auto assign fee structure
+                    fee_structure_name = f"class_{self.student_class}_fees".lower()
+                    self.fee_structure = FeeStructure.active_objects.get(name=fee_structure_name)
 
+                    # auto add total fee
+                    self.total_fee = self.fee_structure.fee_types.aggregate(total_fee=Sum('amount'))['total_fee'] or 0
+                    if self.student_class in ['NUR', 'LKG', 'UKG', '1', '2', '3', '4', '5']:  # Class below 6
+                        serial_number = self.generate_kdpv_serial(self.student)
+                        serial = StudentSerial.objects.get_or_create(
+                            student=self.student,
+                            school_name='KDPV',
+                            serial_number=serial_number
+                        )[0]  # [0] to get the instance
+                        self.serial_no = serial
+                    elif self.student_class in ['6', '7', '8', '9', '10', '11', '12']:  # Class 6 and above
+                        # deactivate existing kdpv serial
+                        existing_kdpv_serial = StudentSerial.objects.filter(
+                            student=self.student,
+                            school_name='KDPV',
+                            is_active=True
+                        )
+                        # deactivate existing kdpv serial
+                        if existing_kdpv_serial:
+                            existing_kdpv_serial.is_active = False
+                            existing_kdpv_serial.save()
 
-class PreviousInstitutionDetail(models.Model):
-    student = models.OneToOneField('Student', on_delete=models.CASCADE, related_name='previous_institution')
-    previous_institution = models.CharField(max_length=255, help_text="Name of the last attended institution")
-    score = models.DecimalField(max_digits=7, decimal_places=2, help_text="Obtained marks")
-    mm = models.DecimalField(max_digits=7, decimal_places=2, help_text="Maximum marks")
-    percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
-    rte = models.BooleanField(default=False, help_text="Was the student a Right to Education (RTE) beneficiary in the previous institution ?")
-
-    def __str__(self):
-        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.previous_institution}"
-    
-    def calculate_percent(self):
-        """Auto-calculate percentage."""
-        if self.mm > 0:
-            return (self.score / self.mm) * 100
-        return 0
-
-    def save(self, *args, **kwargs):
-        # Auto-calculate percentage before saving
-        self.percent = self.calculate_percent()
-        super().save(*args, **kwargs)
-
-
-
-
-
-class ActiveFeeStructureManager(models.Manager):
-    """Custom manager to return only active fee structures."""
-    def get_queryset(self):
-        return super().get_queryset().filter(is_active=True)
-
-class FeeStructure(models.Model):
-    name = models.CharField(max_length=255, help_text="e.g., class_6_fees")
-    is_active = models.BooleanField(default=True)
-    start_date = models.DateField(help_text="Fee structure validity start date", default=datetime.now)
-    end_date = models.DateField(help_text="Fee structure validity end date", blank=True, null=True)
-
-    # Custom manager for active fee structures
-    objects = models.Manager()  # Default manager
-    active_objects = ActiveFeeStructureManager()  # Custom manager
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Fee Structure"
-        verbose_name_plural = "Fee Structures"
-
-    def deactivate(self):
-        """Deactivate this fee structure."""
-        self.is_active = False
-        self.save()
-
-
-
-class FeeType(models.Model):
-    fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="fee_types")
-    name = models.CharField(max_length=100, help_text="e.g., tuition, exam")
-    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount for this fee type")
-
-    def __str__(self):
-        return f"{self.name} - {self.amount}"
-
-    class Meta:
-        verbose_name = "Fee Type"
-        verbose_name_plural = "Fee Types"
-
-
-
-from django.utils import timezone
-
-class FeeDue(models.Model):
-    admission = models.ForeignKey('StudentAdmission', on_delete=models.CASCADE, related_name="fee_dues")
-    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Due amount")
-    fee_type = models.ForeignKey(FeeType, on_delete=models.CASCADE, related_name="fee_dues")
-    transaction = models.ForeignKey('finance.PaymentTransaction', on_delete=models.SET_NULL, null=True, blank=True, related_name="fee_dues")
-    paid = models.BooleanField(default=False, help_text="Has this fee been paid?")
-    paid_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when fee was paid")
-
-    def __str__(self):
-        return f"Due: {self.amount} for {self.fee_type.name}"
-
-    class Meta:
-        verbose_name = "Fee Due"
-        verbose_name_plural = "Fee Dues"
-
-    def mark_as_paid(self, transaction=None):
-        """Mark the fee as paid."""
-        self.paid = True
-        self.paid_at = timezone.now()
-        if transaction:
-            self.transaction = transaction
-        self.save()
-
-
+                        # generate new kdic serial
+                        serial_number = self.generate_kdic_serial(self.student)
+                        serial = StudentSerial.objects.get_or_create(
+                            student=self.student,
+                            school_name='KDIC',
+                            serial_number=serial_number
+                        )[0]  # [0] to get the instance
+                        self.serial_no = serial
+                
+                    # Ensure roll number is assigned only for new entries
+                    self.roll_number = self.get_roll_number(self.student_class, self.section, self.session)
+                super().save(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in saving student admission: {e}")
+            raise e
