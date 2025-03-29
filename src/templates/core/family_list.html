@@ -4,7 +4,7 @@
 {% endblock title %}
 {% block content %}
     <h2 class="text-2xl font-semibold mb-6">Family List</h2>
-    <a href="{% url 'family-create' %}"
+    <a href="{% url 'family_create' %}"
        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mb-6 inline-block">Create New Family</a>
     {% for family in families %}
         <div class="bg-white shadow p-6 rounded-lg mb-6">
@@ -18,7 +18,7 @@
                     <li class="text-gray-500">No members yet.</li>
                 {% endfor %}
             </ul>
-            <a href="{% url 'add-family-member' family.id %}"
+            <a href="{% url 'add_family_member' family.id %}"
                class="text-blue-600 hover:underline mt-4 inline-block">➕ Add Member</a>
         </div>
     {% endfor %}

@@ -12,20 +12,15 @@ logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
-class StudentForm(forms.ModelForm):
+
+
+
+class StudentUpdateForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ['user', 'height', 'weight', 'apaar_id', 'pen_number']
+        fields = ['height', 'weight', 'apaar_id', 'pen_number', 'is_active']
 
 
-class StudentAdmissionForm(forms.ModelForm):
-    class Meta:
-        model = StudentAdmission
-        fields = [
-            'student', 'section', 'is_rte', 'session',
-            'student_class', 'fee_structure', 'total_fee',
-            'status'
-        ]
 
 
 
@@ -345,3 +340,27 @@ class StudentRegistrationForm(forms.Form):
                         logger.error(f"Failed to delete files from S3: {delete_error}")
                 # Re-raise the original error to propagate further
                 raise e
+            
+
+
+
+
+
+
+class FeeStructureForm(forms.ModelForm):
+    class Meta:
+        model = FeeStructure
+        fields = ['name', 'start_date', 'is_active']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'})
+        }
+
+
+class FeeTypeForm(forms.ModelForm):
+    class Meta:
+        model = FeeType
+        fields = ['name', 'amount']
+
+
+
+

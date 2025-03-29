@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'dob', 'gender', 'village', 'pincode']
+
 
 class UserCreationForm(forms.ModelForm):
     password1 = forms.CharField(

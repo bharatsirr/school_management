@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
+        <h2 class="text-2xl font-semibold mb-4">Profile</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-700">
+                    <strong>Username:</strong> {{ user.username }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>First Name:</strong> {{ user.first_name }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>Last Name:</strong> {{ user.last_name }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>Email:</strong> {{ user.email }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-700">
+                    <strong>DOB:</strong> {{ user.dob }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>Gender:</strong> {{ user.gender }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>Village:</strong> {{ user.village }}
+                </p>
+                <p class="text-gray-700">
+                    <strong>Pincode:</strong> {{ user.pincode }}
+                </p>
+            </div>
+        </div>
+        <div class="mt-6">
+            <a href="{% url 'user_profile_update' %}"
+               class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Edit Profile</a>
+        </div>
+    </div>
+{% endblock content %}

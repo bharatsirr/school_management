@@ -63,9 +63,9 @@ class PaymentTransaction(models.Model):
         ('SUCCESSFUL', 'Successful'),
     ]
 
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
     agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='handled_transactions')
     method = models.CharField(max_length=10, choices=PAYMENT_METHODS)
     description = models.TextField(blank=True)
@@ -163,4 +163,19 @@ class ManagementExpense(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return f"{self.get_expense_category_display()} - {self.amount} - {self.date}"
+        return f"{self.expense_category} - {self.amount} - {self.date}"
+    
+
+
+
+class Invoice(models.Model):
+    payment_transaction = models.OneToOneField(PaymentTransaction, on_delete=models.CASCADE, related_name='invoices')
+    invoice_date = models.DateField(auto_now_add=True)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invoices')
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    details = models.JSONField(default=dict)
+
+    def __str__(self):
+        return f"{self.customer} - {self.total_amount} - {self.invoice_date}"
+    
+    

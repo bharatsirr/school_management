@@ -1,10 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, DetailView, UpdateView
 from django.views import View
 from django.urls import reverse_lazy
-from .forms import UserCreationForm, FamilyForm, FamilyMemberForm
+from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm
 from django.contrib import messages
 from .models import Family
 
@@ -76,7 +76,7 @@ class FamilyCreateView(LoginRequiredMixin, CreateView):
     model = Family
     form_class = FamilyForm
     template_name = 'core/family_form.html'
-    success_url = reverse_lazy('family-list')
+    success_url = reverse_lazy('family_list')
 
 
 # List Families and Members View
@@ -103,6 +103,30 @@ class AddFamilyMemberView( LoginRequiredMixin, View):
             family_member = form.save(commit=False)
             family_member.family = family
             family_member.save()
-            return redirect('family-list')
+            return redirect('family_list')
 
         return render(request, self.template_name, {'form': form, 'family': family})
+    
+
+
+class UserProfileView(LoginRequiredMixin, DetailView):
+    model = User
+    template_name = 'core/user_profile.html'
+    context_object_name = 'user'
+
+    def get_object(self):
+        return self.request.user
+
+
+class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = UserProfileForm
+    template_name = 'core/user_profile_update.html'
+    success_url = reverse_lazy('user_profile')
+
+    def get_object(self):
+        return self.request.user
+
+
+
+
