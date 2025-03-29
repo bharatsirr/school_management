@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Max
-from datetime import datetime
+from datetime import datetime, date
 import logging
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ class ActiveFeeStructureManager(models.Manager):
 class FeeStructure(models.Model):
     name = models.CharField(max_length=255, help_text="e.g., class_6_fees")
     is_active = models.BooleanField(default=True)
-    start_date = models.DateField(help_text="Fee structure validity start date", default=datetime.now)
+    start_date = models.DateField(help_text="Fee structure validity start date", default=date.today)
     end_date = models.DateField(help_text="Fee structure validity end date", blank=True, null=True)
 
     # Custom manager for active fee structures

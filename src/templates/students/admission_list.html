@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">
+            Student Admissions   <a href="{% url 'register_student' %}"
+      class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">Register A New Student</a>
+        </h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for admission in student_admissions %}
+                <div class="bg-white shadow-md rounded-lg p-4">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        {{ admission.student.user.first_name }} {{ admission.student.user.last_name }}
+                    </h2>
+                    <p class="text-gray-600">Class: {{ admission.student_class }} Section: {{ admission.section }}</p>
+                    <p class="text-gray-500">Roll No: {{ admission.roll_number }}</p>
+                    <p class="text-gray-500">Admission Date: {{ admission.admission_date }}</p>
+                    <!-- Phone Number -->
+                    {% with admission.student.user.id as user_id %}
+                        {% for phone in admission.student.user.phones.all %}
+                            {% if phone.user.id == user_id %}<p class="text-gray-600">Phone: {{ phone.phone_number }}</p>{% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                    <!-- Previous Institution -->
+                    {% if admission.student.previous_institution %}
+                        <p class="text-gray-600">Previous Institution: {{ admission.student.previous_institution.previous_institution }}</p>
+                        <p class="text-gray-500">
+                            Score: {{ admission.student.previous_institution.score }} ({{ admission.student.previous_institution.percent }}%)
+                        </p>
+                    {% endif %}
+                    <!-- Fee Details -->
+                    <h3 class="mt-4 text-lg font-medium text-gray-700">Fee Details:</h3>
+                    <ul class="list-disc list-inside text-gray-600">
+                        {% for fee in admission.fee_structure.fee_types.all %}
+                            <li>{{ fee.name }} - {{ fee.amount }}</li>
+                        {% empty %}
+                            <li>No fee types available.</li>
+                        {% endfor %}
+                    </ul>
+                    <!-- Serial Number -->
+                    {% if admission.serial_no %}
+                        <p class="text-gray-500">Serial Number: {{ admission.serial_no.serial_number }}</p>
+                        <p class="text-gray-400">School: {{ admission.serial_no.school_name }}</p>
+                    {% endif %}
+                    {% comment %} <a href="{% url 'student_admission_edit' admission.id %}" class="mt-4 bg-yellow-500 hover:bg-yellow-700 text-white px-3 py-1 rounded">Edit</a> {% endcomment %}
+                    <a href="{% url 'student_update' admission.student.id %}"
+                       class="mt-4 bg-yellow-500 hover:bg-yellow-700 text-white px-3 py-1 rounded">Edit</a>
+                </div>
+            {% empty %}
+                <p class="text-gray-500">No student admissions found.</p>
+            {% endfor %}
+        </div>
+        {% if is_paginated %}
+            <div class="mt-6 flex justify-center">
+                {% for page_num in paginator.page_range %}
+                    {% if page_num == page_obj.number %}
+                        <span class="px-3 py-1 bg-blue-500 text-white rounded">{{ page_num }}</span>
+                    {% else %}
+                        <a href="?page={{ page_num }}"
+                           class="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">{{ page_num }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock content %}

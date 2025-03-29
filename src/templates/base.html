@@ -51,18 +51,75 @@
                            href="{% url 'signup' %}">Sign Up</a>
                     </div>
                 {% endif %}
-                <nav class="mb-8 mt-16">
-                    <ul class="flex space-x-4">
-                        <li>
-                            <a href="#" class="text-gray-700 hover:text-gray-900 transition-colors">Home</a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-gray-700 hover:text-gray-900 transition-colors">About</a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-gray-700 hover:text-gray-900 transition-colors">Contact</a>
-                        </li>
-                    </ul>
+                <!-- Navbar -->
+                <nav class="bg-white shadow-md fixed w-full top-0 left-0 z-10">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between h-16 items-center">
+                            <!-- Logo or Brand -->
+                            <div class="text-xl font-bold text-gray-800">School Management</div>
+                            <!-- Desktop Navigation Links -->
+                            <div class="hidden md:flex space-x-4">
+                                <a href="{% url 'home' %}"
+                                   class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                                <a href="{% url 'signup' %}"
+                                   class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Sign Up</a>
+                                <a href="{% url 'login' %}"
+                                   class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                                <a href="{% url 'user_profile' %}"
+                                   class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Profile</a>
+                                <a href="{% url 'family_list' %}"
+                                   class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Families</a>
+                                <a href="{% url 'register_student' %}"
+                                   class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Register Student</a>
+                                <a href="{% url 'fee_structure_list' %}"
+                                   class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Fee Structure</a>
+                            </div>
+                            <!-- Mobile Menu Button -->
+                            <div class="md:hidden flex items-center">
+                                <button id="menu-btn"
+                                        class="text-gray-700 hover:text-blue-500 focus:outline-none">
+                                    <svg class="w-6 h-6"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         viewBox="0 0 24 24"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Mobile Sidebar Menu -->
+                    <div id="sidebar"
+                         class="fixed inset-0 bg-white bg-opacity-95 transform -translate-x-full transition-transform duration-300 ease-in-out md:hidden">
+                        <div class="flex justify-end p-4">
+                            <button id="close-btn" class="text-gray-700 hover:text-blue-500">
+                                <svg class="w-6 h-6"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     viewBox="0 0 24 24"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex flex-col space-y-4 text-center">
+                            <a href="{% url 'home' %}"
+                               class="text-gray-700 hover:text-blue-500 text-xl">Home</a>
+                            <a href="{% url 'signup' %}"
+                               class="text-gray-700 hover:text-blue-500 text-xl">Sign Up</a>
+                            <a href="{% url 'login' %}"
+                               class="text-gray-700 hover:text-blue-500 text-xl">Login</a>
+                            <a href="{% url 'user_profile' %}"
+                               class="text-gray-700 hover:text-blue-500 text-xl">Profile</a>
+                            <a href="{% url 'family_list' %}"
+                               class="text-gray-700 hover:text-blue-500 text-xl">Families</a>
+                            <a href="{% url 'register_student' %}"
+                               class="text-gray-700 hover:text-blue-500 text-xl">Register Student</a>
+                            <a href="{% url 'fee_structure_list' %}"
+                               class="text-gray-700 hover:text-blue-500 text-xl">Fee Structure</a>
+                        </div>
+                    </div>
                 </nav>
             </header>
             {% if messages %}
@@ -105,5 +162,18 @@
                 <p>© {% now "Y" %} All rights reserved.</p>
             </footer>
         </div>
+        <script>
+            const menuBtn = document.getElementById('menu-btn');
+            const closeBtn = document.getElementById('close-btn');
+            const sidebar = document.getElementById('sidebar');
+        
+            menuBtn.addEventListener('click', () => {
+                sidebar.classList.remove('-translate-x-full');
+            });
+        
+            closeBtn.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+            });
+        </script>
     </body>
 </html>

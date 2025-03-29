@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="bg-white shadow-md rounded-lg p-6">
+            {% block title %}
+                <h1 class="text-2xl font-bold text-gray-800 mb-4">Fee Structures</h1>
+            {% endblock title %}
+            <a href="{% url 'fee_structure_create' %}"
+               class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                Create New Fee Structure
+            </a>
+            <div class="mt-6 space-y-6">
+                {% for fee_structure in fee_structures %}
+                    <div class="border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
+                        <h2 class="text-xl font-semibold text-gray-800">{{ fee_structure.name }}</h2>
+                        <p class="text-gray-600">Start Date: {{ fee_structure.start_date }} | End Date: {{ fee_structure.end_date }}</p>
+                        <p class="text-sm text-gray-500">
+                            Status:
+                            <span class="font-bold {% if fee_structure.is_active %}text-green-500{% else %}text-red-500{% endif %}">
+                                {{ fee_structure.is_active|yesno:"Active,Inactive" }}
+                            </span>
+                        </p>
+                        <h3 class="mt-4 text-lg font-medium text-gray-700">Fee Types:</h3>
+                        <ul class="list-disc list-inside mt-2 text-gray-600">
+                            {% for fee_type in fee_structure.fee_types.all %}
+                                <li>{{ fee_type.name }} - {{ fee_type.amount }}</li>
+                            {% empty %}
+                                <li>No fee types available.</li>
+                            {% endfor %}
+                        </ul>
+                        <div class="mt-4 space-x-3">
+                            <a href="{% url 'add_fee_type' fee_structure.id %}"
+                               class="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded">Add Fee Type</a>
+                            <a href="{% url 'fee_structure_update' fee_structure.id %}"
+                               class="bg-yellow-500 hover:bg-yellow-700 text-white px-3 py-1 rounded">Edit</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}

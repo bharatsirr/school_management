@@ -3,6 +3,11 @@ import os
 import shutil
 from django.conf import settings
 from django.core.files.storage import default_storage
+from apps.students.models import FeeDue, Student
+from datetime import date
+from django.utils.timezone import now
+from django.utils import timezone
+from decimal import Decimal
 
 
 def delete_files_from_s3(relative_path):
@@ -45,3 +50,93 @@ def delete_files_from_local(relative_path):
         print(f"Deleted all files and the directory for path: {relative_path}")
     else:
         print(f"Directory does not exist: {relative_path}")
+
+
+def fee_due_generate(student):
+    """Generates fee dues for a student's latest active admission."""
+    today = now().date()
+    active_admission = student.admissions.filter(status="active").order_by("-admission_date").first()
+
+    if not active_admission:
+        return False  # No active admission found, skip processing
+
+    fee_structure = student.fee_structure
+    fee_types = fee_structure.fee_types.all()
+
+    for fee_type in fee_types:
+        # Check if a due already exists to avoid duplication
+        if not FeeDue.objects.filter(admission=active_admission, fee_type=fee_type).exists():
+            
+            # Handle tuition fees based on the date conditions
+            if fee_type.name in ["tuition_q1", "tuition_q2", "tuition_q3", "tuition_q4"]:
+                if (fee_type.name == "tuition_q1" and today >= date(today.year, 4, 1)) or \
+                   (fee_type.name == "tuition_q2" and today >= date(today.year, 7, 1)) or \
+                   (fee_type.name == "tuition_q3" and today >= date(today.year, 10, 1)) or \
+                   (fee_type.name == "tuition_q4" and today >= date(today.year, 1, 1)):
+                    FeeDue.objects.create(admission=active_admission, fee_type=fee_type, amount=fee_type.amount)
+
+            else:
+                # Add all other fee types immediately
+                FeeDue.objects.create(admission=active_admission, fee_type=fee_type, amount=fee_type.amount)
+
+    return True
+
+
+def fee_due_generate_all():
+    """Generates fee dues for all students with an active admission."""
+    students = Student.objects.filter(admissions__status="active").distinct()
+    for student in students:
+        fee_due_generate(student)
+    return True
+
+
+
+
+def pay_fee_dues(student, transaction, budget):
+    """Pays student's fee dues from the oldest to the newest within the given budget.
+    
+    Args:
+        student (Student): The student whose fees are being paid.
+        transaction (PaymentTransaction): The transaction associated with this payment.
+        budget (Decimal): The available amount to pay dues.
+
+    Returns:
+        Decimal: The remaining budget that couldn't be used.
+    """
+
+    # Fetch all unpaid dues for all admissions of the student, ordered from oldest to newest
+    dues = FeeDue.objects.filter(admission__student=student, paid=False).order_by("admission__admission_date", "id")
+
+    for due in dues:
+        if budget >= due.amount:
+            # Pay the fee due and subtract from the budget
+            due.mark_as_paid(transaction)
+            budget -= due.amount
+        else:
+            # If budget is not enough for this due, stop processing
+            break
+
+    return budget  # Return the remaining amount that couldn't be used
+
+
+def pay_family_fee_dues(family, transaction):
+    """Pays fee dues for all active students in a family within the given budget.
+    
+    Args:
+        family (Family): The family whose students' fees are being paid.
+        transaction (PaymentTransaction): The transaction associated with this payment.
+
+    Returns:
+        Decimal: The remaining budget that couldn't be used.
+    """
+    budget = family.wallet_balance
+    family_members = family.members.all()  # Get all users in the family
+    students = Student.objects.filter(user__in=family_members, admissions__status="active").distinct()
+
+    for student in students:
+        if budget <= Decimal("0.00"):
+            break  # Stop if the budget is exhausted
+
+        budget = pay_fee_dues(student, transaction, budget)  # Pay fees for this student
+
+    return budget  # Return leftover money that couldn't be used
