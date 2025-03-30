@@ -10,7 +10,7 @@ urlpatterns = [
     path('user/login/', LoginView.as_view(), name='login'),
     path('user/logout/', LogoutView.as_view(), name='logout'),
     path('user/profile/', UserProfileView.as_view(), name='user_profile'),
-    path('user/profile/update/', UserProfileUpdateView.as_view(), name='user_profile_update'),
+    path('user/profile/update/<str:username>/', UserProfileUpdateView.as_view(), name='user_profile_update'),
 
     path('families/', FamilyListView.as_view(), name='family_list'),
     path('families/create/', FamilyCreateView.as_view(), name='family_create'),
