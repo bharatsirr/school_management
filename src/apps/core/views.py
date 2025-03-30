@@ -2,13 +2,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404
 from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.views.generic import CreateView, ListView, DetailView, UpdateView
+from django.views.generic import CreateView, ListView, DetailView, UpdateView, FormView
 from django.views import View
 from django.urls import reverse_lazy
-from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm
+from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm
 from django.contrib import messages
-from .models import Family
-
+from .models import Family, UserDocument
+from django.core.exceptions import PermissionDenied
 
 User = get_user_model()
 class HomeView(View):
@@ -146,3 +146,49 @@ class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
 
 
 
+
+class UserProfilePhotoUpdateView(LoginRequiredMixin, FormView):
+    template_name = 'core/user_profile_photo_update.html'
+    form_class = UserProfilePhotoForm
+    success_url = reverse_lazy('user_profile')  # Redirect to user profile after successful upload
+
+    def get_object(self):
+        """
+        Fetches the user based on the username in the URL.
+        """
+        username = self.kwargs.get('username')
+        user = get_object_or_404(User, username=username)
+        
+        # Ensure that a user can only update their own profile photo
+        if self.request.user.username != username and not self.request.user.is_staff:
+            raise PermissionDenied("You cannot update another user's profile photo.")
+        
+        return user
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the new profile photo for the user.
+        """
+        user = self.get_object()  # Get the user object based on the URL username
+        profile_photo = form.cleaned_data['cropped_image']  # Get the uploaded photo
+        
+        # Create a new UserDocument entry for the profile photo
+        user.documents.create(
+            file_path=profile_photo,
+            document_name='profile_photo',
+            document_type='profile_photo',
+            document_context='general'
+        )
+        
+        return super().form_valid(form)
+
+    def get_initial(self):
+        """
+        Set the initial data for the form (e.g., pre-populate if any existing photo).
+        """
+        initial = super().get_initial()
+        user = self.get_object()
+        
+        # You could add additional logic here to pre-populate fields if necessary
+        # initial['cropped_image'] = user.profile_photo
+        return initial

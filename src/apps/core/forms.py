@@ -9,7 +9,7 @@ from PIL import Image
 from apps.core.utils import delete_files_from_local, delete_files_from_s3
 from django.conf import settings
 
-from apps.core.models import Family, FamilyMember
+from apps.core.models import Family, FamilyMember, UserDocument
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +159,49 @@ class UserCreationForm(forms.ModelForm):
                         logger.error(f"Failed to delete files from S3: {delete_error}")
                 # Re-raise the original error to propagate further
                 raise e
+
+
+
+
+class UserProfilePhotoForm(forms.Form):
+    cropped_image = forms.FileField(required=True)
+
+    def clean_cropped_image(self):
+        image = self.cleaned_data.get('cropped_image')
+        if image:
+            if image.content_type not in ['image/jpeg', 'image/png']:
+                raise forms.ValidationError("Invalid image type. Use JPEG or PNG.")
+
+            if image.size > 1/2 * 1024 * 1024:  # .5 MB limit
+                raise forms.ValidationError("Image size exceeds 0.5MB.")
+            
+            try:
+                with Image.open(image) as img:
+                    width, height = img.size
+                    if width < 300 or height < 400:
+                        raise forms.ValidationError("Image must be at least 300x400 pixels.")
+            except Exception:
+                raise forms.ValidationError("Invalid image file.")
+            
+            return image
+        raise forms.ValidationError("Profile image is required.")
+    
+    def save(self, commit=True):
+        username = self.cleaned_data.get('username')
+        user = User.objects.get(username=username)
+        profile_photo = self.cleaned_data.get('cropped_image')
+        if profile_photo:
+            user.documents.create(
+                file_path=profile_photo,
+                document_name='profile_photo',
+                document_type='profile_photo',
+                document_context='general',
+            )
+    
+
+    
+
+
 
 
 class FamilyForm(forms.ModelForm):
