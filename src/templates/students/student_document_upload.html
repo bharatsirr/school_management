@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% block content %}
+    <div class="container bg-white max-w-2xl rounded-lg shadow-md mx-auto px-4 py-8">
+        {% if form.errors %}
+            <div class="errors mb-4 bg-red-500 text-2xl text-white p-4 rounded-lg">
+                <ul>
+                    {% for field, error in form.errors.items %}<li>{{ field }}: {{ error }}</li>{% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <h1 class="text-2xl font-bold mb-4">Student Registration</h1>
+        <form method="post"
+              enctype="multipart/form-data"
+              class="space-y-4"
+              id="student-registration-form">
+            {% csrf_token %}<!-- Student Document Upload Fields -->
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_aadhar_card">Aadhar Card</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="aadhar_card"
+                           id="id_aadhar_card"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.aadhar_card.errors %}<p class="text-red-500 text-sm mt-1">{{ form.aadhar_card.errors }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_birth_certificate">Birth Certificate</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="birth_certificate"
+                           id="id_birth_certificate"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.birth_certificate.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.birth_certificate.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_caste_certificate">Caste Certificate</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="caste_certificate"
+                           id="id_caste_certificate"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.caste_certificate.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.caste_certificate.errors }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_mark_sheet">Mark Sheet</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="mark_sheet"
+                           id="id_mark_sheet"
+                           class="border border-gray-300 bg-blue-300 hover:bg-blue-400 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.mark_sheet.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mark_sheet.errors }}</p>{% endif %}
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_transfer_certificate">Transfer Certificate</label>
+                    <input type="file"
+                           accept="application/pdf"
+                           name="transfer_certificate"
+                           id="id_transfer_certificate"
+                           class="border border-gray-300 p-2 bg-blue-300 hover:bg-blue-400 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.transfer_certificate.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.transfer_certificate.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <button type="submit"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                Submit
+            </button>
+        </form>
+    </div>
+{% endblock content %}
