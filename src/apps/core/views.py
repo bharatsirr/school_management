@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import Http404
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.views.generic import CreateView, ListView, DetailView, UpdateView
 from django.views import View
@@ -125,8 +126,23 @@ class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('user_profile')
 
     def get_object(self):
-        return self.request.user
+        # Get the username from the URL
+        username = self.kwargs.get('username')
+        
+        # Try to get the user by username, raise 404 if not found
+        user_to_edit = get_object_or_404(User, username=username)
+        
+        # Check if the logged-in user is the one trying to update their own profile
+        # or if they are a manager/company owner
+        if user_to_edit != self.request.user and not self.request.user.is_staff:
+            # Customize this line based on your permissions logic (manager/owner check)
+            raise Http404("You are not authorized to edit this user's profile.")
+        
+        return user_to_edit
 
+    def form_valid(self, form):
+        # Perform any additional checks or actions before saving the form
+        return super().form_valid(form)
 
 
 
