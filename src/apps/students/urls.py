@@ -5,7 +5,8 @@ from .views import (StudentRegistrationView,
                     FeeStructureUpdateView,
                     AddFeeTypeView,
                     StudentAdmissionListView,
-                    StudentUpdateView
+                    StudentUpdateView,
+                    StudentDocumentUploadView
                 )
 
 urlpatterns = [
@@ -13,6 +14,7 @@ urlpatterns = [
     path('students/register/', StudentRegistrationView.as_view(), name='register_student'),
     path('students/', StudentAdmissionListView.as_view(), name='student_admission_list'),
     path('students/update/<int:pk>/', StudentUpdateView.as_view(), name='student_update'),
+    path('students/document/upload/<int:pk>/', StudentDocumentUploadView.as_view(), name='student_document_upload'),
     # Fee Structure URLs
     path('fee/structure/create/', FeeStructureCreateView.as_view(), name='fee_structure_create'),
     path('fee/structure/', FeeStructureListView.as_view(), name='fee_structure_list'),

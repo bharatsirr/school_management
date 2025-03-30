@@ -1,12 +1,18 @@
 from django.core.paginator import Paginator
-from django.views.generic import CreateView, ListView, UpdateView, DeleteView
+from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Prefetch
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 
@@ -41,8 +47,37 @@ class StudentRegistrationView(View):
             messages.error(request, 'Student registration failed. Please fix the errors.')
         
         return render(request, self.template_name, {'form': form})
-    
 
+
+class StudentDocumentUploadView(LoginRequiredMixin, FormView):
+    template_name = 'students/student_document_upload.html'
+    form_class = StudentDocumentForm
+    success_url = reverse_lazy('student_admission_list')
+
+    def get_student(self):
+        """Fetch the student object using the primary key from the URL."""
+        student = get_object_or_404(Student, pk=self.kwargs.get('pk'))
+        return student
+
+    def get_user(self):
+        """Retrieve the user associated with the student."""
+        student = self.get_student()
+        return student.user  # Assuming the Student model has a ForeignKey to User
+
+    def dispatch(self, request, *args, **kwargs):
+        """Ensure only the student or an admin can upload documents."""
+        student_user = self.get_user()
+        if request.user != student_user and not request.user.is_staff:
+            raise PermissionDenied("You are not allowed to upload documents for this student.")
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        """Save the documents for the student’s associated user."""
+        user = self.get_user()  # Get the user associated with the student
+        form.cleaned_data['user'] = user  # Pass the user to the form
+        form.save()  # Save the documents
+        return super().form_valid(form)
+    
 
 class StudentUpdateView(UpdateView):
     model = Student

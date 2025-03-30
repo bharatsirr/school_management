@@ -1,6 +1,4 @@
 import logging
-from django.conf import settings
-from apps.core.utils import delete_files_from_local, delete_files_from_s3
 from PIL import Image
 from django.db import transaction
 from django.contrib.auth import get_user_model
@@ -37,7 +35,6 @@ class StudentRegistrationForm(forms.Form):
     dob = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     blood_group = forms.ChoiceField(choices=User.BLOOD_GROUPS)
     gender = forms.ChoiceField(choices=User.GENDER_CHOICES)
-    cropped_image = forms.FileField(required=True)
     phone_number = forms.CharField(max_length=15)
     is_whatsapp = forms.RadioSelect(choices=[(True, 'Yes'), (False, 'No')])
 
@@ -65,12 +62,6 @@ class StudentRegistrationForm(forms.Form):
     ifsc = forms.CharField(max_length=20, required=False)
     branch_name = forms.CharField(max_length=255, required=False)
     account_type = forms.ChoiceField(choices=BankAccountDetail.ACCOUNT_TYPES, required=False)
-    # student document upload fields
-    aadhar_card = forms.FileField(required=False)
-    birth_certificate = forms.FileField(required=False)
-    caste_certificate = forms.FileField(required=False)
-    mark_sheet = forms.FileField(required=False)
-    transfer_certificate = forms.FileField(required=False)
 
 
     def clean(self):
@@ -109,25 +100,6 @@ class StudentRegistrationForm(forms.Form):
                 raise forms.ValidationError("This email is already in use.")
         return email
     
-    def clean_cropped_image(self):
-        image = self.cleaned_data.get('cropped_image')
-        if image:
-            if image.content_type not in ['image/jpeg', 'image/png']:
-                raise forms.ValidationError("Invalid image type. Use JPEG or PNG.")
-
-            if image.size > 1/2 * 1024 * 1024:  # .5 MB limit
-                raise forms.ValidationError("Image size exceeds 0.5MB.")
-            
-            try:
-                with Image.open(image) as img:
-                    width, height = img.size
-                    if width < 300 or height < 400:
-                        raise forms.ValidationError("Image must be at least 300x400 pixels.")
-            except Exception:
-                raise forms.ValidationError("Invalid image file.")
-            
-            return image
-        raise forms.ValidationError("Profile image is required.")
     
     def clean_aadhar_card(self):
         aadhar_card = self.cleaned_data.get("aadhar_card")
@@ -243,13 +215,6 @@ class StudentRegistrationForm(forms.Form):
                 
                 user = User.objects.create_user(**user_data)
 
-                user.documents.create(
-                    file_path=self.cleaned_data["cropped_image"],
-                    document_name="profile photo".title(),
-                    document_type="profile photo".title(),
-                    document_context="general"
-                )
-
                 user.phones.create(
                     phone_number=self.cleaned_data["phone_number"]
                 )
@@ -270,45 +235,6 @@ class StudentRegistrationForm(forms.Form):
                     
                 )
 
-                if self.cleaned_data["aadhar_card"]:
-                    user.documents.create(
-                        file_path=self.cleaned_data["aadhar_card"],
-                        document_name="aadhar card".title(),
-                        document_type="id card".title(),
-                        document_context="student_admission"
-                    )
-                
-                if self.cleaned_data["birth_certificate"]:
-                    user.documents.create(
-                        file_path=self.cleaned_data["birth_certificate"],
-                        document_name="birth certificate".title(),
-                        document_type="certificate".title(),
-                        document_context="student_admission"
-                    )
-                
-                if self.cleaned_data["caste_certificate"]:
-                    user.documents.create(
-                        file_path=self.cleaned_data["caste_certificate"],
-                        document_name="caste certificate".title(),
-                        document_type="certificate".title(),
-                        document_context="student_admission"
-                    )
-                    
-                if self.cleaned_data["mark_sheet"]:
-                    user.documents.create(
-                        file_path=self.cleaned_data["mark_sheet"],
-                        document_name="mark sheet".title(),
-                        document_type="mark sheet".title(),
-                        document_context="student_admission"
-                    )
-                
-                if self.cleaned_data["transfer_certificate"]:
-                    user.documents.create(
-                        file_path=self.cleaned_data["transfer_certificate"],
-                        document_name="transfer certificate".title(),
-                        document_type="certificate".title(),
-                        document_context="student_admission"
-                    )
 
                 if self.cleaned_data["previous_institution"] and self.cleaned_data["score"] and self.cleaned_data["mm"] and self.cleaned_data["rte"]:
                     percent = (self.cleaned_data["score"] / self.cleaned_data["mm"]) * 100
@@ -323,27 +249,45 @@ class StudentRegistrationForm(forms.Form):
                 
                 return student_admission
         except Exception as e:
-            existingUser = User.objects.filter(username=self.cleaned_data["username"]).exists()
-            if not existingUser:
-                
-                if settings.DEBUG:
-                    try:
-                        delete_files_from_local(f"user_document/{self.cleaned_data['username']}")
-                    except Exception as delete_error:
-                        # Log deletion error but continue the process
-                        logger.error(f"Failed to delete files locally: {delete_error}")
-                else:
-                    try:
-                        delete_files_from_s3(f"user_document/{self.cleaned_data['username']}")
-                    except Exception as delete_error:
-                        # Log deletion error but continue the process
-                        logger.error(f"Failed to delete files from S3: {delete_error}")
-                # Re-raise the original error to propagate further
-                raise e
+            raise e
             
 
 
+class StudentDocumentForm(forms.Form):
+    # Student document upload fields
+    aadhar_card = forms.FileField(required=False)
+    birth_certificate = forms.FileField(required=False)
+    caste_certificate = forms.FileField(required=False)
+    mark_sheet = forms.FileField(required=False)
+    transfer_certificate = forms.FileField(required=False)
 
+    def save(self, commit=True):
+        """Save the uploaded documents for the associated user."""
+        user = self.cleaned_data.get('user')  # Get the user passed from the view
+        if not user:
+            raise ValueError("User not provided for document upload.")
+
+        try:
+            with transaction.atomic():
+                document_fields = {
+                    "aadhar_card": ("Aadhar Card", "ID Card"),
+                    "birth_certificate": ("Birth Certificate", "Certificate"),
+                    "caste_certificate": ("Caste Certificate", "Certificate"),
+                    "mark_sheet": ("Mark Sheet", "Mark Sheet"),
+                    "transfer_certificate": ("Transfer Certificate", "Certificate"),
+                }
+
+                for field_name, (doc_name, doc_type) in document_fields.items():
+                    file = self.cleaned_data.get(field_name)
+                    if file:
+                        user.documents.create(
+                            file_path=file,
+                            document_name=doc_name,
+                            document_type=doc_type,
+                            document_context="student_admission",
+                        )
+        except Exception as e:
+            raise e
 
 
 

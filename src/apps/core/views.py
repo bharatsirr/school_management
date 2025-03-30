@@ -181,14 +181,3 @@ class UserProfilePhotoUpdateView(LoginRequiredMixin, FormView):
         )
         
         return super().form_valid(form)
-
-    def get_initial(self):
-        """
-        Set the initial data for the form (e.g., pre-populate if any existing photo).
-        """
-        initial = super().get_initial()
-        user = self.get_object()
-        
-        # You could add additional logic here to pre-populate fields if necessary
-        # initial['cropped_image'] = user.profile_photo
-        return initial

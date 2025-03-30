@@ -34,7 +34,6 @@ class UserCreationForm(forms.ModelForm):
         ]
     )
     password2 = forms.CharField(label="Confirm Password", widget=forms.PasswordInput())
-    cropped_image = forms.FileField(required=True)
     phone_number = forms.CharField(
         max_length=15, 
         required=False,
@@ -90,27 +89,6 @@ class UserCreationForm(forms.ModelForm):
                 raise forms.ValidationError("This email is already in use.")
         return email
 
-    def clean_cropped_image(self):
-        image = self.cleaned_data.get('cropped_image')
-        if image:
-            if image.content_type not in ['image/jpeg', 'image/png']:
-                raise forms.ValidationError("Invalid image type. Use JPEG or PNG.")
-
-            if image.size > 1/2 * 1024 * 1024:  # .5 MB limit
-                raise forms.ValidationError("Image size exceeds 0.5MB.")
-
-            # Optional: Validate image dimensions
-            try:
-                with Image.open(image) as img:
-                    width, height = img.size
-                    if width < 300 or height < 400:
-                        raise forms.ValidationError("Image must be at least 300x400 pixels.")
-            except Exception:
-                raise forms.ValidationError("Invalid image file.")
-            
-            self.cleaned_data["cropped_image"] = image
-            return self.cleaned_data["cropped_image"]
-        raise forms.ValidationError("Profile image is required.")
 
     def save(self, commit=True):
         try:
@@ -128,18 +106,6 @@ class UserCreationForm(forms.ModelForm):
                         # You might need to adjust this based on your exact model
                         user.phones.create(phone_number=phone_number)
                     
-                    # Save profile photo
-                    profile_photo = self.cleaned_data.get('cropped_image')
-                    if profile_photo:
-                        # Assuming you have a Documents model for storing files
-                        # Adjust the creation method to match your exact model
-                        user.documents.create(
-                            file_path=profile_photo,
-                            document_name='profile_photo',
-                            document_type='profile_photo',
-                            document_context='general',
-                        )
-            
             return user
         except Exception as e:
             existingUser = User.objects.filter(username=self.cleaned_data["username"]).exists()
@@ -186,17 +152,6 @@ class UserProfilePhotoForm(forms.Form):
             return image
         raise forms.ValidationError("Profile image is required.")
     
-    def save(self, commit=True):
-        username = self.cleaned_data.get('username')
-        user = User.objects.get(username=username)
-        profile_photo = self.cleaned_data.get('cropped_image')
-        if profile_photo:
-            user.documents.create(
-                file_path=profile_photo,
-                document_name='profile_photo',
-                document_type='profile_photo',
-                document_context='general',
-            )
     
 
     
