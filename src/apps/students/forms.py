@@ -1,3 +1,4 @@
+from apps.core.utils import fee_due_generate
 import logging
 from PIL import Image
 from django.db import transaction
@@ -235,6 +236,7 @@ class StudentRegistrationForm(forms.Form):
                     
                 )
 
+                fee_due_generate(student)
 
                 if self.cleaned_data["previous_institution"] and self.cleaned_data["score"] and self.cleaned_data["mm"] and self.cleaned_data["rte"]:
                     percent = (self.cleaned_data["score"] / self.cleaned_data["mm"]) * 100

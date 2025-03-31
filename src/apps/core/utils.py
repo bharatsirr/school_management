@@ -3,7 +3,7 @@ import os
 import shutil
 from django.conf import settings
 from django.core.files.storage import default_storage
-from apps.students.models import FeeDue, Student
+from apps.students.models import FeeDue, Student, StudentAdmission
 from datetime import date
 from django.utils.timezone import now
 from django.utils import timezone
@@ -55,7 +55,9 @@ def delete_files_from_local(relative_path):
 def fee_due_generate(student):
     """Generates fee dues for a student's latest active admission."""
     today = now().date()
-    active_admission = student.admissions.filter(status="active").order_by("-admission_date").first()
+    # get the current session
+    current_session = StudentAdmission.generate_session()
+    active_admission = student.admissions.filter(status="active" , session=current_session).order_by("-admission_date").first()
 
     if not active_admission:
         return False  # No active admission found, skip processing
