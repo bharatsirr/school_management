@@ -54,15 +54,16 @@ def delete_files_from_local(relative_path):
 
 def fee_due_generate(student):
     """Generates fee dues for a student's latest active admission."""
-    today = now().date()
+    today = timezone.localtime(timezone.now()).date()
     # get the current session
     current_session = StudentAdmission.generate_session()
     active_admission = student.admissions.filter(status="active" , session=current_session).order_by("-admission_date").first()
+    is_rte = active_admission.is_rte
 
     if not active_admission:
         return False  # No active admission found, skip processing
 
-    fee_structure = student.fee_structure
+    fee_structure = active_admission.fee_structure
     fee_types = fee_structure.fee_types.all()
 
     for fee_type in fee_types:
@@ -70,7 +71,7 @@ def fee_due_generate(student):
         if not FeeDue.objects.filter(admission=active_admission, fee_type=fee_type).exists():
             
             # Handle tuition fees based on the date conditions
-            if fee_type.name in ["tuition_q1", "tuition_q2", "tuition_q3", "tuition_q4"]:
+            if fee_type.name in ["tuition_q1", "tuition_q2", "tuition_q3", "tuition_q4"] and is_rte == False:
                 if (fee_type.name == "tuition_q1" and today >= date(today.year, 4, 1)) or \
                    (fee_type.name == "tuition_q2" and today >= date(today.year, 7, 1)) or \
                    (fee_type.name == "tuition_q3" and today >= date(today.year, 10, 1)) or \

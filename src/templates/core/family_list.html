@@ -20,6 +20,8 @@
             </ul>
             <a href="{% url 'add_family_member' family.id %}"
                class="text-blue-600 hover:underline mt-4 inline-block">➕ Add Member</a>
+            <a href="{% url 'wallet_topup' family.id %}"
+               class="text-blue-600 hover:underline mt-4 inline-block">➕ Wallet Topup</a>
         </div>
     {% endfor %}
 {% endblock content %}

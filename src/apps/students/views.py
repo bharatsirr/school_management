@@ -93,7 +93,7 @@ class StudentAdmissionListView(ListView):
     model = StudentAdmission
     template_name = 'students/admission_list.html'
     context_object_name = 'student_admissions'
-    paginate_by = 10
+    paginate_by = 50
 
     def get_queryset(self):
         # Prefetch related data to reduce queries
@@ -104,7 +104,7 @@ class StudentAdmissionListView(ListView):
         ).prefetch_related(
             Prefetch('student__user__phones'), 
             Prefetch('student__previous_institution')
-        )
+        ).order_by('-admission_date')
 
 
 

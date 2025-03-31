@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, FormView
 from django.views import View
 from django.urls import reverse_lazy
-from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm
+from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm, WalletTopupForm
 from django.contrib import messages
 from .models import Family, UserDocument
 from django.core.exceptions import PermissionDenied
@@ -108,6 +108,41 @@ class AddFamilyMemberView( LoginRequiredMixin, View):
 
         return render(request, self.template_name, {'form': form, 'family': family})
     
+
+
+
+
+class WalletTopupView(FormView):
+    template_name = "core/wallet_topup.html"  # Create a template for this view
+    form_class = WalletTopupForm
+    success_url = reverse_lazy("family_list")  # Redirect to a relevant page after top-up
+
+    def get_family(self):
+        return get_object_or_404(Family, id=self.kwargs.get("family_id"))
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['family'] = self.get_family()
+        return context
+
+    def form_valid(self, form):
+        family = self.get_family()
+        form.save(family=family)
+        messages.success(self.request, "Wallet top-up successful!")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Invalid amount entered.")
+        return super().form_invalid(form)
+    
+
+
+
 
 
 class UserProfileView(LoginRequiredMixin, DetailView):

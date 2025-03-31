@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admission Print</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+        @media print {
+            .no-print { display: none; }
+        }
+        </style>
+    </head>
+    <body class="bg-gray-100 p-6">
+        <div class="max-w-3xl mx-auto bg-white p-8 shadow-lg rounded-md">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h1 class="text-2xl font-bold text-gray-800">Admission Details</h1>
+                <button onclick="window.print()"
+                        class="no-print px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Print</button>
+            </div>
+            <!-- Student & School Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div>
+                    {% if admission.profile_photo %}
+                        <img src="{{ admission.profile_photo }}"
+                             alt="Profile Photo"
+                             class="w-32 h-32 object-cover rounded-lg shadow">
+                    {% else %}
+                        <div class="w-32 h-32 bg-gray-300 flex items-center justify-center text-gray-600 rounded-lg shadow">No Image</div>
+                    {% endif %}
+                </div>
+                <div class="col-span-2">
+                    <h2 class="text-xl font-semibold">{{ admission.student.user.first_name }} {{ admission.student.user.last_name }}</h2>
+                    <p class="text-gray-600">
+                        Class: <span class="font-medium">{{ admission.student_class }}</span>
+                    </p>
+                    <p class="text-gray-600">
+                        Section: <span class="font-medium">{{ admission.section }}</span>
+                    </p>
+                    <p class="text-gray-600">
+                        Roll Number: <span class="font-medium">{{ admission.roll_number }}</span>
+                    </p>
+                    <p class="text-gray-600">
+                        School: <span class="font-medium">{{ admission.serial_no.get_school_name_display }}</span>
+                    </p>
+                </div>
+            </div>
+            <!-- Admission Information -->
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-2">Admission Information</h3>
+                <table class="w-full border-collapse border border-gray-300">
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2 text-left">Attribute</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Value</th>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">Session</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ admission.session }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">Admission Date</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ admission.admission_date|date:"d M Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">Status</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ admission.get_status_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">Fee Structure</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ admission.fee_structure.name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">Total Fee</td>
+                        <td class="border border-gray-300 px-4 py-2">₹{{ admission.total_fee }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-2">Fee Breakdown</h3>
+                <table class="w-full border-collapse border border-gray-300">
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2 text-left">Fee Type</th>
+                        <th class="border border-gray-300 px-4 py-2 text-right">Amount</th>
+                    </tr>
+                    {% for fee_type in admission.fee_structure.fee_types.all %}
+                        <tr>
+                            <td class="border border-gray-300 px-4 py-2">{{ fee_type.name }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-right">₹{{ fee_type.amount }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <!-- No dues -->
+            <div class="mt-6">
+                <p class="text-lg font-semibold {% if admission.no_dues %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if admission.no_dues %}
+                        ✅ No Dues: Cleared
+                    {% else %}
+                        ❌ No Dues: Pending
+                    {% endif %}
+                </p>
+            </div>
+            <!-- Signature -->
+            <div class="flex justify-between mt-10">
+                <div class="text-center">
+                    <hr class="border-t-2 border-gray-500 w-32 mx-auto">
+                    <p class="mt-2">Student Signature</p>
+                </div>
+                <div class="text-center">
+                    <hr class="border-t-2 border-gray-500 w-32 mx-auto">
+                    <p class="mt-2">Principal Signature</p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

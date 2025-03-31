@@ -10,6 +10,7 @@ from apps.core.utils import delete_files_from_local, delete_files_from_s3
 from django.conf import settings
 
 from apps.core.models import Family, FamilyMember, UserDocument
+from apps.finance.models import PaymentTransaction, WalletTransaction, Discount, ManagementExpense, PaymentSummary, LedgerEntry, LedgerAccountType
 
 logger = logging.getLogger(__name__)
 
@@ -178,3 +179,89 @@ class FamilyMemberForm(forms.ModelForm):
         widgets = {
             'member_type': forms.Select(choices=FamilyMember.MemberType.choices),
         }
+
+
+class WalletTopupForm(forms.Form):
+    amount = forms.DecimalField(max_digits=10, decimal_places=2)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+    
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount <= 0:
+            raise forms.ValidationError("Amount must be greater than 0.")
+        return amount
+
+    def save(self, family):
+        if not family:
+            raise ValueError("A valid family instance is required.")
+
+        try:
+            with transaction.atomic():
+                # get the old balance
+                old_balance = family.wallet_balance
+                # update the balance
+                family.wallet_balance += self.cleaned_data['amount']
+                family.save()
+
+                # Try to get a male member first
+                family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Male').first()
+
+                # If no male member exists, get the first female member
+                if not family_parent:
+                    family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Female').first()
+
+                if not family_parent:
+                    raise ValueError("No family user found.")
+                
+
+                family_user = family_parent.user
+                # Now family_user will be either the first male or female member
+
+                # Create a transaction record
+                payment_transaction = PaymentTransaction.objects.create(
+                    amount=self.cleaned_data['amount'],
+                    user=family_user,
+                    agent=self.user,
+                    method='CASH',
+                    status='SUCCESSFUL',
+                    description=f"Wallet top-up of ₹{self.cleaned_data['amount']}"
+                )
+                # Create a wallet transaction record
+                WalletTransaction.objects.create(
+                    family=family,
+                    current_balance=family.wallet_balance,
+                    previous_balance=old_balance,
+                    transaction_type='CREDIT',
+                    payment_transaction=payment_transaction
+                )
+
+                # Create a payment summary record
+                PaymentSummary.objects.create(
+                    payment_transaction=payment_transaction,
+                    customer=family_user,
+                    amount=self.cleaned_data['amount'],
+                    details={'type': 'wallet_top_up', 'old_balance': float(old_balance), 'new_balance': float(family.wallet_balance)}
+                )
+
+                # create a ledger entry
+                LedgerEntry.objects.create(
+                    payment_transaction=payment_transaction,
+                    amount=self.cleaned_data['amount'],
+                    entry_type='DEBIT',
+                    account_type=LedgerAccountType.objects.get(name='CASH'),
+                    description=f"Wallet top-up of ₹{self.cleaned_data['amount']}"
+                )
+                LedgerEntry.objects.create(
+                    payment_transaction=payment_transaction,
+                    amount=self.cleaned_data['amount'],
+                    entry_type='CREDIT',
+                    account_type=LedgerAccountType.objects.get(name='WALLET'),
+                    description=f"Wallet top-up of ₹{self.cleaned_data['amount']}"
+                )
+                
+        except Exception as e:
+            logger.error(f"Failed to save wallet top-up: {e}")
+            raise forms.ValidationError(f"Failed to save wallet top-up. {e}")
