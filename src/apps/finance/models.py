@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-
+from apps.core.models import Family
 User = get_user_model()
 
 class BankAccountDetail(models.Model):
@@ -104,7 +104,7 @@ class WalletTransaction(models.Model):
         ('DEBIT', 'Debit'),
     ]
 
-    family = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wallet_transactions')
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='wallet_transactions')
     current_balance = models.DecimalField(max_digits=12, decimal_places=2, help_text="Balance after the transaction")
     previous_balance = models.DecimalField(max_digits=12, decimal_places=2, help_text="Balance before the transaction")
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
@@ -179,3 +179,40 @@ class PaymentSummary(models.Model):
         return f"{self.customer} - {self.amount} - {self.date}"
     
     
+
+
+"""
+{
+    "type": "fee",
+    "new_balance": 1500.00,
+    "students": {
+        "John Doe": {
+            "fees": {
+                "Tuition Fee": 5000,
+                "Library Fee": 500
+            }
+        },
+        "Jane Smith": {
+            "fees": {
+                "Tuition Fee": 5000,
+                "Sports Fee": 800
+            }
+        }
+}
+
+{
+    "type": "wallet_top_up",
+    "old_balance": 1000.00,
+    "new_balance": 1200.00,
+    "top_up_amount": 200.00
+}
+
+{
+    "type": "product_sale",
+    "product_name": "Laptop",
+    "product_price": 450.00,
+    "quantity": 1,
+    "total_amount": 450.00
+}
+
+"""
