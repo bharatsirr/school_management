@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -11,6 +11,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from apps.core.models import Family
 
 User = get_user_model()
 
@@ -152,3 +153,34 @@ class AddFeeTypeView(CreateView):
 
     def get_success_url(self):
         return reverse_lazy('fee_structure_list')
+
+
+
+class PayFamilyFeeDuesView(FormView):
+    form_class = PayFamilyFeeDuesForm
+    template_name = 'students/pay_family_fee_dues.html'
+    success_url = reverse_lazy('student_admission_list')
+
+    def get_family(self):
+        return get_object_or_404(Family, id=self.kwargs.get("family_id"))
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['family'] = self.get_family()
+        return context
+
+    def form_valid(self, form):
+        family = self.get_family()
+        form.save(family=family)
+        messages.success(self.request, "Fee dues paid successfully")
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        messages.error(self.request, "Invalid amount entered.")
+        return super().form_invalid(form)
+    

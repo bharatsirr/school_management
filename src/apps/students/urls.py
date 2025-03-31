@@ -6,7 +6,8 @@ from .views import (StudentRegistrationView,
                     AddFeeTypeView,
                     StudentAdmissionListView,
                     StudentUpdateView,
-                    StudentDocumentUploadView
+                    StudentDocumentUploadView,
+                    PayFamilyFeeDuesView
                 )
 
 urlpatterns = [
@@ -20,4 +21,6 @@ urlpatterns = [
     path('fee/structure/', FeeStructureListView.as_view(), name='fee_structure_list'),
     path('fee/structure/update/<int:pk>/', FeeStructureUpdateView.as_view(), name='fee_structure_update'),
     path('fee/structure/<int:fee_structure_id>/add_fee_type/', AddFeeTypeView.as_view(), name='add_fee_type'),
+    # Pay Family Fee Dues URLs
+    path('pay/family/fee/dues/<int:family_id>/', PayFamilyFeeDuesView.as_view(), name='pay_family_fee_dues'),
 ]

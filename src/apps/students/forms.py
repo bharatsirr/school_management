@@ -5,7 +5,9 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django import forms
 from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutionDetail, FeeStructure, FeeType, FeeDue
-from apps.finance.models import BankAccountDetail
+from apps.finance.models import BankAccountDetail, PaymentTransaction, PaymentSummary, LedgerEntry, LedgerAccountType, WalletTransaction
+from apps.core.utils import pay_family_fee_dues
+from apps.core.models import FamilyMember
 
 logger = logging.getLogger(__name__)
 
@@ -309,4 +311,88 @@ class FeeTypeForm(forms.ModelForm):
 
 
 
+
+class PayFamilyFeeDuesForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def save(self, family):
+        try:
+            with transaction.atomic():
+                
+                if not family:
+                    raise ValueError("Family not provided.")
+                
+                # get the amount
+                old_balance = family.wallet_balance
+                if old_balance <= 0:
+                    raise ValueError("Family wallet balance is 0.")
+                # Try to get a male member first
+                family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Male').first()
+
+                # If no male member exists, get the first female member
+                if not family_parent:
+                    family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Female').first()
+
+                if not family_parent:
+                    raise ValueError("No family user found.")
+                
+
+                family_user = family_parent.user
+                # Now family_user will be either the first male or female member
+                
+                payment_transaction = PaymentTransaction.objects.create(
+                    user=family_user,
+                    agent=self.user,
+                    method='WALLET',
+                    status='SUCCESSFUL',
+                )
+                
+                left_over_budget, payment_data = pay_family_fee_dues(family, payment_transaction)
+
+                # update the family wallet balance
+                family.wallet_balance = left_over_budget
+                family.save()
+                
+                # update the payment transaction amount
+                payment_transaction.amount = old_balance - left_over_budget
+                payment_transaction.description = f"Fee dues payment of ₹{old_balance - left_over_budget}"
+                payment_transaction.save()
+                
+                # create a wallet transaction
+                WalletTransaction.objects.create(
+                    family=family,
+                    current_balance=family.wallet_balance,
+                    previous_balance=old_balance,
+                    transaction_type='DEBIT',
+                    payment_transaction=payment_transaction
+                )
+                # create a payment summary
+                PaymentSummary.objects.create(
+                    payment_transaction=payment_transaction,
+                    customer=family_user,
+                    amount=old_balance - left_over_budget,
+                    details={"type": "fee", **payment_data}
+                )
+
+                # create a ledger entry
+                LedgerEntry.objects.create(
+                    payment_transaction=payment_transaction,
+                    amount=old_balance - left_over_budget,
+                    entry_type='DEBIT',
+                    account_type=LedgerAccountType.objects.get(name='WALLET'),
+                    description=f"Fee dues payment of ₹{old_balance - left_over_budget}"
+                )
+                LedgerEntry.objects.create(
+                    payment_transaction=payment_transaction,
+                    amount=old_balance - left_over_budget,
+                    entry_type='CREDIT',
+                    account_type=LedgerAccountType.objects.get(name='FEE'),
+                    description=f"Fee dues payment of ₹{old_balance - left_over_budget}"
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to pay family fee dues: {e}")
+            raise e
 

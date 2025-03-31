@@ -7,8 +7,7 @@ from apps.students.models import FeeDue, Student, StudentAdmission
 from datetime import date
 from django.utils.timezone import now
 from django.utils import timezone
-from decimal import Decimal
-
+from django.core.exceptions import ValidationError
 
 def delete_files_from_s3(relative_path):
     # Construct the full path using the relative path provided
@@ -123,23 +122,52 @@ def pay_fee_dues(student, transaction, budget):
 
 
 def pay_family_fee_dues(family, transaction):
-    """Pays fee dues for all active students in a family within the given budget.
-    
+    """
+    Pays fee dues for all active students in a family within the given budget.
+
     Args:
         family (Family): The family whose students' fees are being paid.
         transaction (PaymentTransaction): The transaction associated with this payment.
 
     Returns:
-        Decimal: The remaining budget that couldn't be used.
+        tuple: (remaining_budget, payment_data)
     """
     budget = family.wallet_balance
     family_members = family.members.all()  # Get all users in the family
-    students = Student.objects.filter(user__in=family_members, admissions__status="active").distinct()
+    family_members_users = family_members.values_list('user', flat=True)
+
+    students = Student.objects.filter(user__in=family_members_users, admissions__status="active").distinct()
+
+    payment_data = {"students": {}}  # Store payment details here
+    dues_found = False  # Flag to check if any dues exist
 
     for student in students:
-        if budget <= Decimal("0.00"):
-            break  # Stop if the budget is exhausted
+        student_fees = {}  # Fees paid for this student
+        dues = FeeDue.objects.filter(admission__student=student, paid=False).order_by("admission__admission_date", "id")
 
-        budget = pay_fee_dues(student, transaction, budget)  # Pay fees for this student
+        if not dues.exists():  # Check if there are no dues for this student
+            continue  # Skip to the next student
 
-    return budget  # Return leftover money that couldn't be used
+        dues_found = True  # Dues exist for at least one student
+
+        for due in dues:
+            if budget >= due.amount:
+                due.mark_as_paid(transaction)
+                budget -= due.amount
+                student_fees[due.fee_type.name] = float(due.amount)  # Convert to float for JSON compatibility
+            else:
+                # Budget is insufficient for this fee, skip it
+                continue
+
+        if student_fees:
+            payment_data["students"][f"{student.user.first_name} {student.user.last_name}"] = {"fees": student_fees}
+        else:
+            raise ValidationError("Insufficient budget.")
+
+    # Raise an error if no dues were found for any student
+    if not dues_found:
+        raise ValidationError("No fee dues found for any student in the family.")
+
+    remaining_budget = budget  # Ensure compatibility with JSON
+
+    return remaining_budget, payment_data
