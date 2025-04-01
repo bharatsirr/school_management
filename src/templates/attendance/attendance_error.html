@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Attendance cannot be taken today.</h2>
+    <p class="text-gray-600 mb-4">Today is a holiday or a Sunday.</p>
+    <a href="{% url "home" %}"
+       class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Go to Home</a>
+{% endblock content %}
