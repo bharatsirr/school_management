@@ -17,6 +17,16 @@ def attendance_success(request):
 def attendance_already_taken(request):
     return render(request, "attendance/attendance_already_taken.html")
 
+def class_selection(request):
+    """Renders a page with buttons to select a class for attendance marking."""
+    class_options = [
+        {"name": "Nursery", "value": "nur"},
+        {"name": "LKG", "value": "lkg"},
+        {"name": "UKG", "value": "ukg"},
+    ] + [{"name": f"Class {i}", "value": str(i)} for i in range(1, 13)]  # Classes 1 to 12
+
+    return render(request, "attendance/class_selection.html", {"class_options": class_options})
+
 class BulkAttendanceView(FormView):
     template_name = "attendance/bulk_attendance.html"
     form_class = BulkAttendanceForm
