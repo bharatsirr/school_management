@@ -307,12 +307,29 @@ class StudentAdmission(models.Model):
                 # Ensure serial number is created based on the class and student
                 if not self.pk:  # Only do this for new records
 
-                    # auto assign fee structure
+                    # Auto assign fee structure
                     fee_structure_name = f"class_{self.student_class}_fees".lower()
-                    self.fee_structure = FeeStructure.active_objects.get(name=fee_structure_name)
+                    try:
+                        self.fee_structure = FeeStructure.active_objects.get(name=fee_structure_name)
+                        # Log fee structure
+                        logger.debug(f"Fee structure found: {self.fee_structure.name}")
+                    except FeeStructure.DoesNotExist:
+                        logger.error(f"Fee structure for class {self.student_class} not found.")
+                        raise ValueError(f"Fee structure for class {self.student_class} not found.")
+                    
+                    # Check if fee_types exist for the FeeStructure
+                    fee_types = self.fee_structure.fee_types.all()
+                    logger.debug(f"Found {fee_types.count()} fee types for {fee_structure_name}")
 
-                    # auto add total fee
-                    self.total_fee = self.fee_structure.fee_types.aggregate(total_fee=Sum('amount'))['total_fee'] or 0
+                    if fee_types.count() == 0:
+                        logger.error(f"No FeeTypes found for FeeStructure {self.fee_structure.name}.")
+                        raise ValueError(f"No FeeTypes found for FeeStructure {self.fee_structure.name}.")
+                    
+                    # Calculate the total fee
+                    total_fee = fee_types.aggregate(total_fee=Sum('amount'))['total_fee'] or 0
+                    if total_fee <= 0:
+                        logger.warning(f"Total fee for class {self.student_class} is zero or undefined.")
+                    self.total_fee = total_fee
                     if self.student_class in ['NUR', 'LKG', 'UKG', '1', '2', '3', '4', '5']:  # Class below 6
                         serial_number = self.generate_kdpv_serial(self.student)
                         serial = StudentSerial.objects.get_or_create(
