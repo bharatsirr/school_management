@@ -33,6 +33,7 @@ class StudentRegistrationForm(forms.Form):
     father_name = forms.CharField(max_length=150)
     mother_name = forms.CharField(max_length=150)
     email = forms.EmailField(required=False)
+    aadhar_number = forms.CharField(max_length=12, required=False)
     village = forms.CharField(max_length=255)
     pincode = forms.CharField(max_length=10)
     dob = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
@@ -210,6 +211,7 @@ class StudentRegistrationForm(forms.Form):
                     "pincode": self.cleaned_data["pincode"],
                     "dob": self.cleaned_data["dob"],
                     "blood_group": self.cleaned_data["blood_group"],
+                    "aadhar_number": self.cleaned_data["aadhar_number"],
                     "gender": self.cleaned_data["gender"],
                     "password": self.cleaned_data["password"]
                 }
