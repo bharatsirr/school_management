@@ -2,9 +2,21 @@ from django.contrib import admin
 
 from apps.core.models import User, Phone, UserDocument, Family, FamilyMember
 
-admin.site.register(User)
-admin.site.register(Phone)
-admin.site.register(UserDocument)
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'is_active', 'aadhar_number', 'is_staff', 'is_superuser')
+    search_fields = ('username', 'email', 'aadhar_number')
+    list_filter = ('is_active', 'is_staff', 'is_superuser')
+
+@admin.register(Phone)
+class PhoneAdmin(admin.ModelAdmin):
+    list_display = ('user', 'phone_number', 'is_whatsapp')
+    search_fields = ('user__username', 'phone_number')
+
+@admin.register(UserDocument)
+class UserDocumentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'document_type', 'uploaded_at')
+    search_fields = ('user__username', 'document_type')
 
 
 @admin.register(Family)
