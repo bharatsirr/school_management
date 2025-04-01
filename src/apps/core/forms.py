@@ -20,7 +20,7 @@ User = get_user_model()
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'dob', 'gender', 'village', 'pincode']
+        fields = ['first_name', 'last_name', 'email', 'dob', 'gender', 'village', 'pincode', 'aadhar_number']
 
 
 class UserCreationForm(forms.ModelForm):
@@ -60,7 +60,7 @@ class UserCreationForm(forms.ModelForm):
         fields = [
             'username', 'first_name', 'last_name', 'email',
             'password1', 'password2', 'father_name', 'mother_name',
-            'village', 'pincode', 'dob', 'blood_group', 'gender'
+            'village', 'pincode', 'dob', 'blood_group', 'aadhar_number', 'gender'
         ]
 
     def clean(self):
