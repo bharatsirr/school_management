@@ -175,6 +175,11 @@ class PaymentSummary(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     details = models.JSONField(default=dict)
 
+    class Meta:
+        ordering = ['-date']
+        verbose_name = "Payment Summary"
+        verbose_name_plural = "Payment Summaries"
+    
     def __str__(self):
         return f"{self.customer} - {self.amount} - {self.date}"
     

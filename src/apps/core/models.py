@@ -66,6 +66,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     dob = models.DateField(null=True, blank=True)
     blood_group = models.CharField(max_length=5, null=True, blank=True, choices=BLOOD_GROUPS)
     gender = models.CharField(max_length=10, null=True, blank=True, choices=GENDER_CHOICES)
+    aadhar_number = models.CharField(max_length=12, null=True, blank=True, unique=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
