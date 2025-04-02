@@ -8,48 +8,59 @@ from datetime import date
 from django.utils.timezone import now
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+import logging
 
-def delete_files_from_s3(relative_path):
-    # Construct the full path using the relative path provided
-    user_documents_prefix = os.path.join(settings.AWS_LOCATION, relative_path)
+logger = logging.getLogger(__name__)
 
-    # Use Django's default storage to list files with a specific prefix (directory)
-    bucket = default_storage.bucket
+def delete_document(document):
+    """
+    Delete a document and its associated file from storage.
+    Args:
+        document: A UserDocument instance to delete
+    """
+    try:
+        if settings.DEBUG:
+            # Local storage deletion
+            file_path = document.file_path.path
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                logger.info(f"Successfully deleted local file: {file_path}")
+            else:
+                logger.warning(f"Local file does not exist: {file_path}")
+        else:
+            # S3 storage deletion
+            file_path = document.file_path.name
+            full_path = os.path.join(settings.AWS_LOCATION, file_path)
+            default_storage.delete(full_path)
+            logger.info(f"Successfully deleted S3 file: {full_path}")
+    except Exception as e:
+        logger.error(f"Error deleting document file {file_path}: {str(e)}")
+        raise
 
-    # List all files that start with the given prefix (i.e., the relative path)
-    blobs = bucket.list_blobs(prefix=user_documents_prefix)
-
-    # Loop through the files and delete them
-    for blob in blobs:
-        try:
-            blob.delete()  # Delete the file from S3
-            print(f"Deleted file: {blob.name}")
-        except Exception as e:
-            print(f"Error deleting file {blob.name}: {e}")
-
-def delete_files_from_local(relative_path):
-    # Join the relative path with the MEDIA_ROOT to get the absolute path
-    user_documents_dir = os.path.join(settings.MEDIA_ROOT, relative_path)
-
-    # Check if the directory exists
-    if os.path.exists(user_documents_dir) and os.path.isdir(user_documents_dir):
-        # Delete all files in the directory
-        for filename in os.listdir(user_documents_dir):
-            file_path = os.path.join(user_documents_dir, filename)
-            try:
-                if os.path.isfile(file_path):
-                    os.remove(file_path)  # Delete individual file
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)  # Delete sub-directory, if any
-            except Exception as e:
-                print(f"Error deleting file {file_path}: {e}")
+def delete_files_from_local(file_path):
+    """
+    Delete a file from local storage.
+    Args:
+        file_path: The path of the file to delete (relative to MEDIA_ROOT)
+    """
+    try:
+        # Get the absolute path
+        absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
         
-        # After deleting files, remove the directory itself
-        os.rmdir(user_documents_dir)
-        print(f"Deleted all files and the directory for path: {relative_path}")
-    else:
-        print(f"Directory does not exist: {relative_path}")
-
+        # Check if it's a file or directory
+        if os.path.isfile(absolute_path):
+            # Delete the file
+            os.remove(absolute_path)
+            logger.info(f"Successfully deleted file: {absolute_path}")
+        elif os.path.isdir(absolute_path):
+            # Delete the directory and its contents
+            shutil.rmtree(absolute_path)
+            logger.info(f"Successfully deleted directory: {absolute_path}")
+        else:
+            logger.warning(f"Path does not exist: {absolute_path}")
+    except Exception as e:
+        logger.error(f"Error deleting file/directory {file_path}: {str(e)}")
+        raise
 
 def fee_due_generate(student):
     """Generates fee dues for a student's latest active admission."""
