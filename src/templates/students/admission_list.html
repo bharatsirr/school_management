@@ -51,6 +51,15 @@
                        class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">Edit Profile</a>
                     <a href="{% url 'user_profile' admission.student.user.username %}"
                        class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">View Profile</a>
+                    {% for member in admission.student.user.family_member.family.members.all %}
+                        {% if member.member_type == "parent" and member.user.gender == "Male" %}
+                            <a href="{% url 'user_profile' member.user.username %}"
+                               class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">View Father's Profile</a>
+                        {% elif member.member_type == "parent" and member.user.gender == "Female" %}
+                            <a href="{% url 'user_profile' member.user.username %}"
+                               class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">View Mother's Profile</a>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             {% empty %}
                 <p class="text-gray-500">No student admissions found.</p>
