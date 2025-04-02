@@ -7,7 +7,7 @@
             {{ form.as_p }}
             <button type="submit"
                     class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Save Changes</button>
-            <a href="{% url 'user_profile' %}"
+            <a href="{% url 'user_profile' user.username %}"
                class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">Cancel</a> <a href="{% url 'user_profile_photo_update' user.username %}"
     class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Update Profile Photo</a>
         </form>
