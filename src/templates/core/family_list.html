@@ -24,6 +24,10 @@
                class="text-blue-600 hover:underline mt-4 inline-block">➕ Wallet Topup</a>
             <a href="{% url 'pay_family_fee_dues' family.id %}"
                class="text-blue-600 hover:underline mt-4 inline-block">➕ Pay All Fee Dues</a>
+            <a href="{% url 'family_fee_dues' family.id %}"
+               class="text-blue-600 hover:underline mt-4 inline-block">➕ View All Fee Dues</a>
+            <a href="{% url 'family_payment_dates' family.id %}"
+               class="text-blue-600 hover:underline mt-4 inline-block">➕ View All Payment Dates</a>
         </div>
     {% endfor %}
 {% endblock content %}

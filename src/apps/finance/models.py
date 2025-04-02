@@ -189,7 +189,6 @@ class PaymentSummary(models.Model):
 """
 {
     "type": "fee",
-    "new_balance": 1500.00,
     "students": {
         "John Doe": {
             "fees": {
@@ -214,10 +213,38 @@ class PaymentSummary(models.Model):
 
 {
     "type": "product_sale",
-    "product_name": "Laptop",
-    "product_price": 450.00,
-    "quantity": 1,
-    "total_amount": 450.00
+    "sales": [
+        {
+            "customer_name": "John Doe",
+            "products": [
+                {
+                    "product_name": "Laptop",
+                    "quantity": 1,
+                    "unit_price": 450.00,
+                    "total_price": 450.00
+                },
+                {
+                    "product_name": "Mouse",
+                    "quantity": 1,
+                    "unit_price": 25.00,
+                    "total_price": 25.00
+                }
+            ],
+            "total_amount": 475.00
+        },
+        {
+            "customer_name": "Jane Smith",
+            "products": [
+                {
+                    "product_name": "Smartphone",
+                    "quantity": 2,
+                    "unit_price": 300.00,
+                    "total_price": 600.00
+                }
+            ],
+            "total_amount": 600.00
+        }
+    ]
 }
 
 """
