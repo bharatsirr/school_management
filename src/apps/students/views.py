@@ -219,11 +219,13 @@ def admission_print_view(request, student_id):
         if mother:
             mother_name = f"{mother.user.first_name} {mother.user.last_name}"
             mother_aadhar = mother.user.aadhar_number
+            mother_occupation = mother.user.occupation
             mother_phones = mother.user.phones.all()
         
         if father:
             father_name = f"{father.user.first_name} {father.user.last_name}"
             father_aadhar = father.user.aadhar_number
+            father_occupation = father.user.occupation
             father_phones = father.user.phones.all()
 
     # Fetch the profile photo URL
@@ -242,6 +244,8 @@ def admission_print_view(request, student_id):
         "father_name": father_name,
         "father_aadhar": father_aadhar,
         "father_phones": father_phones,
+        "father_occupation": father_occupation,
+        "mother_occupation": mother_occupation,
         "profile_photo_url": profile_photo_url,
         "school_logo": school_logo,
         "student_serial": student_serial,

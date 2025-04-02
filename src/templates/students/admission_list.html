@@ -47,6 +47,8 @@
                        class="mt-4 bg-yellow-500 hover:bg-yellow-700 text-white px-3 py-1 rounded">Edit</a>
                     <a href="{% url 'admission_print' admission.student.id %}"
                        class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">Print</a>
+                    <a href="{% url 'user_profile_update' admission.student.user.username %}"
+                       class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">Edit Profile</a>
                 </div>
             {% empty %}
                 <p class="text-gray-500">No student admissions found.</p>
