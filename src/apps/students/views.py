@@ -235,6 +235,8 @@ def admission_print_view(request, student_id):
         profile_photo_url = profile_photo.file_path.url
 
     context = {
+        "mother": mother,
+        "father": father,
         "student": student,
         "school_name": school_name,
         "student_admission": student_admission,

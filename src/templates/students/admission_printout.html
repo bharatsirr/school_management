@@ -2,7 +2,10 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <title>Admission Printout</title>
         <meta charset="UTF-8">
+        <meta name="description" content="Student admission form printout">
+        <meta name="keywords" content="admission, student, school, form, printout">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{% static 'css/print.css' %}">
         <link rel="stylesheet" href="{% static 'css/styles.css' %}">
@@ -52,12 +55,14 @@
                 </div>
             </div>
             <!-- Student Details -->
-            <div class="my-6 flex flex-col md:flex-row gap-6">
+            <div class="my-6 flex flex-col md:flex-row gap-6 items-center">
+                <!-- Image with vertical centering -->
                 <img src="{{ profile_photo_url }}"
                      alt="Student Photo"
-                     class="w-32 h-40 object-cover rounded-lg border-2 border-gray-300 shadow-md mx-auto md:mx-0"
+                     class="w-32 h-40 object-cover rounded-lg border-2 border-gray-300 shadow-md mx-auto md:mx-0 my-auto"
                      width="150"
                      height="200">
+                <!-- Details Container -->
                 <div class="flex-1 bg-gray-100 p-4 rounded-lg">
                     <h3 class="text-xl font-bold text-blue-800 border-b border-gray-300 pb-2 mb-3">Student Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
@@ -76,12 +81,32 @@
                         </div>
                         <div>
                             <p class="text-sm">
+                                <span class="font-medium text-gray-600">Pen Number:</span> {{ student.pen_number }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">Apaar ID:</span> {{ student.apaar_id }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
                                 <span class="font-medium text-gray-600">Date of Birth:</span> {{ student.user.dob }}
                             </p>
                         </div>
                         <div>
                             <p class="text-sm">
                                 <span class="font-medium text-gray-600">Gender:</span> {{ student.user.gender }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">Height:</span> {{ student.height }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">Weight:</span> {{ student.weight }}
                             </p>
                         </div>
                         <div>
@@ -104,6 +129,31 @@
                                 <span class="font-medium text-gray-600">Category:</span> {{ student.user.category }}
                             </p>
                         </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">Phone:</span> {{ student.user.phones.all.0.phone_number }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">Email:</span> {{ student.user.email }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">Aadhaar:</span> {{ student.user.aadhar_number }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">RTE:</span> {{ student_admission.is_rte }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm">
+                                <span class="font-medium text-gray-600">Session:</span> {{ student_admission.session }}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -121,6 +171,9 @@
                         </p>
                         <p class="text-sm">
                             <span class="font-medium text-gray-600">Aadhaar:</span> {{ mother_aadhar }}
+                        </p>
+                        <p class="text-sm">
+                            <span class="font-medium text-gray-600">Email:</span> {{ mother.user.email }}
                         </p>
                         <div>
                             <p class="text-sm font-medium text-gray-600">Phone Numbers:</p>
@@ -142,6 +195,9 @@
                         </p>
                         <p class="text-sm">
                             <span class="font-medium text-gray-600">Aadhaar:</span> {{ father_aadhar }}
+                        </p>
+                        <p class="text-sm">
+                            <span class="font-medium text-gray-600">Email:</span> {{ father.user.email }}
                         </p>
                         <div>
                             <p class="text-sm font-medium text-gray-600">Phone Numbers:</p>
