@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView
+from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView, UserDocumentDeleteView
 
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('user/profile/update/<str:username>/', UserProfileUpdateView.as_view(), name='user_profile_update'),
     path('user/profile/photo/update/<str:username>/', UserProfilePhotoUpdateView.as_view(), name='user_profile_photo_update'),
     path('user/profile/document/upload/<str:username>/', UserDocumentUploadView.as_view(), name='user_document_upload'),
+    path('user/profile/document/delete/<int:document_id>/', UserDocumentDeleteView.as_view(), name='user_document_delete'),
     path('families/', FamilyListView.as_view(), name='family_list'),
     path('families/create/', FamilyCreateView.as_view(), name='family_create'),
     path('families/<int:family_id>/add_member/', AddFamilyMemberView.as_view(), name='add_family_member'),

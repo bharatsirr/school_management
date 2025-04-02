@@ -26,7 +26,7 @@ class UserProfileForm(forms.ModelForm):
 class UserDocumentForm(forms.ModelForm):
     class Meta:
         model = UserDocument
-        fields = ['file_path', 'document_name', 'document_type', 'document_context']
+        fields = ['file_path', 'document_name', 'document_number', 'document_type', 'document_context']
 
     def save(self, user=None, commit=True):
         instance = super().save(commit=False)
