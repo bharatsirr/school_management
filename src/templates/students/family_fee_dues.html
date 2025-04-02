@@ -1,0 +1,158 @@
+{% load static %}
+{% load tailwind_filters %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Family Fee Dues</title>
+        <meta charset="UTF-8">
+        <meta name="description" content="Family fee dues">
+        <meta name="keywords" content="family, fee, dues">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+        <style>
+            @font-face {
+                font-family: 'Algerian';
+                src: url('{% static "fonts/Algerian.ttf" %}') format('truetype');
+            }
+            #school-name {
+                font-family: 'Algerian';
+                color: #0000a5;
+            }
+            @media print {
+                @page {
+                  size: A4;
+                  margin: 20mm;
+                }
+                body {
+                    transform: scale(.8);
+                }
+                page-break-before: auto;
+            }
+        </style>
+    </head>
+    <body class="font-sans bg-gradient-to-br from-white to-blue-50 min-h-screen py-8">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <!-- Header with School Info -->
+            <div class="flex flex-col md:flex-row items-center justify-between border-b border-gray-300 pb-6">
+                <div class="flex items-center gap-6">
+                    <img src="{% static 'images/kdic.png' %}"
+                         alt="School Logo"
+                         class="w-24 h-auto rounded-lg shadow-md object-contain"
+                         width="150"
+                         height="200">
+                    <div class="text-center md:text-left">
+                        <p class="text-sm inline-block font-medium text-gray-600 mb-1">Affiliation no: 86/20-05-2023</p>
+                        <p class="text-sm inline-block font-medium text-gray-600 mb-1">School Code 1553</p>
+                        <h2 id="school-name" class="text-3xl font-bold">Keshmati Devi Intermediate College</h2>
+                        <p class="text-sm mt-2 text-gray-600">Raishree Chauraha, Gauri Bazar, 274202, Phone: 7706843352, 8081499366</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Fee Dues for {{ family.family_name }}</h2>
+                        <p class="text-gray-600">Session: {{ current_session }}</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <p class="text-sm text-gray-500">Generated on: {% now "F d, Y" %}</p>
+                    </div>
+                </div>
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-blue-600 text-white rounded-lg shadow-md p-6">
+                        <h5 class="text-lg font-medium mb-2">Total Dues</h5>
+                        <h3 class="text-3xl font-bold">₹{{ total_dues }}</h3>
+                    </div>
+                    <div class="bg-green-600 text-white rounded-lg shadow-md p-6">
+                        <h5 class="text-lg font-medium mb-2">Total Paid</h5>
+                        <h3 class="text-3xl font-bold">₹{{ total_paid }}</h3>
+                    </div>
+                    <div class="bg-amber-500 text-white rounded-lg shadow-md p-6">
+                        <h5 class="text-lg font-medium mb-2">Pending Amount</h5>
+                        <h3 class="text-3xl font-bold">₹{{ total_pending }}</h3>
+                    </div>
+                </div>
+                <!-- Paid Fees Section -->
+                <div class="bg-white rounded-lg shadow-md mb-8 overflow-hidden border border-green-200">
+                    <div class="bg-green-600 text-white p-4">
+                        <h3 class="text-xl font-bold">Paid Fees</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-green-50 text-green-800">
+                                <tr>
+                                    <th class="py-3 px-4 text-left font-semibold">Student Name</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Class</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Fee Type</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Amount</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Paid Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for due in fee_dues %}
+                                    {% if due.paid %}
+                                        <tr class="hover:bg-green-50">
+                                            <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
+                                            <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
+                                            <td class="py-3 px-4">{{ due.fee_type.name }}</td>
+                                            <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
+                                            <td class="py-3 px-4">{{ due.paid_at|date:"d M Y" }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="py-6 text-center text-gray-500">No paid fees found for this session.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Unpaid Fees Section -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-red-200">
+                    <div class="bg-red-600 text-white p-4">
+                        <h3 class="text-xl font-bold">Unpaid Fees</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-red-50 text-red-800">
+                                <tr>
+                                    <th class="py-3 px-4 text-left font-semibold">Student Name</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Class</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Fee Type</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Amount</th>
+                                    <th class="py-3 px-4 text-left font-semibold">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for due in fee_dues %}
+                                    {% if not due.paid %}
+                                        <tr class="hover:bg-red-50">
+                                            <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
+                                            <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
+                                            <td class="py-3 px-4">{{ due.fee_type.name }}</td>
+                                            <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
+                                            <td class="py-3 px-4">
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Unpaid</span>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="py-6 text-center text-gray-500">No unpaid fees found for this session.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div class="mt-8 text-center text-gray-500 text-sm">
+                    <p>For any queries regarding fee payment, please contact the school office.</p>
+                    <p class="mt-2">© {% now "Y" %} Keshmati Devi Intermediate College. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

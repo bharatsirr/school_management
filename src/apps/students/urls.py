@@ -8,6 +8,7 @@ from .views import (StudentRegistrationView,
                     StudentUpdateView,
                     StudentDocumentUploadView,
                     PayFamilyFeeDuesView,
+                    FamilyFeeDuesView,
                     admission_print_view
                 )
 
@@ -24,6 +25,7 @@ urlpatterns = [
     path('fee/structure/<int:fee_structure_id>/add_fee_type/', AddFeeTypeView.as_view(), name='add_fee_type'),
     # Pay Family Fee Dues URLs
     path('pay/family/fee/dues/<int:family_id>/', PayFamilyFeeDuesView.as_view(), name='pay_family_fee_dues'),
+    path('family/fee/dues/<int:family_id>/', FamilyFeeDuesView.as_view(), name='family_fee_dues'),
     # Admission Print URLs
     path('admission/print/<int:student_id>/', admission_print_view, name='admission_print'),
 ]
