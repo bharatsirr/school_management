@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, FormView
 from django.views import View
 from django.urls import reverse_lazy
-from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm, WalletTopupForm
+from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm, WalletTopupForm, UserDocumentForm
 from django.contrib import messages
 from .models import Family, UserDocument
 from django.core.exceptions import PermissionDenied
@@ -164,6 +164,11 @@ class UserProfileView(LoginRequiredMixin, DetailView):
             raise Http404("You are not authorized to view this user's profile.")
         
         return user_to_view
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['documents'] = self.object.documents.all()
+        return context
 
 
 class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
@@ -228,3 +233,39 @@ class UserProfilePhotoUpdateView(LoginRequiredMixin, FormView):
         )
         
         return super().form_valid(form)
+
+
+
+class UserDocumentUploadView(LoginRequiredMixin, FormView):
+    template_name = 'core/user_document_upload.html'
+    form_class = UserDocumentForm
+    success_url = reverse_lazy('user_profile')
+
+    def get_object(self):
+        """
+        Fetches the user based on the username in the URL.
+        """
+        username = self.kwargs.get('username')
+        user = get_object_or_404(User, username=username)
+        
+        # Ensure that a user can only update their own documents
+        if self.request.user.username != username and not self.request.user.is_staff:
+            raise PermissionDenied("You cannot upload documents for another user.")
+        
+        return user
+
+    def get_success_url(self):
+        """Return the URL to redirect to after processing a valid form."""
+        return reverse_lazy('user_profile', kwargs={'username': self.kwargs['username']})
+
+    def form_valid(self, form):
+        user = self.get_object()
+        document = form.save(commit=False)
+        document.user = user
+        document.save()
+        messages.success(self.request, "Document uploaded successfully!")
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        messages.error(self.request, "Failed to upload document.")
+        return super().form_invalid(form)

@@ -23,6 +23,20 @@ class UserProfileForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'dob', 'gender', 'village', 'pincode', 'aadhar_number', 'religion', 'caste', 'category', 'occupation']
 
 
+class UserDocumentForm(forms.ModelForm):
+    class Meta:
+        model = UserDocument
+        fields = ['file_path', 'document_name', 'document_type', 'document_context']
+
+    def save(self, user=None, commit=True):
+        instance = super().save(commit=False)
+        if user:
+            instance.user = user
+        if commit:
+            instance.save()
+        return instance
+
+
 class UserCreationForm(forms.ModelForm):
     password1 = forms.CharField(
         label="Password", 
