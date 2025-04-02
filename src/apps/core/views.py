@@ -151,7 +151,19 @@ class UserProfileView(LoginRequiredMixin, DetailView):
     context_object_name = 'user'
 
     def get_object(self):
-        return self.request.user
+        # Get the username from the URL
+        username = self.kwargs.get('username')
+        
+        # Try to get the user by username, raise 404 if not found
+        user_to_view = get_object_or_404(User, username=username)
+        
+        # Check if the logged-in user is the one trying to update their own profile
+        # or if they are a manager/company owner
+        if user_to_view != self.request.user and not self.request.user.is_staff:
+            # Customize this line based on your permissions logic (manager/owner check)
+            raise Http404("You are not authorized to view this user's profile.")
+        
+        return user_to_view
 
 
 class UserProfileUpdateView(LoginRequiredMixin, UpdateView):

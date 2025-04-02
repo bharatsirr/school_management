@@ -35,7 +35,7 @@
                                    class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Sign Up</a>
                                 <a href="{% url 'login' %}"
                                    class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                                <a href="{% url 'user_profile' %}"
+                                <a href="{% url 'user_profile' user.username %}"
                                    class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Profile</a>
                                 <a href="{% url 'family_list' %}"
                                    class="text-gray-700 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Families</a>
@@ -82,7 +82,7 @@
                                class="text-gray-700 hover:text-blue-500 text-xl">Sign Up</a>
                             <a href="{% url 'login' %}"
                                class="text-gray-700 hover:text-blue-500 text-xl">Login</a>
-                            <a href="{% url 'user_profile' %}"
+                            <a href="{% url 'user_profile' user.username %}"
                                class="text-gray-700 hover:text-blue-500 text-xl">Profile</a>
                             <a href="{% url 'family_list' %}"
                                class="text-gray-700 hover:text-blue-500 text-xl">Families</a>
