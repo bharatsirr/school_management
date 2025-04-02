@@ -4,6 +4,10 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description"
+              content="Print admission details including student information and school details">
+        <meta name="keywords"
+              content="admission, student details, school admission, print admission">
         <title>Admission Print</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
@@ -25,6 +29,8 @@
                     {% if admission.profile_photo %}
                         <img src="{{ admission.profile_photo }}"
                              alt="Profile Photo"
+                             width="150"
+                             height="200"
                              class="w-32 h-32 object-cover rounded-lg shadow">
                     {% else %}
                         <div class="w-32 h-32 bg-gray-300 flex items-center justify-center text-gray-600 rounded-lg shadow">No Image</div>
