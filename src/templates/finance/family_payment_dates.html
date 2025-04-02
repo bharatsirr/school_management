@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800">Payment History for {{ family.family_name }}</h1>
+                    <a href="{% url 'family_list' %}"
+                       class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Family List
+                    </a>
+                </div>
+                {% if payment_dates %}
+                    <div class="space-y-4">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Select a date to view payment details:</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for date in payment_dates %}
+                                <a href="{% url 'family_payment_details' family.id date|date:'Y-m-d' %}"
+                                   class="block p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                                    <div class="text-center">
+                                        <span class="text-2xl font-bold text-gray-800">{{ date|date:"d" }}</span>
+                                        <div class="text-sm text-gray-600">{{ date|date:"F Y" }}</div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <div class="text-gray-500 mb-4">
+                            <i class="fas fa-calendar-times text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Payment History Found</h3>
+                        <p class="text-gray-600">There are no recorded payments for this family.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
