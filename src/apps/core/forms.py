@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
-from apps.core.utils import delete_files_from_local, delete_files_from_s3
 from django.conf import settings
 
 from apps.core.models import Family, FamilyMember, UserDocument
@@ -123,23 +122,7 @@ class UserCreationForm(forms.ModelForm):
                     
             return user
         except Exception as e:
-            existingUser = User.objects.filter(username=self.cleaned_data["username"]).exists()
-            if not existingUser:
-                
-                if settings.DEBUG:
-                    try:
-                        delete_files_from_local(f"user_document/{self.cleaned_data['username']}")
-                    except Exception as delete_error:
-                        # Log deletion error but continue the process
-                        logger.error(f"Failed to delete files locally: {delete_error}")
-                else:
-                    try:
-                        delete_files_from_s3(f"user_document/{self.cleaned_data['username']}")
-                    except Exception as delete_error:
-                        # Log deletion error but continue the process
-                        logger.error(f"Failed to delete files from S3: {delete_error}")
-                # Re-raise the original error to propagate further
-                raise e
+             raise e
 
 
 
