@@ -39,6 +39,9 @@ class StudentRegistrationForm(forms.Form):
     dob = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     blood_group = forms.ChoiceField(choices=User.BLOOD_GROUPS)
     gender = forms.ChoiceField(choices=User.GENDER_CHOICES)
+    religion = forms.CharField(max_length=255, required=False)
+    caste = forms.CharField(max_length=255, required=False)
+    category = forms.CharField(max_length=255, required=False)
     phone_number = forms.CharField(max_length=15)
     is_whatsapp = forms.RadioSelect(choices=[(True, 'Yes'), (False, 'No')])
 
@@ -213,6 +216,9 @@ class StudentRegistrationForm(forms.Form):
                     "blood_group": self.cleaned_data["blood_group"],
                     "aadhar_number": self.cleaned_data["aadhar_number"],
                     "gender": self.cleaned_data["gender"],
+                    "religion": self.cleaned_data["religion"],
+                    "caste": self.cleaned_data["caste"],
+                    "category": self.cleaned_data["category"],
                     "password": self.cleaned_data["password"]
                 }
                 if self.cleaned_data["email"]:

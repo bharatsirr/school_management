@@ -1,0 +1,23 @@
+@media print {
+
+    /* Ensure text is visible */
+    body {
+        color: black !important;
+        background: white !important;
+    }
+
+    /* Example of overriding Tailwind styles */
+    .print-header {
+        font-size: 1.5rem !important;
+        font-weight: bold !important;
+    }
+
+    .print-content {
+        font-size: 1rem !important;
+    }
+
+    /* Hide elements not needed in print */
+    .no-print {
+        display: none !important;
+    }
+}

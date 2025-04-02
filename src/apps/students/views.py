@@ -11,8 +11,8 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from apps.core.models import Family
-
+from apps.core.models import Family, FamilyMember
+from django.templatetags.static import static
 User = get_user_model()
 
 
@@ -73,7 +73,7 @@ class StudentDocumentUploadView(LoginRequiredMixin, FormView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        """Save the documents for the student’s associated user."""
+        """Save the documents for the student's associated user."""
         user = self.get_user()  # Get the user associated with the student
         form.cleaned_data['user'] = user  # Pass the user to the form
         form.save()  # Save the documents
@@ -183,4 +183,68 @@ class PayFamilyFeeDuesView(FormView):
     def form_invalid(self, form):
         messages.error(self.request, "Invalid amount entered.")
         return super().form_invalid(form)
+
+
+
+
+def admission_print_view(request, student_id):
+    """Generates a final admission printout for a student."""
+    student = get_object_or_404(Student, id=student_id)
+    student_admission = student.admissions.first()  # Fetch admission record
+    student_class = student_admission.student_class if student_admission else None
+    # Determine School Name
+    if student_admission:
+        if student_admission.student_class in ['nur', 'lkg', 'ukg'] or (student_admission.student_class and int(student_admission.student_class) <= 5):
+            school_name = "Keshmati Devi Prathmik Vidyalaya"
+            school_logo = static('images/kdpv.png')
+            student_serial = student_admission.serial_no.serial_number if student_admission.serial_no.school_name == 'KDPV' else None
+        else:
+            school_name = "Keshmati Devi Intermediate College"
+            school_logo = static('images/kdic.png')
+            student_serial = student_admission.serial_no.serial_number if student_admission.serial_no.school_name == 'KDIC' else None
+    else:
+        school_name = "Unknown School"
+        school_logo = None
+        student_serial = None
+    # Fetch Parent Details
+    mother, father = None, None
+    mother_aadhar, father_aadhar = None, None
+    mother_phones, father_phones = [], []
+    family = Family.objects.filter(members__user=student.user).first()  # Find family of student
     
+    if family:
+        mother = FamilyMember.objects.filter(family=family, member_type='parent', user__gender='Female').first()
+        father = FamilyMember.objects.filter(family=family, member_type='parent', user__gender='Male').first()
+        
+        if mother:
+            mother_name = f"{mother.user.first_name} {mother.user.last_name}"
+            mother_aadhar = mother.user.aadhar_number
+            mother_phones = mother.user.phones.all()
+        
+        if father:
+            father_name = f"{father.user.first_name} {father.user.last_name}"
+            father_aadhar = father.user.aadhar_number
+            father_phones = father.user.phones.all()
+
+    # Fetch the profile photo URL
+    profile_photo_url = None
+    profile_photo = student.user.documents.filter(document_name='profile_photo').first()
+    if profile_photo:
+        profile_photo_url = profile_photo.file_path.url
+
+    context = {
+        "student": student,
+        "school_name": school_name,
+        "student_admission": student_admission,
+        "mother_name": mother_name,
+        "mother_aadhar": mother_aadhar,
+        "mother_phones": mother_phones,
+        "father_name": father_name,
+        "father_aadhar": father_aadhar,
+        "father_phones": father_phones,
+        "profile_photo_url": profile_photo_url,
+        "school_logo": school_logo,
+        "student_serial": student_serial,
+    }
+    
+    return render(request, "students/admission_printout.html", context)
