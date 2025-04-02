@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <div id="print-container"
+         class="print-container bg-white p-6 rounded-lg shadow-md border mt-6">
+        <div class="flex items-center space-x-4">
+            <img src="{{ school_logo }}"
+                 alt="School Logo"
+                 class="w-24 rounded-lg "
+                 width="150"
+                 height="200">
+            <div>
+                <h2 class="text-2xl w-full font-bold text-center">{{ school_name }}</h2>
+                <hr class="my-4">
+            </div>
+        </div>
+        <!-- Student Details -->
+        <div class="flex items-center mt-6 space-x-4">
+            <img src="{{ profile_photo_url }}"
+                 alt="Student Photo"
+                 class="w-32 rounded-lg border"
+                 width="150"
+                 height="200">
+            <div>
+                <h3 class="text-lg font-semibold">{{ student.user.first_name }} {{ student.user.last_name }}</h3>
+                <p>
+                    <strong>Class:</strong> {{ student_admission.student_class }}
+                </p>
+                <p>
+                    <strong>Roll Number:</strong> {{ student_admission.roll_number }}
+                </p>
+                <p>
+                    <strong>Date of Birth:</strong> {{ student.user.dob }}
+                </p>
+                <p>
+                    <strong>Aadhaar Number:</strong> {{ student.user.aadhar_number }}
+                </p>
+                <p>
+                    <strong>Religion:</strong> {{ student.user.religion }}
+                </p>
+                <p>
+                    <strong>Caste:</strong> {{ student.user.caste }}
+                </p>
+                <p>
+                    <strong>Category:</strong> {{ student.user.category }}
+                </p>
+                <p>
+                    <strong>Serial Number:</strong> {{ student_serial }}
+                </p>
+                <p>
+                    <strong>Admission Date:</strong> {{ student_admission.admission_date }}
+                </p>
+            </div>
+        </div>
+        <hr class="my-4">
+        <!-- Parent Details -->
+        <div>
+            <h3 class="text-lg font-semibold">Mother's Details</h3>
+            <p>
+                <strong>Name:</strong> {{ mother_name }}
+            </p>
+            <p>
+                <strong>Aadhaar:</strong> {{ mother_aadhar }}
+            </p>
+            <p>
+                <strong>Phones:</strong>
+                <ul>
+                    {% for phone in mother_phones %}<li>{{ phone.phone_number }}</li>{% endfor %}
+                </ul>
+            </p>
+        </div>
+        <hr class="my-4">
+        <div>
+            <h3 class="text-lg font-semibold">Father's Details</h3>
+            <p>
+                <strong>Name:</strong> {{ father_name }}
+            </p>
+            <p>
+                <strong>Aadhaar:</strong> {{ father_aadhar }}
+            </p>
+            <p>
+                <strong>Phones:</strong>
+                <ul>
+                    {% for phone in father_phones %}<li>{{ phone.phone_number }}</li>{% endfor %}
+                </ul>
+            </p>
+        </div>
+        <hr class="my-4">
+        <div>
+            <p>
+                <strong>Address:</strong> {{ student.user.village }}
+            </p>
+            <p>
+                <strong>Pincode:</strong> {{ student.user.pincode }}
+            </p>
+        </div>
+        <hr class="my-4">
+        <!-- Print Button -->
+        <button onclick="window.print()"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+            Print Admission Form
+        </button>
+    </div>
+{% endblock content %}
