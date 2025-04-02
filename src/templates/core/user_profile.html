@@ -32,9 +32,23 @@
                 </p>
             </div>
         </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <h2 class="text-xl font-semibold mb-4">Documents</h2>
+                {% for document in documents %}
+                    <p class="bg-blue-500 text-white px-4 mb-2 mt-2 py-2 rounded-lg hover:bg-blue-600">
+                        <a href="{{ document.file_path.url }}" target="_blank">
+                            <strong>{{ document.document_name }}({{ document.document_type }})</strong>
+                        </a>
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
         <div class="mt-6">
             <a href="{% url 'user_profile_update' user.username %}"
                class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Edit Profile</a>
+            <a href="{% url 'user_document_upload' user.username %}"
+               class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Upload Document</a>
         </div>
     </div>
 {% endblock content %}
