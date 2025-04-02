@@ -1,16 +1,22 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.views.generic import CreateView, ListView, DetailView, UpdateView, FormView
+from django.views.generic import CreateView, ListView, DetailView, UpdateView, FormView, View
 from django.views import View
 from django.urls import reverse_lazy
 from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm, WalletTopupForm, UserDocumentForm
 from django.contrib import messages
 from .models import Family, UserDocument
 from django.core.exceptions import PermissionDenied
+from apps.core.utils import delete_files_from_local, delete_files_from_s3
+from django.conf import settings
+import os
+import logging
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
 class HomeView(View):
     def get(self, request):
         return render(request, 'core/home.html')
@@ -269,3 +275,34 @@ class UserDocumentUploadView(LoginRequiredMixin, FormView):
     def form_invalid(self, form):
         messages.error(self.request, "Failed to upload document.")
         return super().form_invalid(form)
+
+class UserDocumentDeleteView(LoginRequiredMixin, View):
+    def post(self, request, document_id):
+        document = get_object_or_404(UserDocument, id=document_id)
+        
+        # Check if user has permission to delete
+        if document.user != request.user and not request.user.is_staff:
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+        
+        try:
+            # Get the file path before deleting the document
+            file_path = document.file_path.path if settings.DEBUG else document.file_path.name
+            
+            # Delete document from database first
+            document.delete()
+            
+            # Then try to delete the file
+            try:
+                if settings.DEBUG:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                else:
+                    delete_files_from_s3(file_path)
+            except Exception as e:
+                # Log the error but don't fail the request
+                logger.error(f"Error deleting file {file_path}: {str(e)}")
+            
+            return JsonResponse({'status': 'success', 'message': 'Document deleted successfully'})
+        except Exception as e:
+            logger.error(f"Error deleting document {document_id}: {str(e)}")
+            return JsonResponse({'status': 'error', 'message': 'Error deleting document'}, status=500)
