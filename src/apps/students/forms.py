@@ -83,6 +83,11 @@ class StudentRegistrationForm(forms.Form):
         cleaned_data["apaar_id"] = cleaned_data.get("apaar_id", "").strip()
         cleaned_data["pen_number"] = cleaned_data.get("pen_number", "").strip()
         cleaned_data["previous_institution"] = cleaned_data.get("previous_institution", "").strip().title()
+        cleaned_data["aadhar_number"] = cleaned_data.get("aadhar_number", "").strip()
+        cleaned_data["religion"] = cleaned_data.get("religion", "").strip().title()
+        cleaned_data["caste"] = cleaned_data.get("caste", "").strip().title()
+        cleaned_data["category"] = cleaned_data.get("category", "").strip().title()
+        
         
         
         # Generate username dynamically based on first name, last name, and dob
