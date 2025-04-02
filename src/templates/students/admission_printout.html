@@ -144,11 +144,13 @@
                                 <span class="font-medium text-gray-600">Aadhaar:</span> {{ student.user.aadhar_number }}
                             </p>
                         </div>
-                        <div>
-                            <p class="text-sm">
-                                <span class="font-medium text-gray-600">RTE:</span> {{ student_admission.is_rte }}
-                            </p>
-                        </div>
+                        {% if student_admission.is_rte %}
+                            <div>
+                                <p class="text-sm">
+                                    <span class="font-medium text-gray-600">RTE:</span> Yes
+                                </p>
+                            </div>
+                        {% endif %}
                         <div>
                             <p class="text-sm">
                                 <span class="font-medium text-gray-600">Session:</span> {{ student_admission.session }}
