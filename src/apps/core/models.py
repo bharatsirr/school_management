@@ -80,6 +80,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+    
     def __str__(self):
         return self.username
 
@@ -130,6 +133,12 @@ class UserDocument(models.Model):
 class Family(models.Model):
     family_name = models.CharField(max_length=255, unique=True)
     wallet_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Family"
+        verbose_name_plural = "Families"
 
     def __str__(self):
         return self.family_name

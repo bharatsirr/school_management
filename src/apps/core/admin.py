@@ -4,7 +4,7 @@ from apps.core.models import User, Phone, UserDocument, Family, FamilyMember
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'is_active', 'aadhar_number', 'is_staff', 'is_superuser', 'religion', 'caste', 'category')
+    list_display = ('username', 'email', 'is_active', 'aadhar_number', 'is_staff', 'is_superuser', 'religion', 'caste', 'category', 'created_at', 'last_login')
     search_fields = ('username', 'email', 'aadhar_number', 'religion', 'caste', 'category')
     list_filter = ('is_active', 'is_staff', 'is_superuser', 'religion', 'caste', 'category')
 

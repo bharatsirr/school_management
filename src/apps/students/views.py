@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from apps.core.models import Family, FamilyMember
 from django.templatetags.static import static
+from django.db import models
 User = get_user_model()
 
 
@@ -254,3 +255,54 @@ def admission_print_view(request, student_id):
     }
     
     return render(request, "students/admission_printout.html", context)
+
+
+class FamilyFeeDuesView(LoginRequiredMixin, ListView):
+    template_name = 'students/family_fee_dues.html'
+    context_object_name = 'fee_dues'
+
+    def get_family(self):
+        """Get the family object from the URL parameter."""
+        return get_object_or_404(Family, id=self.kwargs.get('family_id'))
+
+    def get_queryset(self):
+        """Get all fee dues for the family's students in the current session."""
+        family = self.get_family()
+        current_session = StudentAdmission.generate_session()
+        
+        # Get all students in the family with active admissions
+        family_members = family.members.all()
+        family_members_users = family_members.values_list('user', flat=True)
+        students = Student.objects.filter(user__in=family_members_users)
+        
+        # Get all fee dues for these students in the current session
+        return FeeDue.objects.filter(
+            admission__student__in=students,
+            admission__session=current_session,
+            admission__status='active'
+        ).select_related(
+            'admission__student__user',
+            'fee_type',
+            'transaction'
+        ).order_by('admission__student__user__first_name', 'fee_type__name')
+
+    def get_context_data(self, **kwargs):
+        """Add additional context data to the template."""
+        context = super().get_context_data(**kwargs)
+        context['family'] = self.get_family()
+        context['current_session'] = StudentAdmission.generate_session()
+        
+        # Calculate total dues and paid amounts
+        total_dues = self.get_queryset().aggregate(
+            total_amount=models.Sum('amount'),
+            paid_amount=models.Sum('amount', filter=models.Q(paid=True))
+        )
+        
+        context['total_dues'] = total_dues['total_amount'] or 0
+        context['total_paid'] = total_dues['paid_amount'] or 0
+        context['total_pending'] = context['total_dues'] - context['total_paid']
+        
+        return context
+
+
+
