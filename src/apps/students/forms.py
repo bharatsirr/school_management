@@ -137,11 +137,11 @@ class StudentRegistrationForm(forms.Form):
 
         # Create a username and password based on these values
         if last_name:
-            username = f"{first_name}{last_name}{dob}"
-            password = f"{first_name.capitalize()}{last_name}{dob}@123"
+            username = f"{first_name}{last_name}{dob}".replace(" ", "")
+            password = f"{first_name.capitalize()}{last_name}{dob}@123".replace(" ", "")
         else:
-            username = f"{first_name}{dob}"
-            password = f"{first_name.capitalize()}{dob}@123"
+            username = f"{first_name}{dob}".replace(" ", "")
+            password = f"{first_name.capitalize()}{dob}@123".replace(" ", "")
 
         # Set the generated username and password in cleaned_data
         cleaned_data["username"] = username
