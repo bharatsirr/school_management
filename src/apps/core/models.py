@@ -11,18 +11,17 @@ class UserManager(BaseUserManager):
             raise ValueError('The Username is required')
         if not first_name:
             raise ValueError('First name is required')
-        if not last_name:
-            raise ValueError('Last name is required')
         if not password:
             raise ValueError('Password is required')
 
         email = extra_fields.pop('email', None)
         phone_number = extra_fields.pop('phone_number', None)
+        # No need to check for last_name, it will use default empty string if not provided
 
         user = self.model(
             username=username,
             first_name=first_name,
-            last_name=last_name,
+            last_name=last_name or '',  # Use empty string if last_name is None or empty
             email=self.normalize_email(email) if email else None,
             **extra_fields
         )
@@ -55,9 +54,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     ]
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    father_name = models.CharField(max_length=150, null=True, blank=True)
-    mother_name = models.CharField(max_length=150, null=True, blank=True)
+    last_name = models.CharField(max_length=150, blank=True, default='')
+    father_name = models.CharField(max_length=150, blank=True, default='')
+    mother_name = models.CharField(max_length=150, blank=True, default='')
     email = models.EmailField(unique=True, null=True, blank=True)
     last_login = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -76,12 +75,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name']
 
     objects = UserManager()
 
     def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name}" if self.last_name else f"{self.first_name}"
     
     def __str__(self):
         return self.username
