@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
 from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView, UserDocumentDeleteView
 
@@ -19,7 +17,3 @@ urlpatterns = [
     path('families/<int:family_id>/add_member/', AddFamilyMemberView.as_view(), name='add_family_member'),
     path('families/<int:family_id>/wallet_topup/', WalletTopupView.as_view(), name='wallet_topup'),
 ]
-
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
