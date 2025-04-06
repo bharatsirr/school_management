@@ -209,11 +209,11 @@ def admission_print_view(request, student_id):
         student_serial = None
 
     # Initialize default values for parent-related variables
-    mother_name = "Not Provided"
+    mother_name = f"{student.mother_name}"
     mother_aadhar = "Not Provided"
     mother_occupation = "Not Provided"
     mother_phones = []
-    father_name = "Not Provided"
+    father_name = f"{student.father_name}"
     father_aadhar = "Not Provided"
     father_occupation = "Not Provided"
     father_phones = []
@@ -228,13 +228,11 @@ def admission_print_view(request, student_id):
         father = FamilyMember.objects.filter(family=family, member_type='parent', user__gender='Male').first()
         
         if mother:
-            mother_name = f"{mother.user.first_name} {mother.user.last_name}"
             mother_aadhar = mother.user.aadhar_number
             mother_occupation = mother.user.occupation
             mother_phones = mother.user.phones.all()
         
         if father:
-            father_name = f"{father.user.first_name} {father.user.last_name}"
             father_aadhar = father.user.aadhar_number
             father_occupation = father.user.occupation
             father_phones = father.user.phones.all()
