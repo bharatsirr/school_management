@@ -17,7 +17,7 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
-
+from django.conf.urls.static import static
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
@@ -26,3 +26,6 @@ urlpatterns = [
     path('', include('apps.attendance.urls')),
     path('', include('apps.finance.urls')),
 ]
+
+if settings.USE_S3_STORAGE:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
