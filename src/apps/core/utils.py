@@ -9,6 +9,7 @@ from django.utils.timezone import now
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 import logging
+from django.core.files.storage import S3SignedUrlStorage
 
 logger = logging.getLogger(__name__)
 
@@ -19,20 +20,22 @@ def delete_document(document):
         document: A UserDocument instance to delete
     """
     try:
-        if settings.DEBUG:
-            # Local storage deletion
-            file_path = document.file_path.path
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                logger.info(f"Successfully deleted local file: {file_path}")
-            else:
-                logger.warning(f"Local file does not exist: {file_path}")
+        file_path = document.file_path.name
+        if settings.USE_S3_STORAGE:
+            # Use the configured S3 storage backend
+            storage = S3SignedUrlStorage()
+            # Construct the full S3 path including AWS_LOCATION
+            s3_path = os.path.join(settings.AWS_LOCATION, file_path) if settings.AWS_LOCATION else file_path
+            storage.delete(s3_path)
+            logger.info(f"Successfully deleted S3 file: {s3_path}")
         else:
-            # S3 storage deletion
-            file_path = document.file_path.name
-            full_path = os.path.join(settings.AWS_LOCATION, file_path)
-            default_storage.delete(full_path)
-            logger.info(f"Successfully deleted S3 file: {full_path}")
+            # Local storage deletion
+            absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            if os.path.exists(absolute_path):
+                os.remove(absolute_path)
+                logger.info(f"Successfully deleted local file: {absolute_path}")
+            else:
+                logger.warning(f"Local file does not exist: {absolute_path}")
     except Exception as e:
         logger.error(f"Error deleting document file {file_path}: {str(e)}")
         raise

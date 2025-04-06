@@ -122,6 +122,7 @@ if USE_S3_STORAGE:
     DEFAULT_FILE_STORAGE = 'apps.core.s3_signed_storage.S3SignedUrlStorage'
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
+    AWS_LOCATION = os.getenv('AWS_LOCATION')
 else:
     # Media files
     MEDIA_URL = 'media/'
