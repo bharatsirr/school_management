@@ -88,7 +88,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Phone(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='phones')
-    phone_number = models.CharField(max_length=15, unique=True)
+    phone_number = models.CharField(max_length=10, unique=True)
     is_whatsapp = models.BooleanField(default=False)
 
     def __str__(self):
