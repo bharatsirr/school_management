@@ -195,7 +195,7 @@ def admission_print_view(request, student_id):
     student_class = student_admission.student_class if student_admission else None
     # Determine School Name
     if student_admission:
-        if student_admission.student_class in ['nur', 'lkg', 'ukg'] or (student_admission.student_class and int(student_admission.student_class) <= 5):
+        if student_admission.student_class in ['nur', 'lkg', 'ukg'] or (student_admission.student_class and student_admission.student_class.isdigit() and int(student_admission.student_class) <= 5):
             school_name = "Keshmati Devi Prathmik Vidyalaya"
             school_logo = static('images/kdpv.png')
             student_serial = student_admission.serial_no.serial_number if student_admission.serial_no.school_name == 'KDPV' else None
@@ -207,10 +207,20 @@ def admission_print_view(request, student_id):
         school_name = "Unknown School"
         school_logo = None
         student_serial = None
+
+    # Initialize default values for parent-related variables
+    mother_name = "Not Provided"
+    mother_aadhar = "Not Provided"
+    mother_occupation = "Not Provided"
+    mother_phones = []
+    father_name = "Not Provided"
+    father_aadhar = "Not Provided"
+    father_occupation = "Not Provided"
+    father_phones = []
+    mother = None
+    father = None
+
     # Fetch Parent Details
-    mother, father = None, None
-    mother_aadhar, father_aadhar = None, None
-    mother_phones, father_phones = [], []
     family = Family.objects.filter(members__user=student.user).first()  # Find family of student
     
     if family:

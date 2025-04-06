@@ -5,13 +5,13 @@ description = "Django School Management System"
 authors = [{ name = "Bharat Upadhyay", email = "bpositiveu@gmail.com" }]
 license = { text = "Proprietary" }
 readme = "README.md"
-requires-python = ">=3.13, <3.14"
+requires-python = ">=3.12, <3.14"
 
 # Main dependencies
 dependencies = [
     "django>=5.0,<6.0",
-    "django-environ>=0.11.2", # For environment management
-    "psycopg[binary]>=3.1.0", # PostgreSQL adapter (binary for performance)
+    "django-environ>=0.11.2",               # For environment management
+    "psycopg[binary]>=3.1.0",               # PostgreSQL adapter (binary for performance)
     "python-dotenv (>=1.0.1,<2.0.0)",
     "django-cors-headers (>=4.7.0,<5.0.0)",
     "django-storages (>=1.14.5,<2.0.0)",
