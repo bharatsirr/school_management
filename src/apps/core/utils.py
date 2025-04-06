@@ -9,7 +9,7 @@ from django.utils.timezone import now
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 import logging
-from django.core.files.storage import S3SignedUrlStorage
+from apps.core.s3_signed_storage import S3SignedUrlStorage
 
 logger = logging.getLogger(__name__)
 
