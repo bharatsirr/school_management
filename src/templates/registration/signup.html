@@ -22,31 +22,34 @@
                     {% if form.first_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.first_name.errors }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2" for="id_last_name">Last Name</label>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_last_name">
+                        Last Name <span class="text-sm text-gray-500">(optional)</span>
+                    </label>
                     <input type="text"
                            name="last_name"
                            id="id_last_name"
-                           required
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.last_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.last_name.errors }}</p>{% endif %}
                 </div>
             </div>
             <div class="grid  gap-4">
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2" for="id_father_name">Father's Name</label>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_father_name">
+                        Father's Name <span class="text-sm text-gray-500">(optional)</span>
+                    </label>
                     <input type="text"
                            name="father_name"
                            id="id_father_name"
-                           required
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.father_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.father_name.errors }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2" for="id_mother_name">Mother's Name</label>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_mother_name">
+                        Mother's Name <span class="text-sm text-gray-500">(optional)</span>
+                    </label>
                     <input type="text"
                            name="mother_name"
                            id="id_mother_name"
-                           required
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.mother_name.errors %}<p class="text-red-500 text-sm mt-1">{{ form.mother_name.errors }}</p>{% endif %}
                 </div>
@@ -70,12 +73,17 @@
                     {% if form.email.errors %}<p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2" for="id_aadhar_number">Aadhar Number</label>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_aadhar_number">
+                        Aadhar Number <span class="text-sm text-gray-500">(optional)</span>
+                    </label>
                     <input type="text"
                            name="aadhar_number"
                            id="id_aadhar_number"
+                           pattern="[0-9]{12}"
+                           title="Please enter a valid 12-digit Aadhar number"
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.aadhar_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.aadhar_number.errors }}</p>{% endif %}
+                    <p class="text-sm text-gray-500 mt-1">Enter a valid 12-digit Aadhar number</p>
                 </div>
             </div>
             <div class="grid  gap-4">
@@ -118,13 +126,17 @@
                     {% if form.pincode.errors %}<p class="text-red-500 text-sm mt-1">{{ form.pincode.errors }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2" for="id_phone_number">Phone Number</label>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_phone_number">
+                        Phone Number <span class="text-sm text-gray-500">(optional)</span>
+                    </label>
                     <input type="text"
                            name="phone_number"
                            id="id_phone_number"
-                           required
+                           pattern="[0-9]{10}"
+                           title="Please enter a valid 10-digit phone number"
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.phone_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors }}</p>{% endif %}
+                    <p class="text-sm text-gray-500 mt-1">Enter a valid 10-digit phone number</p>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_dob">Date of Birth</label>

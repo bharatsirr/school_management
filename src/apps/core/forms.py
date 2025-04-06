@@ -60,12 +60,21 @@ class UserCreationForm(forms.ModelForm):
     )
 
     blood_group = forms.ChoiceField(choices=User.BLOOD_GROUPS, required=False)
-
     gender = forms.ChoiceField(choices=User.GENDER_CHOICES, required=False)
     dob = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
         required=False,
         help_text="Format: dd/mm/yyyy"
+    )
+    aadhar_number = forms.CharField(
+        max_length=12,
+        required=False,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{12}$',
+                message='Enter a valid 12-digit Aadhar number.'
+            )
+        ]
     )
 
     class Meta:
@@ -87,11 +96,30 @@ class UserCreationForm(forms.ModelForm):
         # Normalize text fields (lowercase consistency)
         cleaned_data["username"] = cleaned_data.get("username", "").strip().lower()
         cleaned_data["first_name"] = cleaned_data.get("first_name", "").strip().title()
-        cleaned_data["last_name"] = cleaned_data.get("last_name", "").strip().title()
-        cleaned_data["father_name"] = cleaned_data.get("father_name", "").strip().title()
-        cleaned_data["mother_name"] = cleaned_data.get("mother_name", "").strip().title()
-        cleaned_data["village"] = cleaned_data.get("village", "").strip().title()
-        cleaned_data["email"] = cleaned_data.get("email", "").strip().lower()
+        
+        # Handle optional fields - use empty string if None or empty
+        optional_fields = ["last_name", "father_name", "mother_name", "village"]
+        for field in optional_fields:
+            value = cleaned_data.get(field, "")
+            cleaned_data[field] = value.strip().title() if value else ""
+            
+        # Handle email separately since it needs to be lowercase
+        email = cleaned_data.get("email", "")
+        cleaned_data["email"] = email.strip().lower() if email else None
+
+        # Handle Aadhar number - ensure it's None if empty
+        aadhar = cleaned_data.get("aadhar_number", "")
+        if aadhar:
+            if not aadhar.isdigit() or len(aadhar) != 12:
+                raise ValidationError({"aadhar_number": "Enter a valid 12-digit Aadhar number."})
+        else:
+            cleaned_data["aadhar_number"] = None
+
+        # Handle phone number validation
+        phone = cleaned_data.get("phone_number", "")
+        if phone:
+            if not phone.isdigit() or len(phone) != 10:
+                raise ValidationError({"phone_number": "Enter a valid 10-digit phone number."})
 
         return cleaned_data
     
