@@ -209,11 +209,11 @@ def admission_print_view(request, student_id):
         student_serial = None
 
     # Initialize default values for parent-related variables
-    mother_name = f"{student.mother_name}"
+    mother_name = f"{student.user.mother_name}"
     mother_aadhar = "Not Provided"
     mother_occupation = "Not Provided"
     mother_phones = []
-    father_name = f"{student.father_name}"
+    father_name = f"{student.user.father_name}"
     father_aadhar = "Not Provided"
     father_occupation = "Not Provided"
     father_phones = []
