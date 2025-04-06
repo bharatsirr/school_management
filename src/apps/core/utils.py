@@ -24,10 +24,8 @@ def delete_document(document):
         if settings.USE_S3_STORAGE:
             # Use the configured S3 storage backend
             storage = S3SignedUrlStorage()
-            # Construct the full S3 path including AWS_LOCATION
-            s3_path = os.path.join(settings.AWS_LOCATION, file_path) if settings.AWS_LOCATION else file_path
-            storage.delete(s3_path)
-            logger.info(f"Successfully deleted S3 file: {s3_path}")
+            storage.delete(file_path)
+            logger.info(f"Successfully deleted S3 file: {file_path}")
         else:
             # Local storage deletion
             absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
