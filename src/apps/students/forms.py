@@ -8,6 +8,7 @@ from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutio
 from apps.finance.models import BankAccountDetail, PaymentTransaction, PaymentSummary, LedgerEntry, LedgerAccountType, WalletTransaction
 from apps.core.utils import pay_family_fee_dues
 from apps.core.models import FamilyMember
+from django.core.validators import RegexValidator
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +30,20 @@ class StudentRegistrationForm(forms.Form):
 
     # user creation fields
     first_name = forms.CharField(max_length=150)
-    last_name = forms.CharField(max_length=150)
-    father_name = forms.CharField(max_length=150)
-    mother_name = forms.CharField(max_length=150)
+    last_name = forms.CharField(max_length=150, required=False)
+    father_name = forms.CharField(max_length=150, required=False)
+    mother_name = forms.CharField(max_length=150, required=False)
     email = forms.EmailField(required=False)
-    aadhar_number = forms.CharField(max_length=12, required=False)
+    aadhar_number = forms.CharField(
+        max_length=12, 
+        required=False,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{12}$',
+                message='Enter a valid 12-digit Aadhar number.'
+            )
+        ]
+    )
     village = forms.CharField(max_length=255)
     pincode = forms.CharField(max_length=10)
     dob = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
@@ -42,7 +52,16 @@ class StudentRegistrationForm(forms.Form):
     religion = forms.CharField(max_length=255, required=False)
     caste = forms.CharField(max_length=255, required=False)
     category = forms.CharField(max_length=255, required=False)
-    phone_number = forms.CharField(max_length=15)
+    phone_number = forms.CharField(
+        max_length=15, 
+        required=False,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$',
+                message='Enter a valid 10-digit phone number.'
+            )
+        ]
+    )
     is_whatsapp = forms.RadioSelect(choices=[(True, 'Yes'), (False, 'No')])
 
     # student creation fields
@@ -74,21 +93,42 @@ class StudentRegistrationForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         
+        # Handle required fields
         cleaned_data["first_name"] = cleaned_data.get("first_name", "").strip().title()
-        cleaned_data["last_name"] = cleaned_data.get("last_name", "").strip().title()
-        cleaned_data["father_name"] = cleaned_data.get("father_name", "").strip().title()
-        cleaned_data["mother_name"] = cleaned_data.get("mother_name", "").strip().title()
-        cleaned_data["village"] = cleaned_data.get("village", "").strip().title()
-        cleaned_data["email"] = cleaned_data.get("email", "").strip().lower()
-        cleaned_data["apaar_id"] = cleaned_data.get("apaar_id", "").strip()
-        cleaned_data["pen_number"] = cleaned_data.get("pen_number", "").strip()
-        cleaned_data["previous_institution"] = cleaned_data.get("previous_institution", "").strip().title()
-        cleaned_data["aadhar_number"] = cleaned_data.get("aadhar_number", "").strip()
-        cleaned_data["religion"] = cleaned_data.get("religion", "").strip().title()
-        cleaned_data["caste"] = cleaned_data.get("caste", "").strip().title()
-        cleaned_data["category"] = cleaned_data.get("category", "").strip().title()
         
-        
+        # Handle optional text fields - use empty string if None or empty
+        optional_fields = [
+            "last_name", "father_name", "mother_name", "village",
+            "religion", "caste", "category", "previous_institution"
+        ]
+        for field in optional_fields:
+            value = cleaned_data.get(field, "")
+            cleaned_data[field] = value.strip().title() if value else ""
+
+        # Handle fields that should be None if empty
+        nullable_fields = ["apaar_id", "pen_number"]
+        for field in nullable_fields:
+            value = cleaned_data.get(field, "")
+            cleaned_data[field] = value.strip() if value else None
+
+        # Handle email separately since it needs to be lowercase
+        email = cleaned_data.get("email", "")
+        cleaned_data["email"] = email.strip().lower() if email else None
+
+        # Handle Aadhar number - ensure it's None if empty
+        aadhar = cleaned_data.get("aadhar_number", "")
+        if aadhar:
+            if not aadhar.isdigit() or len(aadhar) != 12:
+                raise forms.ValidationError({"aadhar_number": "Enter a valid 12-digit Aadhar number."})
+            cleaned_data["aadhar_number"] = aadhar
+        else:
+            cleaned_data["aadhar_number"] = None
+
+        # Handle phone number validation
+        phone = cleaned_data.get("phone_number", "")
+        if phone:
+            if not phone.isdigit() or len(phone) != 10:
+                raise forms.ValidationError({"phone_number": "Enter a valid 10-digit phone number."})
         
         # Generate username dynamically based on first name, last name, and dob
         first_name = cleaned_data.get("first_name", "").strip().lower()
@@ -96,8 +136,12 @@ class StudentRegistrationForm(forms.Form):
         dob = str(cleaned_data.get("dob", "")).replace("-", "")  # Remove dashes from DOB
 
         # Create a username and password based on these values
-        username = f"{first_name}_{last_name}_{dob}"
-        password = f"{first_name.capitalize()}_{last_name}_{dob}@123"
+        if last_name:
+            username = f"{first_name}{last_name}{dob}"
+            password = f"{first_name.capitalize()}{last_name}{dob}@123"
+        else:
+            username = f"{first_name}{dob}"
+            password = f"{first_name.capitalize()}{dob}@123"
 
         # Set the generated username and password in cleaned_data
         cleaned_data["username"] = username
