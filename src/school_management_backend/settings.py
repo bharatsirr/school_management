@@ -122,7 +122,7 @@ if USE_S3_STORAGE:
     DEFAULT_FILE_STORAGE = 'apps.core.s3_signed_storage.S3SignedUrlStorage'
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
-    AWS_LOCATION = os.getenv('AWS_LOCATION')
+    AWS_LOCATION = os.getenv('AWS_LOCATION', 'media')
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
@@ -130,6 +130,8 @@ if USE_S3_STORAGE:
     MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
     if AWS_LOCATION:
         MEDIA_URL += f'{AWS_LOCATION}/'
+    # Set MEDIA_ROOT to a temporary directory for file processing
+    MEDIA_ROOT = BASE_DIR / 'tmp_media'
 else:
     # Media files
     MEDIA_URL = 'media/'
