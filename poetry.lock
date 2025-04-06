@@ -1121,10 +1121,21 @@ h2 = ["h2 (>=4,<5)"]
 socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
+[[package]]
+name = "uwsgi"
+version = "2.0.28"
+description = "The uWSGI server"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "uwsgi-2.0.28.tar.gz", hash = "sha256:79ca1891ef2df14508ab0471ee8c0eb94bd2d51d03f32f90c4bbe557ab1e99d0"},
+]
+
 [extras]
 dev = ["black", "django-debug-toolbar", "isort", "mypy", "pytest-django"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <3.14"
-content-hash = "34a3dbd5852d1b61d7241bf7c31fd8618bc7d219cb1d73ae4f162734c2f081b2"
+content-hash = "a898aeda9bedb7e17d5623e8ff2ca6392448a56a5e4cef2cc09cbc8c5e56e7e4"
