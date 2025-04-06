@@ -3,6 +3,7 @@ Django settings for school_management_backend project.
 """
 
 import os
+
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
@@ -127,9 +128,9 @@ if USE_S3_STORAGE:
         'CacheControl': 'max-age=86400',
     }
     # Media files configuration for S3
-    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
+    AWS_MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
     if AWS_LOCATION:
-        MEDIA_URL += f'{AWS_LOCATION}/'
+        AWS_MEDIA_URL += f'{AWS_LOCATION}/'
     # Set MEDIA_ROOT to a temporary directory for file processing
     MEDIA_ROOT = BASE_DIR / 'tmp_media'
 else:
