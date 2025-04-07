@@ -199,10 +199,12 @@ def admission_print_view(request, student_id):
             school_name = "Keshmati Devi Prathmik Vidyalaya"
             school_logo = static('images/kdpv.png')
             student_serial = student_admission.serial_no.serial_number if student_admission.serial_no.school_name == 'KDPV' else None
+            school_code = "Recognition no: 05/10-08-2020 U-DISE Code: 09600104003"
         else:
             school_name = "Keshmati Devi Intermediate College"
             school_logo = static('images/kdic.png')
             student_serial = student_admission.serial_no.serial_number if student_admission.serial_no.school_name == 'KDIC' else None
+            school_code = "Affiliation no: 86/20-05-2023 College Code: 1553 U-DISE Code: 09600104005"
     else:
         school_name = "Unknown School"
         school_logo = None
@@ -260,6 +262,7 @@ def admission_print_view(request, student_id):
         "profile_photo_url": profile_photo_url,
         "school_logo": school_logo,
         "student_serial": student_serial,
+        "school_code": school_code,
     }
     
     return render(request, "students/admission_printout.html", context)
