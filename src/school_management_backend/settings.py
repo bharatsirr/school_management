@@ -127,10 +127,12 @@ if USE_S3_STORAGE:
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
+    AWS_DEFAULT_ACL = None
+    AWS_S3_FILE_OVERWRITE = False
     # Media files configuration for S3
-    AWS_MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
     if AWS_LOCATION:
-        AWS_MEDIA_URL += f'{AWS_LOCATION}/'
+        MEDIA_URL += f'{AWS_LOCATION}/'
     # Set MEDIA_ROOT to a temporary directory for file processing
     MEDIA_ROOT = BASE_DIR / 'tmp_media'
 else:
