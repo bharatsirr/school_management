@@ -13,55 +13,6 @@ from apps.core.s3_signed_storage import S3SignedUrlStorage
 
 logger = logging.getLogger(__name__)
 
-def delete_document(document):
-    """
-    Delete a document and its associated file from storage.
-    Args:
-        document: A UserDocument instance to delete
-    """
-    try:
-        file_path = document.file_path.name
-        if settings.USE_S3_STORAGE:
-            # Use the configured S3 storage backend
-            storage = S3SignedUrlStorage()
-            storage.delete(file_path)
-            logger.info(f"Successfully deleted S3 file: {file_path}")
-        else:
-            # Local storage deletion
-            absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            if os.path.exists(absolute_path):
-                os.remove(absolute_path)
-                logger.info(f"Successfully deleted local file: {absolute_path}")
-            else:
-                logger.warning(f"Local file does not exist: {absolute_path}")
-    except Exception as e:
-        logger.error(f"Error deleting document file {file_path}: {str(e)}")
-        raise
-
-def delete_files_from_local(file_path):
-    """
-    Delete a file from local storage.
-    Args:
-        file_path: The path of the file to delete (relative to MEDIA_ROOT)
-    """
-    try:
-        # Get the absolute path
-        absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
-        
-        # Check if it's a file or directory
-        if os.path.isfile(absolute_path):
-            # Delete the file
-            os.remove(absolute_path)
-            logger.info(f"Successfully deleted file: {absolute_path}")
-        elif os.path.isdir(absolute_path):
-            # Delete the directory and its contents
-            shutil.rmtree(absolute_path)
-            logger.info(f"Successfully deleted directory: {absolute_path}")
-        else:
-            logger.warning(f"Path does not exist: {absolute_path}")
-    except Exception as e:
-        logger.error(f"Error deleting file/directory {file_path}: {str(e)}")
-        raise
 
 def fee_due_generate(student):
     """Generates fee dues for a student's latest active admission."""

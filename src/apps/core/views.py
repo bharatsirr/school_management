@@ -9,7 +9,6 @@ from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileFo
 from django.contrib import messages
 from .models import Family, UserDocument
 from django.core.exceptions import PermissionDenied
-from apps.core.utils import delete_document
 from django.conf import settings
 import os
 import logging
@@ -294,8 +293,7 @@ class UserDocumentDeleteView(LoginRequiredMixin, View):
         
         try:
             # Delete the document file from storage
-            delete_document(document)
-            
+            document.file_path.delete()
             # Delete the document from database
             document.delete()
             

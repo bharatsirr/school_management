@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'crispy_forms',
     'crispy_tailwind',
+    'storages',
     # Add your apps here
     'apps.core',
     'apps.students',
@@ -120,26 +121,39 @@ if not DEBUG:
 
 # S3 Storage Configuration
 if USE_S3_STORAGE:
-    DEFAULT_FILE_STORAGE = 'apps.core.s3_signed_storage.S3SignedUrlStorage'
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
-    AWS_LOCATION = os.getenv('AWS_LOCATION', 'media')
-    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "bucket_name": os.getenv('AWS_STORAGE_BUCKET_NAME'),
+                "region_name": os.getenv('AWS_S3_REGION_NAME'),
+                "access_key": os.getenv('AWS_ACCESS_KEY_ID'),
+                "secret_key": os.getenv('AWS_SECRET_ACCESS_KEY'),
+                "signature_version": "s3v4",
+                "default_acl": None,
+                "file_overwrite": False,
+                "location": "media",
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    AWS_DEFAULT_ACL = None
     AWS_QUERYSTRING_AUTH = True
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
-    AWS_DEFAULT_ACL = None
-    AWS_S3_FILE_OVERWRITE = False
-    # Media files configuration for S3
-    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/'
-    if AWS_LOCATION:
-        MEDIA_URL += f'{AWS_LOCATION}/'
-    # Set MEDIA_ROOT to a temporary directory for file processing
-    MEDIA_ROOT = BASE_DIR / 'tmp_media'
 else:
-    # Media files
-    MEDIA_URL = 'media/'
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+    }
+    MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email configuration (example)

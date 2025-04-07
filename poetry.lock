@@ -1138,4 +1138,4 @@ dev = ["black", "django-debug-toolbar", "isort", "mypy", "pytest-django"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <3.14"
-content-hash = "a898aeda9bedb7e17d5623e8ff2ca6392448a56a5e4cef2cc09cbc8c5e56e7e4"
+content-hash = "7900ab3cf4463b0dfaba7dabdb85010e617be43f2aabd0af854e58543edbf548"
