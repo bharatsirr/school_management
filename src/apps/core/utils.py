@@ -123,7 +123,7 @@ def pay_family_fee_dues(family, transaction):
                 continue
 
         if student_fees:
-            payment_data["students"][f"{student.user.first_name} {student.user.last_name}"] = {"fees": student_fees}
+            payment_data["students"][f"{student.user.first_name} {student.user.last_name} - {student.admissions.first().student_class} {student.admissions.first().section} - {student.admissions.first().session}"] = {"fees": student_fees}
         else:
             raise ValidationError("Insufficient budget.")
 
