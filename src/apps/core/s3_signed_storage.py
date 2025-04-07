@@ -6,16 +6,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 class S3SignedUrlStorage(S3Boto3Storage):
+    default_acl = 'private'
+    file_overwrite = False
+
     def __init__(self, *args, **kwargs):
+        # These must be passed correctly to the parent class
+        kwargs['bucket_name'] = settings.AWS_STORAGE_BUCKET_NAME
+        kwargs['location'] = settings.AWS_LOCATION
+        kwargs['region_name'] = settings.AWS_S3_REGION_NAME
         super().__init__(*args, **kwargs)
-        self.location = settings.AWS_LOCATION
-        self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        self.region_name = settings.AWS_S3_REGION_NAME
-        self._connection = None
         logger.info(f"Initialized S3 storage with bucket: {self.bucket_name}, location: {self.location}, region: {self.region_name}")
 
     def _get_or_create_connection(self):
-        if self._connection is None:
+        if not hasattr(self, '_connection') or self._connection is None:
             try:
                 self._connection = boto3.client('s3', region_name=self.region_name)
                 logger.info("Successfully created S3 connection")
@@ -25,22 +28,17 @@ class S3SignedUrlStorage(S3Boto3Storage):
         return self._connection
 
     def delete(self, name):
-        try:
-            name = self._normalize_name(name)
-            logger.info(f"Attempting to delete file from S3: {name}")
-            s3_client = self._get_or_create_connection()
-            s3_client.delete_object(Bucket=self.bucket_name, Key=name)
-            logger.info(f"File successfully deleted from S3: {name}")
-        except Exception as e:
-            logger.error(f"Error deleting file from S3: {str(e)}")
-            raise
+        name = self._normalize_name(name)
+        logger.info(f"Attempting to delete file from S3: {name}")
+        s3_client = self._get_or_create_connection()
+        s3_client.delete_object(Bucket=self.bucket_name, Key=name)
+        logger.info(f"File successfully deleted from S3: {name}")
 
     def exists(self, name):
+        name = self._normalize_name(name)
+        logger.info(f"Checking if file exists in S3: {name}")
         try:
-            name = self._normalize_name(name)
-            logger.info(f"Checking if file exists in S3: {name}")
-            s3_client = self._get_or_create_connection()
-            s3_client.head_object(Bucket=self.bucket_name, Key=name)
+            self._get_or_create_connection().head_object(Bucket=self.bucket_name, Key=name)
             logger.info(f"File exists in S3: {name}")
             return True
         except Exception as e:
@@ -48,16 +46,13 @@ class S3SignedUrlStorage(S3Boto3Storage):
             return False
 
     def url(self, name, parameters=None, expire=900):
+        name = self._normalize_name(name)
+        logger.info(f"Generating presigned URL for: {name}")
+        s3_client = self._get_or_create_connection()
         try:
-            name = self._normalize_name(name)
-            logger.info(f"Generating presigned URL for: {name}")
-            s3_client = self._get_or_create_connection()
             presigned_url = s3_client.generate_presigned_url(
                 ClientMethod='get_object',
-                Params={
-                    'Bucket': self.bucket_name,
-                    'Key': name
-                },
+                Params={'Bucket': self.bucket_name, 'Key': name},
                 ExpiresIn=expire
             )
             logger.info(f"Generated presigned URL: {presigned_url}")
