@@ -275,9 +275,11 @@ class StudentRegistrationForm(forms.Form):
                 
                 user = User.objects.create_user(**user_data)
 
-                user.phones.create(
-                    phone_number=self.cleaned_data["phone_number"]
-                )
+                if self.cleaned_data("phone_number"):
+
+                    user.phones.create(
+                        phone_number=self.cleaned_data["phone_number"]
+                    )
             
                 student = Student.objects.create(
                     user=user,
