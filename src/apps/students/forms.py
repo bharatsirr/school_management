@@ -276,10 +276,11 @@ class StudentRegistrationForm(forms.Form):
                 user = User.objects.create_user(**user_data)
 
                 phone = self.cleaned_data.get("phone_number", "")
+                is_whatsapp = self.cleaned_data.get("is_whatsapp", False)
                 if phone:
                     user.phones.create(
-                        phone_number=self.cleaned_data["phone_number"],
-                        is_whatsapp=self.cleaned_data["is_whatsapp"]
+                        phone_number=phone,
+                        is_whatsapp=is_whatsapp
                         
                     )
             
