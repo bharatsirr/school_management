@@ -195,7 +195,7 @@ def admission_print_view(request, student_id):
     student_class = student_admission.student_class if student_admission else None
     # Determine School Name
     if student_admission:
-        if student_admission.student_class in ['nur', 'lkg', 'ukg'] or (student_admission.student_class and student_admission.student_class.isdigit() and int(student_admission.student_class) <= 5):
+        if student_admission.student_class.lower() in ['nur', 'lkg', 'ukg'] or (student_admission.student_class and student_admission.student_class.isdigit() and int(student_admission.student_class) <= 5):
             school_name = "Keshmati Devi Prathmik Vidyalaya"
             school_logo = static('images/kdpv.png')
             student_serial = student_admission.serial_no.serial_number if student_admission.serial_no.school_name == 'KDPV' else None
