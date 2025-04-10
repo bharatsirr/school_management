@@ -62,7 +62,12 @@ class StudentRegistrationForm(forms.Form):
             )
         ]
     )
-    is_whatsapp = forms.RadioSelect(choices=[(True, 'Yes'), (False, 'No')])
+    is_whatsapp = forms.TypedChoiceField(
+        choices=[(True, 'Yes'), (False, 'No')],
+        coerce=lambda x: x == 'True',
+        widget=forms.RadioSelect,
+        required=False
+    )
 
     # student creation fields
     height = forms.FloatField(required=False)
@@ -237,12 +242,6 @@ class StudentRegistrationForm(forms.Form):
                 self.cleaned_data["pen_number"] = None
         return self.cleaned_data["pen_number"]
     
-    def clean_is_whatsapp(self):
-        is_whatsapp = self.cleaned_data.get("is_whatsapp")
-        if is_whatsapp == True:
-            self.cleaned_data["is_whatsapp"] = True
-        return self.cleaned_data["is_whatsapp"]
-    
     def clean_mm(self):
         mm = self.cleaned_data.get("mm")
         if mm:
@@ -276,11 +275,10 @@ class StudentRegistrationForm(forms.Form):
                 user = User.objects.create_user(**user_data)
 
                 phone = self.cleaned_data.get("phone_number", "")
-                is_whatsapp = self.cleaned_data.get("is_whatsapp", False)
                 if phone:
                     user.phones.create(
                         phone_number=phone,
-                        is_whatsapp=is_whatsapp
+                        is_whatsapp=self.cleaned_data["is_whatsapp"]
                         
                     )
             
