@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView, UserDocumentDeleteView
+from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView, UserDocumentDeleteView, FamilyDiscountView
 
 
 urlpatterns = [
@@ -16,4 +16,5 @@ urlpatterns = [
     path('families/create/', FamilyCreateView.as_view(), name='family_create'),
     path('families/<int:family_id>/add_member/', AddFamilyMemberView.as_view(), name='add_family_member'),
     path('families/<int:family_id>/wallet_topup/', WalletTopupView.as_view(), name='wallet_topup'),
+    path('families/<int:family_id>/discount_topup/', FamilyDiscountView.as_view(), name='discount_topup'),
 ]

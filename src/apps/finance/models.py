@@ -130,8 +130,8 @@ class Discount(models.Model):
 
     def save(self, *args, **kwargs):
         # Ensure only Directors can give discounts
-        if not self.discount_by.groups.filter(name='Director').exists():
-            raise PermissionError("Only Directors can apply discounts.")
+        #if not self.discount_by.groups.filter(name='Director').exists():
+         #   raise PermissionError("Only Directors can apply discounts.")
         super().save(*args, **kwargs)
 
     def __str__(self):

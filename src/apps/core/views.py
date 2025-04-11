@@ -1,11 +1,11 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404, JsonResponse
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, FormView, View
 from django.views import View
 from django.urls import reverse_lazy
-from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm, WalletTopupForm, UserDocumentForm
+from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm, WalletTopupForm, FamilyDiscountForm, UserDocumentForm
 from django.contrib import messages
 from .models import Family, UserDocument
 from django.core.exceptions import PermissionDenied
@@ -146,6 +146,45 @@ class WalletTopupView(FormView):
         return super().form_invalid(form)
     
 
+
+
+class FamilyDiscountView(LoginRequiredMixin, UserPassesTestMixin, FormView):
+    template_name = "core/family_discount.html"  # Create a template for this view
+    form_class = FamilyDiscountForm
+    success_url = reverse_lazy("family_list")  # Redirect to a relevant page after top-up
+
+    def test_func(self):
+        return self.request.user.is_superuser
+    
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+        # Redirect to the home page if the user doesn't have permission
+        messages.error(self.request, "You do not have permission to access this page.")
+        return redirect("home")
+
+    def get_family(self):
+        return get_object_or_404(Family, id=self.kwargs.get("family_id"))
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['family'] = self.get_family()
+        return context
+
+    def form_valid(self, form):
+        family = self.get_family()
+        form.save(family=family)
+        messages.success(self.request, "Discount top-up successful!")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Invalid amount entered.")
+        return super().form_invalid(form)
 
 
 

@@ -68,6 +68,7 @@ class FamilyPaymentDetailsView(LoginRequiredMixin, TemplateView):
         payments_by_type = {
             'fee': [],
             'wallet_top_up': [],
+            'discount_top_up_for_family': [],
             'product_sale': []
         }
         
@@ -82,6 +83,11 @@ class FamilyPaymentDetailsView(LoginRequiredMixin, TemplateView):
                 })
             elif payment_type == 'wallet_top_up':
                 payments_by_type['wallet_top_up'].append({
+                    'summary': summary,
+                    'details': details
+                })
+            elif payment_type == 'discount_top_up_for_family':
+                payments_by_type['discount_top_up_for_family'].append({
                     'summary': summary,
                     'details': details
                 })
