@@ -78,11 +78,22 @@ class LogoutView(View):
 
 
 
-class FamilyCreateView(LoginRequiredMixin, CreateView):
-    model = Family
-    form_class = FamilyForm
+
+
+class FamilyCreateView(View):
     template_name = 'core/family_form.html'
-    success_url = reverse_lazy('family_list')
+
+    def get(self, request):
+        form = FamilyForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = FamilyForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('family_list')  # Redirect to a success page or detail view
+        return render(request, self.template_name, {'form': form})
+
 
 
 # List Families and Members View

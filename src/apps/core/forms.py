@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
+import uuid
 
 from apps.core.models import Family, FamilyMember, UserDocument
 from apps.finance.models import PaymentTransaction, WalletTransaction, Discount, ManagementExpense, PaymentSummary, LedgerEntry, LedgerAccountType
@@ -181,13 +182,44 @@ class UserProfilePhotoForm(forms.Form):
 
     
 
+class FamilyForm(forms.Form):
+    father_first_name = forms.CharField(max_length=100)
+    mother_first_name = forms.CharField(max_length=100)
+    title = forms.CharField(max_length=100)
+    village = forms.CharField(max_length=100)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        for field in ["father_first_name", "mother_first_name", "title", "village"]:
+            cleaned_data[field] = cleaned_data.get(field, "").strip().lower()
+
+        if not cleaned_data.get("father_first_name") or not cleaned_data.get("mother_first_name"):
+            raise forms.ValidationError("Both father's and mother's first names are required.")
+
+        if not cleaned_data.get("title") or not cleaned_data.get("village"):
+            raise forms.ValidationError("Title and village are required.")
+
+        if cleaned_data["father_first_name"] == cleaned_data["mother_first_name"]:
+            raise forms.ValidationError("Father's and mother's first names cannot be the same.")
+
+        if cleaned_data["title"] == cleaned_data["village"]:
+            raise forms.ValidationError("Title and village cannot be the same.")
+
+        family_name = f"{cleaned_data['father_first_name']}_{cleaned_data['mother_first_name']}_{cleaned_data['title']}_{cleaned_data['village']}_{uuid.uuid4().hex[:8]}"
+        cleaned_data["family_name"] = family_name
+
+        return cleaned_data
+
+    def save(self):
+        # Save the Family instance, but the user will not be part of the model
+        family = Family.objects.create(
+            family_name=self.cleaned_data["family_name"]
+        )
+        return family
 
 
 
-class FamilyForm(forms.ModelForm):
-    class Meta:
-        model = Family
-        fields = ['family_name']
 
 
 class FamilyMemberForm(forms.ModelForm):
