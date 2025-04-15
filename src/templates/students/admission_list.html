@@ -1,80 +1,217 @@
 {% extends "base.html" %}
 {% load tailwind_filters %}
 {% block content %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">
-            Student Admissions   <a href="{% url 'register_student' %}"
-      class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">Register A New Student</a>
-        </h1>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
+        <!-- Header with improved spacing and alignment -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b pb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">Student Admissions</h1>
+            <a href="{% url 'register_student' %}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium shadow-sm transition-colors duration-200 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5 mr-2"
+                     viewBox="0 0 20 20"
+                     fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Register A New Student
+            </a>
+        </div>
+        <!-- Student cards grid with responsive layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {% for admission in student_admissions %}
-                <div class="bg-white shadow-md rounded-lg p-4">
-                    <h2 class="text-xl font-semibold text-gray-800">
-                        {{ admission.student.user.first_name }} {{ admission.student.user.last_name }}
-                    </h2>
-                    <p class="text-gray-600">Class: {{ admission.student_class }} Section: {{ admission.section }}</p>
-                    <p class="text-gray-500">Roll No: {{ admission.roll_number }}</p>
-                    <p class="text-gray-500">Admission Date: {{ admission.admission_date }}</p>
-                    <!-- Phone Number -->
-                    {% with admission.student.user.id as user_id %}
-                        {% for phone in admission.student.user.phones.all %}
-                            {% if phone.user.id == user_id %}<p class="text-gray-600">Phone: {{ phone.phone_number }}</p>{% endif %}
-                        {% endfor %}
-                    {% endwith %}
-                    <!-- Previous Institution -->
-                    {% if admission.student.previous_institution %}
-                        <p class="text-gray-600">Previous Institution: {{ admission.student.previous_institution.previous_institution }}</p>
-                        <p class="text-gray-500">
-                            Score: {{ admission.student.previous_institution.score }} ({{ admission.student.previous_institution.percent }}%)
-                        </p>
+                <div class="bg-white shadow-lg rounded-xl hover:shadow-xl transition-shadow duration-300">
+                    <!-- Student photo section - fixed to display full image with 3:4 ratio -->
+                    {% if admission.profile_photo %}
+                        <div class="flex justify-center p-4">
+                            <div class="flex max-w-44 justify-center">
+                                <img width="300"
+                                     height="400"
+                                     class="rounded-2xl shadow-lg object-contain"
+                                     src="{{ admission.profile_photo.file_path.url }}"
+                                     alt="{{ admission.student.user.first_name }} {{ admission.student.user.last_name }} image">
+                            </div>
+                        </div>
                     {% endif %}
-                    <!-- Fee Details -->
-                    <h3 class="mt-4 text-lg font-medium text-gray-700">Fee Details:</h3>
-                    <ul class="list-disc list-inside text-gray-600">
-                        {% for fee in admission.fee_structure.fee_types.all %}
-                            <li>{{ fee.name }} - {{ fee.amount }}</li>
-                        {% empty %}
-                            <li>No fee types available.</li>
-                        {% endfor %}
-                    </ul>
-                    <!-- Serial Number -->
-                    {% if admission.serial_no %}
-                        <p class="text-gray-500">Serial Number: {{ admission.serial_no.serial_number }}</p>
-                        <p class="text-gray-400">School: {{ admission.serial_no.school_name }}</p>
-                    {% endif %}
-                    {% comment %} <a href="{% url 'student_admission_edit' admission.id %}" class="mt-4 bg-yellow-500 hover:bg-yellow-700 text-white px-3 py-1 rounded">Edit</a> {% endcomment %}
-                    <a href="{% url 'student_update' admission.student.id %}"
-                       class="mt-4 bg-yellow-500 hover:bg-yellow-700 text-white px-3 py-1 rounded">Edit</a>
-                    <a href="{% url 'admission_print' admission.student.id %}"
-                       class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">Print</a>
-                    <a href="{% url 'user_profile_update' admission.student.user.username %}"
-                       class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">Edit Profile</a>
-                    <a href="{% url 'user_profile' admission.student.user.username %}"
-                       class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">View Profile</a>
-                    {% for member in admission.student.user.family_member.family.members.all %}
-                        {% if member.member_type == "parent" and member.user.gender == "Male" %}
-                            <a href="{% url 'user_profile' member.user.username %}"
-                               class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">View Father's Profile</a>
-                        {% elif member.member_type == "parent" and member.user.gender == "Female" %}
-                            <a href="{% url 'user_profile' member.user.username %}"
-                               class="mt-4 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">View Mother's Profile</a>
+                    <!-- Student details section -->
+                    <div class="p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">
+                            {{ admission.student.user.first_name }} {{ admission.student.user.last_name }}
+                        </h2>
+                        <!-- Primary details with improved formatting -->
+                        <div class="space-y-1 mb-4 text-gray-600">
+                            <div class="flex items-center">
+                                <span class="font-medium w-24">Class:</span>
+                                <span>{{ admission.student_class }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-medium w-24">Section:</span>
+                                <span>{{ admission.section }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-medium w-24">Roll No:</span>
+                                <span>{{ admission.roll_number }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-medium w-24">Status:</span>
+                                <span class="{% if admission.status == 'Active' %}text-green-600{% elif admission.status == 'Pending' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                    {{ admission.status }}
+                                </span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-medium w-24">Session:</span>
+                                <span>{{ admission.session }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-medium w-24">Admitted:</span>
+                                <span>{{ admission.admission_date }}</span>
+                            </div>
+                            {% if admission.is_rte %}
+                                <div class="flex items-center">
+                                    <span class="font-medium w-24">RTE:</span>
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-semibold">Yes</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <!-- Phone number -->
+                        {% with admission.student.user.id as user_id %}
+                            {% for phone in admission.student.user.phones.all %}
+                                {% if phone.user.id == user_id %}
+                                    <div class="flex items-center mb-4 text-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="h-5 w-5 mr-2 text-gray-500"
+                                             viewBox="0 0 20 20"
+                                             fill="currentColor">
+                                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                        </svg>
+                                        <span>{{ phone.phone_number }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                        <!-- Previous Institution -->
+                        {% if admission.student.previous_institution %}
+                            <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Previous Institution</h3>
+                                <p class="text-gray-700 font-medium">{{ admission.student.previous_institution.previous_institution }}</p>
+                                <p class="text-gray-600 text-sm mt-1">
+                                    Score: {{ admission.student.previous_institution.score }}
+                                    <span class="inline-block ml-1 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                        {{ admission.student.previous_institution.percent }}%
+                                    </span>
+                                </p>
+                            </div>
+                        {% endif %}
+                        <!-- Fee Details -->
+                        <div class="mb-6">
+                            <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Fee Details</h3>
+                            <div class="bg-gray-50 rounded-lg border border-gray-100 p-4">
+                                {% for fee in admission.fee_structure.fee_types.all %}
+                                    <div class="flex justify-between items-center py-1 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                        <span class="text-gray-700">{{ fee.name }}</span>
+                                        <span class="font-medium">{{ fee.amount }}</span>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-gray-500 italic">No fee types available.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <!-- Serial Number -->
+                        {% if admission.serial_no %}
+                            <div class="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
+                                <div class="flex items-center text-gray-500">
+                                    <span class="font-medium mr-2">Serial Number:</span>
+                                    <span>{{ admission.serial_no.serial_number }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-500 mt-1">
+                                    <span class="font-medium mr-2">School:</span>
+                                    <span>{{ admission.serial_no.school_name }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <!-- Action buttons -->
+                        <div class="flex flex-wrap gap-2 mt-6">
+                            <a href="{% url 'student_update' admission.student.id %}"
+                               class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-center py-2 px-3 rounded-md font-medium text-sm shadow-sm transition-colors duration-200">
+                                Edit Student
+                            </a>
+                            <a href="{% url 'admission_print' admission.student.id %}"
+                               class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-center py-2 px-3 rounded-md font-medium text-sm shadow-sm transition-colors duration-200">
+                                Print
+                            </a>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            <a href="{% url 'user_profile_update' admission.student.user.username %}"
+                               class="flex-1 bg-gray-500 hover:bg-gray-600 text-white text-center py-2 px-3 rounded-md font-medium text-sm shadow-sm transition-colors duration-200">
+                                Edit Profile
+                            </a>
+                            <a href="{% url 'user_profile' admission.student.user.username %}"
+                               class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white text-center py-2 px-3 rounded-md font-medium text-sm shadow-sm transition-colors duration-200">
+                                View Profile
+                            </a>
+                        </div>
+                        <!-- Parent profile links -->
+                        <div class="mt-4 space-y-2">
+                            {% for member in admission.student.user.family_member.family.members.all %}
+                                {% if member.member_type == "parent" and member.user.gender == "Male" %}
+                                    <a href="{% url 'user_profile' member.user.username %}"
+                                       class="flex items-center justify-center w-full bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 px-3 rounded-md font-medium text-sm transition-colors duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="h-4 w-4 mr-2"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        View Father's Profile
+                                    </a>
+                                {% elif member.member_type == "parent" and member.user.gender == "Female" %}
+                                    <a href="{% url 'user_profile' member.user.username %}"
+                                       class="flex items-center justify-center w-full bg-pink-50 hover:bg-pink-100 text-pink-700 py-2 px-3 rounded-md font-medium text-sm transition-colors duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="h-4 w-4 mr-2"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        View Mother's Profile
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-span-full py-16 flex flex-col items-center justify-center bg-white rounded-lg shadow">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-16 w-16 text-gray-300 mb-4"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p class="text-xl font-medium text-gray-500">No student admissions found.</p>
+                    <p class="text-gray-400 mt-2">Try registering a new student using the button above.</p>
+                </div>
+            {% endfor %}
+        </div>
+        <!-- Pagination with improved styling -->
+        {% if is_paginated %}
+            <div class="mt-10 flex justify-center">
+                <div class="inline-flex rounded-md shadow-sm">
+                    {% for page_num in paginator.page_range %}
+                        {% if page_num == page_obj.number %}
+                            <span class="relative inline-flex items-center px-4 py-2 bg-blue-600 text-sm font-medium text-white">
+                                {{ page_num }}
+                            </span>
+                        {% else %}
+                            <a href="?page={{ page_num }}"
+                               class="relative inline-flex items-center px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-300 {% if not forloop.last %}border-r-0{% endif %}">
+                                {{ page_num }}
+                            </a>
                         {% endif %}
                     {% endfor %}
                 </div>
-            {% empty %}
-                <p class="text-gray-500">No student admissions found.</p>
-            {% endfor %}
-        </div>
-        {% if is_paginated %}
-            <div class="mt-6 flex justify-center">
-                {% for page_num in paginator.page_range %}
-                    {% if page_num == page_obj.number %}
-                        <span class="px-3 py-1 bg-blue-500 text-white rounded">{{ page_num }}</span>
-                    {% else %}
-                        <a href="?page={{ page_num }}"
-                           class="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">{{ page_num }}</a>
-                    {% endif %}
-                {% endfor %}
             </div>
         {% endif %}
     </div>

@@ -99,7 +99,7 @@ class StudentAdmissionListView(ListView):
 
     def get_queryset(self):
         # Prefetch related data to reduce queries
-        return StudentAdmission.objects.select_related(
+        queryset = StudentAdmission.objects.select_related(
             'student__user', 
             'serial_no', 
             'fee_structure'
@@ -107,6 +107,12 @@ class StudentAdmissionListView(ListView):
             Prefetch('student__user__phones'), 
             Prefetch('student__previous_institution')
         ).order_by('-admission_date')
+    
+        # Add profile_photo to each admission
+        for admission in queryset:
+            admission.profile_photo = admission.student.user.documents.filter(document_name="profile_photo").first()
+        
+        return queryset
 
 
 

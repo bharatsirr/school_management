@@ -198,6 +198,7 @@ class StudentAdmission(models.Model):
         ('active', 'Active'),
         ('passed', 'Passed'),
         ('failed', 'Failed'),
+        ('dropped', 'Dropped'),
     ]
 
     CLASS_CHOICES = [
