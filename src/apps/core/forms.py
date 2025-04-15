@@ -85,6 +85,8 @@ class UserCreationForm(forms.ModelForm):
             'village', 'pincode', 'dob', 'blood_group', 'aadhar_number', 'gender', 'religion', 'caste', 'category', 'occupation'
         ]
 
+    username = forms.CharField(required=False)
+
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
@@ -94,7 +96,7 @@ class UserCreationForm(forms.ModelForm):
             raise ValidationError("Passwords do not match!")
 
         # Normalize text fields (lowercase consistency)
-        cleaned_data["username"] = cleaned_data.get("username", "").strip().lower()
+        cleaned_data["username"] = cleaned_data.get("username", "").strip().lower().replace(" ", "")
         cleaned_data["first_name"] = cleaned_data.get("first_name", "").strip().title()
         
         # Handle optional fields - use empty string if None or empty
@@ -120,6 +122,22 @@ class UserCreationForm(forms.ModelForm):
         if phone:
             if not phone.isdigit() or len(phone) != 10:
                 raise ValidationError({"phone_number": "Enter a valid 10-digit phone number."})
+            
+        # Generate username if not provided
+        if not cleaned_data.get("username"):
+            first_name = cleaned_data.get("first_name", "").lower()
+            last_name = cleaned_data.get("last_name", "").lower()
+            dob = cleaned_data.get("dob")
+            
+            # Create username from first_name, last_name, dob (YYYYMMDD)
+            if dob and first_name and last_name:
+                cleaned_data["username"] = f'{first_name}{last_name}{dob.strftime("%Y%m%d")}'
+            elif first_name and dob:
+                cleaned_data["username"] = f'{first_name}{dob.strftime("%Y%m%d")}'
+
+        # Check if the username already exists in the database
+        if User.objects.filter(username=cleaned_data["username"]).exists():
+            raise ValidationError({"username": "This username is already taken."})
 
         return cleaned_data
     
@@ -137,6 +155,9 @@ class UserCreationForm(forms.ModelForm):
             with transaction.atomic():
                 user = super().save(commit=False)
                 user.set_password(self.cleaned_data["password1"])
+
+                if not user.username:
+                    user.username = self.cleaned_data["username"].lower()
                 
                 if commit:
                     user.save()
