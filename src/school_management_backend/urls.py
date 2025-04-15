@@ -27,5 +27,5 @@ urlpatterns = [
     path('', include('apps.finance.urls')),
 ]
 
-if settings.USE_S3_STORAGE:
+if not settings.USE_S3_STORAGE:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
