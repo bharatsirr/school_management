@@ -102,6 +102,21 @@ class FamilyListView( LoginRequiredMixin, ListView):
     template_name = 'core/family_list.html'
     context_object_name = 'families'
 
+    def get_queryset(self):
+        families = Family.objects.prefetch_related(
+            'members__user__documents'
+        )
+        return families
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        for family in context['families']:
+            for member in family.members.all():
+                # Fetch the profile photo document for each member
+                profile_photo = member.user.documents.filter(document_name="profile_photo").first()
+                # Add the profile photo to each member in the context
+                member.profile_photo = profile_photo
+        return context
 
 # Add Member to Family View
 class AddFamilyMemberView( LoginRequiredMixin, View):
