@@ -248,14 +248,23 @@ class FamilyMemberForm(forms.ModelForm):
         family = kwargs.pop('family', None)
         super().__init__(*args, **kwargs)
 
-        existing_users = family.members.values_list('user', flat=True) if family else []
-        self.fields['user'].queryset = User.objects.exclude(id__in=existing_users).order_by('-created_at')
+        # If the family is provided, exclude users who are already in any family (including the current one)
+        if family:
+            # Get all user IDs from FamilyMember where the user is part of any family, excluding the current family
+            excluded_users = FamilyMember.objects.values_list('user', flat=True)
+        else:
+            excluded_users = []
+
+        # Set queryset to exclude all the users already in any family
+        self.fields['user'].queryset = User.objects.exclude(id__in=excluded_users).order_by('-created_at')
+
     class Meta:
         model = FamilyMember
-        fields = ['user','member_type', 'is_alive']
+        fields = ['user', 'member_type', 'is_alive']
         widgets = {
             'member_type': forms.Select(choices=FamilyMember.MemberType.choices),
         }
+
 
 
 class WalletTopupForm(forms.Form):
