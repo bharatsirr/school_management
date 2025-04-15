@@ -56,16 +56,19 @@
             </div>
             <div class="grid  gap-4">
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2" for="id_username">Username</label>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_username">
+                        Username <span class="text-sm text-gray-500">(optional)</span>
+                    </label>
                     <input type="text"
                            name="username"
                            id="id_username"
-                           required
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.username.errors %}<p class="text-red-500 text-sm mt-1">{{ form.username.errors }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2" for="id_email">Email</label>
+                    <label class="block text-gray-700 font-medium mb-2" for="id_email">
+                        Email <span class="text-sm text-gray-500">(optional)</span>
+                    </label>
                     <input type="email"
                            name="email"
                            id="id_email"
