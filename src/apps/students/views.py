@@ -6,8 +6,9 @@ from django.views import View
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.contrib import messages
+from collections import defaultdict
 from django.urls import reverse_lazy, reverse
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Sum
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
@@ -299,52 +300,75 @@ def admission_print_view(request, student_id):
     return render(request, "students/admission_printout.html", context)
 
 
+
 class FamilyFeeDuesView(LoginRequiredMixin, ListView):
     template_name = 'students/family_fee_dues.html'
-    context_object_name = 'fee_dues'
+    context_object_name = 'fee_dues_by_session'
 
     def get_family(self):
-        """Get the family object from the URL parameter."""
         return get_object_or_404(Family, id=self.kwargs.get('family_id'))
 
     def get_queryset(self):
-        """Get all fee dues for the family's students in the current session."""
         family = self.get_family()
-        current_session = StudentAdmission.generate_session()
-        
+
         # Get all students in the family with active admissions
         family_members = family.members.all()
         family_members_users = family_members.values_list('user', flat=True)
         students = Student.objects.filter(user__in=family_members_users)
-        
-        # Get all fee dues for these students in the current session
-        return FeeDue.objects.filter(
+
+        # Get all unpaid fee dues across all sessions
+        fee_dues = FeeDue.objects.filter(
             admission__student__in=students,
-            admission__session=current_session,
-            admission__status='active'
+            admission__status='active',
+            paid=False  # Only unpaid dues
         ).select_related(
             'admission__student__user',
+            'admission__serial_no',
+            'admission__fee_structure',
             'fee_type',
             'transaction'
-        ).order_by('admission__student__user__first_name', 'fee_type__name')
+        ).order_by(
+            'admission__session',  # CharField: "2023-2024"
+            'admission__student__user__first_name',
+            'fee_type__name'
+        )
+        return fee_dues
+
+    def group_fee_dues_by_session(self, fee_dues):
+        """Groups fee dues by academic session."""
+        grouped = defaultdict(list)
+        for due in fee_dues:
+            session = due.admission.session  # This is a CharField
+            grouped[session].append(due)
+
+        # Sort by session string descending (e.g., "2023-2024")
+        def session_sort_key(session_str):
+            try:
+                start_year = int(session_str.split('-')[0])
+                return start_year
+            except (ValueError, IndexError):
+                return 0  # fallback in case of malformed session string
+
+        return dict(sorted(grouped.items(), key=lambda x: session_sort_key(x[0]), reverse=True))
 
     def get_context_data(self, **kwargs):
-        """Add additional context data to the template."""
         context = super().get_context_data(**kwargs)
-        context['family'] = self.get_family()
-        context['current_session'] = StudentAdmission.generate_session()
-        
-        # Calculate total dues and paid amounts
-        total_dues = self.get_queryset().aggregate(
-            total_amount=models.Sum('amount'),
-            paid_amount=models.Sum('amount', filter=models.Q(paid=True))
-        )
-        
-        context['total_dues'] = total_dues['total_amount'] or 0
-        context['total_paid'] = total_dues['paid_amount'] or 0
-        context['total_pending'] = context['total_dues'] - context['total_paid']
-        
-        return context
+        family = self.get_family()
+        current_session = StudentAdmission.generate_session()
+        fee_dues = self.get_queryset()
 
+        # Group dues by session
+        grouped_dues = self.group_fee_dues_by_session(fee_dues)
+
+        # Calculate totals
+        total_dues = fee_dues.aggregate(total=Sum('amount'))['total'] or 0
+
+        context.update({
+            'family': family,
+            'current_session': current_session,
+            'fee_dues_by_session': grouped_dues,
+            'total_dues': total_dues,
+        })
+        return context
 
 
