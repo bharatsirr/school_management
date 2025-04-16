@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, FormView, View
 from django.views import View
@@ -9,7 +9,7 @@ from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileFo
 from django.contrib import messages
 from .models import Family, UserDocument
 from django.core.exceptions import PermissionDenied
-from django.conf import settings
+from .utils import fee_due_generate_all
 import os
 import logging
 
@@ -366,3 +366,13 @@ class UserDocumentDeleteView(LoginRequiredMixin, View):
         except Exception as e:
             logger.error(f"Error deleting document {document_id}: {str(e)}")
             return JsonResponse({'status': 'error', 'message': 'Error deleting document'}, status=500)
+
+
+
+
+def generate_fee_due_view(request):
+    # Call the fee_due_generate_all function to generate fee dues for all students
+    fee_due_generate_all()
+
+    # Return an HTTP response with a simple success message
+    return HttpResponse("Fee dues generated successfully.", content_type="text/html")

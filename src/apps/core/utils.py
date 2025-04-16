@@ -14,46 +14,63 @@ from apps.core.s3_signed_storage import S3SignedUrlStorage
 logger = logging.getLogger(__name__)
 
 
+from django.utils import timezone
+
 def fee_due_generate(student):
     """Generates fee dues for a student's latest active admission."""
     today = timezone.localtime(timezone.now()).date()
-    # get the current session
     current_session = StudentAdmission.generate_session()
-    active_admission = student.admissions.filter(status="active" , session=current_session).order_by("-admission_date").first()
-    is_rte = active_admission.is_rte
+
+    active_admission = student.admissions.filter(
+        status="active", session=current_session
+    ).order_by("-admission_date").first()
 
     if not active_admission:
-        return False  # No active admission found, skip processing
+        return False
 
+    is_rte = active_admission.is_rte
     fee_structure = active_admission.fee_structure
     fee_types = fee_structure.fee_types.all()
-    quarter_suffixes = ['q1', 'q2', 'q3', 'q4']
+
+    # Determine current academic quarter
+    month = today.month
+    if 4 <= month <= 6:
+        current_quarter = 1
+    elif 7 <= month <= 9:
+        current_quarter = 2
+    elif 10 <= month <= 12:
+        current_quarter = 3
+    else:  # January to March
+        current_quarter = 4
 
     for fee_type in fee_types:
-        # Check if a due already exists to avoid duplication
-        if not FeeDue.objects.filter(admission=active_admission, fee_type=fee_type).exists():
-            
-            # If the fee type name ends with a quarter suffix and is not RTE, handle the quarter-based logic
-            if fee_type.name[-2:] in quarter_suffixes and is_rte == False:
-                # Check specific dates for tuition fees
-                quarter = int(fee_type.name[-1])  # Extract the quarter number (e.g., 'q1' -> 1, 'q2' -> 2, etc.)
-                
-                # Conditional checks for specific quarters based on the current date
-                if (quarter == 1 and today >= date(today.year, 4, 1)) or \
-                (quarter == 2 and today >= date(today.year, 7, 1)) or \
-                (quarter == 3 and today >= date(today.year, 10, 1)) or \
-                (quarter == 4 and today >= date(today.year, 1, 1)):
-                    # Create FeeDue entry for this fee type
-                    FeeDue.objects.create(admission=active_admission, fee_type=fee_type, amount=fee_type.amount)
-            
-            # If the fee type name starts with 'tuition' and is RTE is True, skip this fee type
-            elif fee_type.name.startswith("tuition") and is_rte == True:
-                continue  # Skip this tuition fee if is_rte is True
-            
-            else:
-                # For all other cases, create a FeeDue entry immediately
-                FeeDue.objects.create(admission=active_admission, fee_type=fee_type, amount=fee_type.amount)
+        if FeeDue.objects.filter(admission=active_admission, fee_type=fee_type).exists():
+            continue
 
+        fee_name = fee_type.name.lower()
+        is_quarterly_fee = False
+        quarter_num = None
+
+        for q in range(1, 5):
+            if f"_q{q}" in fee_name:
+                is_quarterly_fee = True
+                quarter_num = q
+                break
+
+        if is_quarterly_fee:
+            if is_rte and fee_name.startswith("tuition"):
+                continue  # Skip tuition fees for RTE students
+            if quarter_num <= current_quarter:
+                FeeDue.objects.create(
+                    admission=active_admission, fee_type=fee_type, amount=fee_type.amount
+                )
+            # else: skip future quarter
+        else:
+            if is_rte and fee_name.startswith("tuition"):
+                continue  # Skip tuition for RTE
+            FeeDue.objects.create(
+                admission=active_admission, fee_type=fee_type, amount=fee_type.amount
+            )
 
     return True
 
