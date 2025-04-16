@@ -27,22 +27,33 @@ def fee_due_generate(student):
 
     fee_structure = active_admission.fee_structure
     fee_types = fee_structure.fee_types.all()
+    quarter_suffixes = ['q1', 'q2', 'q3', 'q4']
 
     for fee_type in fee_types:
         # Check if a due already exists to avoid duplication
         if not FeeDue.objects.filter(admission=active_admission, fee_type=fee_type).exists():
             
-            # Handle tuition fees based on the date conditions
-            if fee_type.name in ["tuition_q1", "tuition_q2", "tuition_q3", "tuition_q4"] and is_rte == False:
-                if (fee_type.name == "tuition_q1" and today >= date(today.year, 4, 1)) or \
-                   (fee_type.name == "tuition_q2" and today >= date(today.year, 7, 1)) or \
-                   (fee_type.name == "tuition_q3" and today >= date(today.year, 10, 1)) or \
-                   (fee_type.name == "tuition_q4" and today >= date(today.year, 1, 1)):
+            # If the fee type name ends with a quarter suffix and is not RTE, handle the quarter-based logic
+            if fee_type.name[-2:] in quarter_suffixes and is_rte == False:
+                # Check specific dates for tuition fees
+                quarter = int(fee_type.name[-1])  # Extract the quarter number (e.g., 'q1' -> 1, 'q2' -> 2, etc.)
+                
+                # Conditional checks for specific quarters based on the current date
+                if (quarter == 1 and today >= date(today.year, 4, 1)) or \
+                (quarter == 2 and today >= date(today.year, 7, 1)) or \
+                (quarter == 3 and today >= date(today.year, 10, 1)) or \
+                (quarter == 4 and today >= date(today.year, 1, 1)):
+                    # Create FeeDue entry for this fee type
                     FeeDue.objects.create(admission=active_admission, fee_type=fee_type, amount=fee_type.amount)
-
+            
+            # If the fee type name starts with 'tuition' and is RTE is True, skip this fee type
+            elif fee_type.name.startswith("tuition") and is_rte == True:
+                continue  # Skip this tuition fee if is_rte is True
+            
             else:
-                # Add all other fee types immediately
+                # For all other cases, create a FeeDue entry immediately
                 FeeDue.objects.create(admission=active_admission, fee_type=fee_type, amount=fee_type.amount)
+
 
     return True
 
