@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView, UserDocumentDeleteView, FamilyDiscountView
+from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView, UserDocumentDeleteView, FamilyDiscountView, generate_fee_due_view
 
 
 urlpatterns = [
@@ -17,4 +17,5 @@ urlpatterns = [
     path('families/<int:family_id>/add_member/', AddFamilyMemberView.as_view(), name='add_family_member'),
     path('families/<int:family_id>/wallet_topup/', WalletTopupView.as_view(), name='wallet_topup'),
     path('families/<int:family_id>/discount_topup/', FamilyDiscountView.as_view(), name='discount_topup'),
+    path('generate_fee_dues/', generate_fee_due_view, name='generate_fee_dues'),
 ]
