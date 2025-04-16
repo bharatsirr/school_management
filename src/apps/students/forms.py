@@ -365,11 +365,19 @@ class FeeStructureForm(forms.ModelForm):
 
 
 class FeeTypeForm(forms.ModelForm):
+    add_quarterly_fee = forms.BooleanField(required=False,
+                                           label="Add Quarterly Fee",
+                                           help_text="Check this box to add a quarterly fee for this fee type."
+                                           )
+
     class Meta:
         model = FeeType
-        fields = ['name', 'amount']
+        fields = ['name', 'amount', 'add_quarterly_fee']
 
-
+    def clean(self):
+        cleaned_data = super().clean()
+        # You can handle any custom validation logic here if needed.
+        return cleaned_data
 
 
 class PayFamilyFeeDuesForm(forms.Form):

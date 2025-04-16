@@ -4,8 +4,9 @@ from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
 from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm
 from django.views import View
 from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.db.models import Prefetch
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -151,15 +152,39 @@ class AddFeeTypeView(CreateView):
     template_name = 'students/add_fee_type.html'
 
     def dispatch(self, request, *args, **kwargs):
+        # Fetch the FeeStructure instance based on the URL parameter
         self.fee_structure = FeeStructure.objects.get(id=kwargs['fee_structure_id'])
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
+        # Add the FeeStructure to the form instance before saving
         form.instance.fee_structure = self.fee_structure
+
+        # Get the value of 'add_quarterly_fee' from the form
+        add_quarterly_fee = form.cleaned_data.get('add_quarterly_fee', False)
+
+        # If add_quarterly_fee is True, create four FeeType instances for Q1-Q4
+        if add_quarterly_fee:
+            # Create four new FeeType instances for each quarter
+            for i in range(1, 5):  # For Q1 to Q4
+                new_fee_type = FeeType(
+                    name=f"{form.instance.name}_q{i}",
+                    amount=form.cleaned_data['amount'],
+                    fee_structure=self.fee_structure,  # Associate with the FeeStructure
+                )
+                new_fee_type.save()  # Save each new FeeType instance
+
+            # After creating the quarterly instances, we don't save the original FeeType instance
+            # We only want to save the quarterly FeeType instances (tuition_q1 to tuition_q4).
+            return HttpResponseRedirect(self.get_success_url())
+
+        # If add_quarterly_fee is False, just save the regular FeeType instance
         return super().form_valid(form)
+    
 
     def get_success_url(self):
-        return reverse_lazy('fee_structure_list')
+        # Redirect to the FeeStructure list page or another page
+        return reverse('fee_structure_list')
 
 
 

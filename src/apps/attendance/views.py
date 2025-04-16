@@ -5,7 +5,7 @@ from apps.students.models import Student
 from apps.attendance.models import Attendance, HolidayTable
 from django.views.generic.edit import FormView
 from .forms import BulkAttendanceForm
-import datetime
+from django.utils import timezone
 
 
 def attendance_error(request):
@@ -33,7 +33,7 @@ class BulkAttendanceView(FormView):
 
     def dispatch(self, request, *args, **kwargs):
         """ Prevent attendance marking if today is a holiday or Sunday. """
-        today = datetime.date.today()
+        today = timezone.localtime().date()
 
         # Check if today is a holiday
         if HolidayTable.objects.filter(date=today, is_sunday_override=False).exists():
@@ -64,7 +64,7 @@ class BulkAttendanceView(FormView):
 
     def get(self, request, *args, **kwargs):
         """ If attendance is already taken for today, redirect. """
-        today = datetime.date.today()
+        today = timezone.localtime().date()
         students = self.get_students()
 
         # Check if attendance is already taken for all students
