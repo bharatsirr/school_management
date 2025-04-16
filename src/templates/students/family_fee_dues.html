@@ -73,80 +73,85 @@
                         <h3 class="text-3xl font-bold">₹{{ total_pending }}</h3>
                     </div>
                 </div>
-                <!-- Paid Fees Section -->
-                <div class="bg-white rounded-lg shadow-md mb-8 overflow-hidden border border-green-200">
-                    <div class="bg-green-600 text-white p-4">
-                        <h3 class="text-xl font-bold">Paid Fees</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-green-50 text-green-800">
-                                <tr>
-                                    <th class="py-3 px-4 text-left font-semibold">Student Name</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Class</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Fee Type</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Amount</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Paid Date</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                {% for due in fee_dues %}
-                                    {% if due.paid %}
-                                        <tr class="hover:bg-green-50">
-                                            <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
-                                            <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
-                                            <td class="py-3 px-4">{{ due.fee_type.name }}</td>
-                                            <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
-                                            <td class="py-3 px-4">{{ due.paid_at|date:"d M Y" }}</td>
+                {% for session, dues in fee_dues_by_session.items %}
+                    <div class="mt-10">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2">Session: {{ session }}</h2>
+                        <!-- Paid Fees -->
+                        <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden border border-green-200">
+                            <div class="bg-green-600 text-white p-4">
+                                <h3 class="text-lg font-bold">Paid Fees</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-green-50 text-green-800">
+                                        <tr>
+                                            <th class="py-3 px-4 text-left font-semibold">Student Name</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Class</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Fee Type</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Amount</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Paid Date</th>
                                         </tr>
-                                    {% endif %}
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="py-6 text-center text-gray-500">No paid fees found for this session.</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <!-- Unpaid Fees Section -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-red-200">
-                    <div class="bg-red-600 text-white p-4">
-                        <h3 class="text-xl font-bold">Unpaid Fees</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-red-50 text-red-800">
-                                <tr>
-                                    <th class="py-3 px-4 text-left font-semibold">Student Name</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Class</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Fee Type</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Amount</th>
-                                    <th class="py-3 px-4 text-left font-semibold">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                {% for due in fee_dues %}
-                                    {% if not due.paid %}
-                                        <tr class="hover:bg-red-50">
-                                            <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
-                                            <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
-                                            <td class="py-3 px-4">{{ due.fee_type.name }}</td>
-                                            <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
-                                            <td class="py-3 px-4">
-                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Unpaid</span>
-                                            </td>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        {% for due in dues %}
+                                            {% if due.paid %}
+                                                <tr class="hover:bg-green-50">
+                                                    <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
+                                                    <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
+                                                    <td class="py-3 px-4">{{ due.fee_type.name }}</td>
+                                                    <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
+                                                    <td class="py-3 px-4">{{ due.paid_at|date:"d M Y" }}</td>
+                                                </tr>
+                                            {% endif %}
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="5" class="py-6 text-center text-gray-500">No paid fees found for this session.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Unpaid Fees -->
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden border border-red-200">
+                            <div class="bg-red-600 text-white p-4">
+                                <h3 class="text-lg font-bold">Unpaid Fees</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-red-50 text-red-800">
+                                        <tr>
+                                            <th class="py-3 px-4 text-left font-semibold">Student Name</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Class</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Fee Type</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Amount</th>
+                                            <th class="py-3 px-4 text-left font-semibold">Status</th>
                                         </tr>
-                                    {% endif %}
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="py-6 text-center text-gray-500">No unpaid fees found for this session.</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        {% for due in dues %}
+                                            {% if not due.paid %}
+                                                <tr class="hover:bg-red-50">
+                                                    <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
+                                                    <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
+                                                    <td class="py-3 px-4">{{ due.fee_type.name }}</td>
+                                                    <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
+                                                    <td class="py-3 px-4">
+                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Unpaid</span>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="5" class="py-6 text-center text-gray-500">No unpaid fees found for this session.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                {% endfor %}
                 <!-- Footer -->
                 <div class="mt-8 text-center text-gray-500 text-sm">
                     <p>For any queries regarding fee payment, please contact the school office.</p>

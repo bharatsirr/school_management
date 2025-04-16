@@ -7,6 +7,8 @@ from django.db.models import Max
 from datetime import datetime, date
 import logging
 
+from django.utils import timezone
+
 logger = logging.getLogger(__name__)
 
 
@@ -104,7 +106,6 @@ class FeeType(models.Model):
 
 
 
-from django.utils import timezone
 
 class FeeDue(models.Model):
     admission = models.ForeignKey('StudentAdmission', on_delete=models.CASCADE, related_name="fee_dues")
