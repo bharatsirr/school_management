@@ -228,14 +228,14 @@ class FamilyForm(forms.Form):
             raise forms.ValidationError("Title and village cannot be the same.")
 
         family_name = f"{cleaned_data['father_first_name']}_{cleaned_data['mother_first_name']}_{cleaned_data['title']}_{cleaned_data['village']}_{uuid.uuid4().hex[:8]}"
-        cleaned_data["family_name"] = family_name.replace(" ", "")
+        cleaned_data["family_name"] = family_name.replace(" ", "_")
 
         return cleaned_data
 
     def save(self):
         # Save the Family instance, but the user will not be part of the model
         family = Family.objects.create(
-            family_name=self.cleaned_data["family_name"].replace(" ", "")
+            family_name=self.cleaned_data["family_name"].replace(" ", "_")
         )
         return family
 
