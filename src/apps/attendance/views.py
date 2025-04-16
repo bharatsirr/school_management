@@ -20,9 +20,9 @@ def attendance_already_taken(request):
 def class_selection(request):
     """Renders a page with buttons to select a class for attendance marking."""
     class_options = [
-        {"name": "Nursery", "value": "nur"},
-        {"name": "LKG", "value": "lkg"},
-        {"name": "UKG", "value": "ukg"},
+        {"name": "Nursery", "value": "NUR"},
+        {"name": "LKG", "value": "LKG"},
+        {"name": "UKG", "value": "UKG"},
     ] + [{"name": f"Class {i}", "value": str(i)} for i in range(1, 13)]  # Classes 1 to 12
 
     return render(request, "attendance/class_selection.html", {"class_options": class_options})
