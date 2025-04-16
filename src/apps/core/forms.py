@@ -125,15 +125,15 @@ class UserCreationForm(forms.ModelForm):
             
         # Generate username if not provided
         if not cleaned_data.get("username"):
-            first_name = cleaned_data.get("first_name", "").lower()
-            last_name = cleaned_data.get("last_name", "").lower()
+            first_name = cleaned_data.get("first_name", "").lower().replace(" ", "")
+            last_name = cleaned_data.get("last_name", "").lower().replace(" ", "")
             dob = cleaned_data.get("dob")
             
             # Create username from first_name, last_name, dob (YYYYMMDD)
             if dob and first_name and last_name:
-                cleaned_data["username"] = f'{first_name}{last_name}{dob.strftime("%Y%m%d")}'
+                cleaned_data["username"] = f'{first_name}{last_name}{dob.strftime("%Y%m%d")}'.replace(" ", "")
             elif first_name and dob:
-                cleaned_data["username"] = f'{first_name}{dob.strftime("%Y%m%d")}'
+                cleaned_data["username"] = f'{first_name}{dob.strftime("%Y%m%d")}'.replace(" ", "")
 
         # Check if the username already exists in the database
         if User.objects.filter(username=cleaned_data["username"]).exists():
@@ -157,7 +157,7 @@ class UserCreationForm(forms.ModelForm):
                 user.set_password(self.cleaned_data["password1"])
 
                 if not user.username:
-                    user.username = self.cleaned_data["username"].lower()
+                    user.username = self.cleaned_data["username"].lower().replace(" ", "")
                 
                 if commit:
                     user.save()
@@ -228,14 +228,14 @@ class FamilyForm(forms.Form):
             raise forms.ValidationError("Title and village cannot be the same.")
 
         family_name = f"{cleaned_data['father_first_name']}_{cleaned_data['mother_first_name']}_{cleaned_data['title']}_{cleaned_data['village']}_{uuid.uuid4().hex[:8]}"
-        cleaned_data["family_name"] = family_name
+        cleaned_data["family_name"] = family_name.replace(" ", "")
 
         return cleaned_data
 
     def save(self):
         # Save the Family instance, but the user will not be part of the model
         family = Family.objects.create(
-            family_name=self.cleaned_data["family_name"]
+            family_name=self.cleaned_data["family_name"].replace(" ", "")
         )
         return family
 
