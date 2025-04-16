@@ -40,6 +40,7 @@ class UserCreationForm(forms.ModelForm):
     password1 = forms.CharField(
         label="Password", 
         widget=forms.PasswordInput(),
+        required=False,
         validators=[
             RegexValidator(
                 regex=r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$',
@@ -86,11 +87,13 @@ class UserCreationForm(forms.ModelForm):
         ]
 
     username = forms.CharField(required=False)
+    password1 = forms.CharField(required=False)
+    password2 = forms.CharField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()
-        password1 = cleaned_data.get("password1")
-        password2 = cleaned_data.get("password2")
+        password1 = cleaned_data.get("password1", "")
+        password2 = cleaned_data.get("password2", "")
         
         if password1 and password1 != password2:
             raise ValidationError("Passwords do not match!")
@@ -135,9 +138,13 @@ class UserCreationForm(forms.ModelForm):
             elif first_name and dob:
                 cleaned_data["username"] = f'{first_name}{dob.strftime("%Y%m%d")}'.replace(" ", "")
 
+        if not cleaned_data.get("password1", ""):
+            cleaned_data["password1"] = f"{cleaned_data["username"].capitalize()}@123".replace(" ", "")
+
         # Check if the username already exists in the database
         if User.objects.filter(username=cleaned_data["username"]).exists():
             raise ValidationError({"username": "This username is already taken."})
+        
 
         return cleaned_data
     
