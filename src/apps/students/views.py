@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 from collections import defaultdict
 from django.urls import reverse_lazy, reverse
+from django.db import transaction
 from django.db.models import Prefetch, Sum
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -15,7 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from apps.core.models import Family, FamilyMember
 from django.templatetags.static import static
-from django.db import models
+from apps.core.utils import fee_due_generate
 User = get_user_model()
 
 
@@ -370,4 +371,109 @@ class FamilyFeeDuesView(LoginRequiredMixin, ListView):
         })
         return context
 
+
+
+
+
+def promotion_class_selection(request):
+    class_choices = StudentAdmission.CLASS_CHOICES
+    return render(request, 'students/promotion_class_selection.html', {'class_choices': class_choices})
+
+
+
+def bulk_promote_view(request, class_code):
+    current_session = StudentAdmission.generate_session()
+    start_year = int(current_session.split('-')[0])
+    previous_session = StudentAdmission.generate_session(year=start_year - 1)
+
+    class_index = StudentAdmission.CLASS_ORDER.index(class_code)
+
+    valid_class_choices = [
+        (code, name) for code, name in StudentAdmission.CLASS_CHOICES
+        if StudentAdmission.CLASS_ORDER.index(code) >= class_index
+    ]
+
+    previous_admissions = StudentAdmission.objects.filter(
+        session=previous_session,
+        student_class=class_code,
+        status='active'
+    ).exclude(
+        student__admissions__session=current_session,
+        student__admissions__status='active'
+    ).select_related('student', 'student__user')
+
+    if request.method == 'POST':
+        processed_count = 0
+        for admission in previous_admissions:
+            promote_to = request.POST.get(f'promote_to_{admission.id}')
+            status = request.POST.get(f'status_{admission.id}')
+            if not promote_to or not status:
+                continue  # skip if missing
+
+            # Convert to index for proper comparison
+            try:
+                promote_to_index = StudentAdmission.CLASS_ORDER.index(promote_to)
+                current_class_index = StudentAdmission.CLASS_ORDER.index(admission.student_class)
+            except ValueError:
+                continue  # invalid class code
+
+            if status == 'skip':
+                continue
+
+            if status == 'dropped':
+                admission.status = 'dropped'
+                admission.save()
+                continue  # no new admission
+
+            if status == 'graduated':
+                admission.status = 'graduated'
+                admission.save()
+                continue  # no new admission
+
+            if promote_to_index <= current_class_index and status == 'failed':
+                # Student is not promoted, mark as failed and keep in same class
+                with transaction.atomic():
+                    admission.status = 'failed'
+                    admission.save()
+
+                    StudentAdmission.objects.create(
+                        student=admission.student,
+                        session=current_session,
+                        student_class=admission.student_class,
+                        status='active'
+                    )
+                    fee_due_generate(admission.student)
+            else:
+                # Student promoted to next class in the order
+                with transaction.atomic():
+                    admission.status = 'passed'
+                    admission.save()
+
+                    try:
+                        current_class_index = StudentAdmission.CLASS_ORDER.index(admission.student_class)
+                        next_class = StudentAdmission.CLASS_ORDER[current_class_index + 1]
+                    except (ValueError, IndexError):
+                        # In case current class is not found or already the last class
+                        continue
+
+                    StudentAdmission.objects.create(
+                        student=admission.student,
+                        session=current_session,
+                        student_class=next_class,
+                        status='active'
+                    )
+                    fee_due_generate(admission.student)
+
+            processed_count += 1
+
+        messages.success(request, f'{processed_count} students processed successfully.')
+        return redirect('promotion_class_selection')
+
+    return render(request, 'students/bulk_promote.html', {
+        'class_code': class_code,
+        'current_session': current_session,
+        'previous_session': previous_session,
+        'students_to_promote': previous_admissions,
+        'class_choices': valid_class_choices,
+    })
 

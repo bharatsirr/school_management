@@ -160,16 +160,19 @@ class StudentSerial(models.Model):
 
 class StudentAdmission(models.Model):
     
-    def generate_session():
-        today = datetime.today()  # Get the current date
-        year = today.year
-        month = today.month
-        
-        if month >= 4:  # From April to December
+    def generate_session(year=None):
+        if year is None:
+            today = timezone.localtime()
+            year = today.year
+            month = today.month
+
+            if month >= 4:  # From April to December
+                session = f"{year}-{year + 1}"
+            else:  # From January to March
+                session = f"{year - 1}-{year}"
+        else:
             session = f"{year}-{year + 1}"
-        else:  # From January to March
-            session = f"{year - 1}-{year}"
-        
+            
         return session
     
     @staticmethod
@@ -200,6 +203,7 @@ class StudentAdmission(models.Model):
         ('passed', 'Passed'),
         ('failed', 'Failed'),
         ('dropped', 'Dropped'),
+        ('graduated', 'Graduated'),
     ]
 
     CLASS_CHOICES = [
@@ -219,6 +223,7 @@ class StudentAdmission(models.Model):
         ('11', '11'),
         ('12', '12'),
     ]
+    CLASS_ORDER = ['NUR', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
     
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admissions')
     section = models.CharField(max_length=1, choices=SECTION_CHOICES, default='A')
