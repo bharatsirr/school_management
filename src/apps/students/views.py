@@ -319,7 +319,6 @@ class FamilyFeeDuesView(LoginRequiredMixin, ListView):
         # Get all unpaid fee dues across all sessions
         fee_dues = FeeDue.objects.filter(
             admission__student__in=students,
-            admission__status='active',
             paid=False  # Only unpaid dues
         ).select_related(
             'admission__student__user',
