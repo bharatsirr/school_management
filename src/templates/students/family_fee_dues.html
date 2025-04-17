@@ -97,7 +97,7 @@
                                             {% if due.paid %}
                                                 <tr class="hover:bg-green-50">
                                                     <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
-                                                    <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
+                                                    <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}({{ due.admission.session }})</td>
                                                     <td class="py-3 px-4">{{ due.fee_type.name }}</td>
                                                     <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
                                                     <td class="py-3 px-4">{{ due.paid_at|date:"d M Y" }}</td>
@@ -133,7 +133,7 @@
                                             {% if not due.paid %}
                                                 <tr class="hover:bg-red-50">
                                                     <td class="py-3 px-4">{{ due.admission.student.user.get_full_name }}</td>
-                                                    <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}</td>
+                                                    <td class="py-3 px-4">{{ due.admission.student_class }} {{ due.admission.section }}({{ due.admission.session }})</td>
                                                     <td class="py-3 px-4">{{ due.fee_type.name }}</td>
                                                     <td class="py-3 px-4 font-medium">₹{{ due.amount }}</td>
                                                     <td class="py-3 px-4">

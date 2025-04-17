@@ -193,7 +193,7 @@ class AddFeeTypeView(CreateView):
 class PayFamilyFeeDuesView(FormView):
     form_class = PayFamilyFeeDuesForm
     template_name = 'students/pay_family_fee_dues.html'
-    success_url = reverse_lazy('student_admission_list')
+    success_url = reverse_lazy('family_list')
 
     def get_family(self):
         return get_object_or_404(Family, id=self.kwargs.get("family_id"))

@@ -145,13 +145,13 @@ def pay_family_fee_dues(family, transaction):
             if budget >= due.amount:
                 due.mark_as_paid(transaction)
                 budget -= due.amount
-                student_fees[due.fee_type.name] = float(due.amount)  # Convert to float for JSON compatibility
+                student_fees[f'{due.fee_type.name}({due.admission.session}>>>{due.admission.student_class})'] = float(due.amount)  # Convert to float for JSON compatibility
             else:
                 # Budget is insufficient for this fee, skip it
                 continue
 
         if student_fees:
-            payment_data["students"][f"{student.user.first_name} {student.user.last_name} - {student.admissions.first().student_class} {student.admissions.first().section} - {student.admissions.first().session}"] = {"fees": student_fees}
+            payment_data["students"][f"{student.user.first_name} {student.user.last_name} - {student.admissions.order_by('-admission_date').first().student_class} {student.admissions.order_by('-admission_date').first().section} - {student.admissions.order_by('-admission_date').first().session}"] = {"fees": student_fees}
         else:
             raise ValidationError("Insufficient budget.")
 
