@@ -346,17 +346,7 @@ class StudentAdmission(models.Model):
                         )[0]  # [0] to get the instance
                         self.serial_no = serial
                     elif self.student_class in ['6', '7', '8', '9', '10', '11', '12']:  # Class 6 and above
-                        # deactivate existing kdpv serial
-                        existing_kdpv_serial = StudentSerial.objects.filter(
-                            student=self.student,
-                            school_name='KDPV',
-                            is_active=True
-                        ).first()
-                        # deactivate existing kdpv serial
-                        if existing_kdpv_serial:
-                            existing_kdpv_serial.is_active = False
-                            existing_kdpv_serial.save()
-
+                        
                         # generate new kdic serial
                         serial_number = self.generate_kdic_serial(self.student)
                         serial = StudentSerial.objects.get_or_create(
