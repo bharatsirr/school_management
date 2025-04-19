@@ -351,7 +351,7 @@ class StudentAdmission(models.Model):
                             student=self.student,
                             school_name='KDPV',
                             is_active=True
-                        )
+                        ).first()
                         # deactivate existing kdpv serial
                         if existing_kdpv_serial:
                             existing_kdpv_serial.is_active = False
