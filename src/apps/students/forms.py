@@ -77,7 +77,12 @@ class StudentRegistrationForm(forms.Form):
 
     # student admission creation fields
     section = forms.ChoiceField(choices=StudentAdmission.SECTION_CHOICES)
-    is_rte = forms.ChoiceField(choices=[(False, 'No'), (True, 'Yes')])
+    is_rte = forms.TypedChoiceField(
+        choices=[(True, 'Yes'), (False, 'No')],
+        coerce=lambda x: x == 'True',
+        widget=forms.RadioSelect,
+        required=False
+    )
     student_class = forms.ChoiceField(choices=StudentAdmission.CLASS_CHOICES)
     
     # previous institution detail creation fields
@@ -85,7 +90,12 @@ class StudentRegistrationForm(forms.Form):
     score = forms.DecimalField(max_digits=7, decimal_places=2, required=False)
     mm = forms.DecimalField(max_digits=7, decimal_places=2, required=False)
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
-    rte = forms.ChoiceField(choices=[(False, 'No'), (True, 'Yes')], required=False)
+    rte = forms.TypedChoiceField(
+        choices=[(True, 'Yes'), (False, 'No')],
+        coerce=lambda x: x == 'True',
+        widget=forms.RadioSelect,
+        required=False
+    )
 
     # bank details creation fields
     account_holder_name = forms.CharField(max_length=150, required=False)
