@@ -78,7 +78,7 @@ class StudentRegistrationForm(forms.Form):
     # student admission creation fields
     section = forms.ChoiceField(choices=StudentAdmission.SECTION_CHOICES)
     is_rte = forms.TypedChoiceField(
-        choices=[(True, 'Yes'), (False, 'No')],
+        choices=[(False, 'No'), (True, 'Yes')],
         coerce=lambda x: x == 'True',
         widget=forms.RadioSelect,
         required=False
@@ -91,7 +91,7 @@ class StudentRegistrationForm(forms.Form):
     mm = forms.DecimalField(max_digits=7, decimal_places=2, required=False)
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
     rte = forms.TypedChoiceField(
-        choices=[(True, 'Yes'), (False, 'No')],
+        choices=[(False, 'No'), (True, 'Yes')],
         coerce=lambda x: x == 'True',
         widget=forms.RadioSelect,
         required=False
