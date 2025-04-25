@@ -60,16 +60,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, null=True, blank=True)
     last_login = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    village = models.CharField(max_length=255, null=True, blank=True)
-    pincode = models.CharField(max_length=10, null=True, blank=True)
+    village = models.CharField(max_length=255, blank=True)
+    pincode = models.CharField(max_length=10, blank=True)
     dob = models.DateField(null=True, blank=True)
-    blood_group = models.CharField(max_length=5, null=True, blank=True, choices=BLOOD_GROUPS)
-    gender = models.CharField(max_length=10, null=True, blank=True, choices=GENDER_CHOICES)
-    religion = models.CharField(max_length=255, null=True, blank=True)
-    caste = models.CharField(max_length=255, null=True, blank=True)
-    category = models.CharField(max_length=255, null=True, blank=True)
+    blood_group = models.CharField(max_length=5, blank=True, choices=BLOOD_GROUPS)
+    gender = models.CharField(max_length=10, blank=True, choices=GENDER_CHOICES)
+    religion = models.CharField(max_length=255, blank=True)
+    caste = models.CharField(max_length=255, blank=True)
+    category = models.CharField(max_length=255, blank=True)
     aadhar_number = models.CharField(max_length=12, null=True, blank=True, unique=True)
-    occupation = models.CharField(max_length=255, null=True, blank=True)
+    occupation = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -79,8 +79,38 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
+    def save(self, *args, **kwargs):
+        if self.caste:
+            self.caste = self.caste.upper()
+
+        if self.category:
+            self.category = self.category.upper()
+
+        if self.religion:
+            self.religion = self.religion.upper()
+
+        if self.occupation:
+            self.occupation = self.occupation.upper()
+
+        if self.email:
+            self.email = self.email.strip().lower().replace(" ", "")
+
+        if self.email == "":
+            self.email = None
+        super().save(*args, **kwargs)
+
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}" if self.last_name else f"{self.first_name}"
+    
+    @property
+    def profile_photo(self):
+        latest = UserDocument.objects.filter(
+            user=self,
+            document_name='profile_photo'
+        ).order_by('-uploaded_at').first()
+        if latest and latest.file_path:
+            return latest.file_path.url
+        return None
     
     def __str__(self):
         return self.username
