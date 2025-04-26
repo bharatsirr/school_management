@@ -20,6 +20,7 @@ def fee_due_generate(student):
     """Generates fee dues for a student's latest active admission."""
     today = timezone.localtime(timezone.now()).date()
     current_session = StudentAdmission.generate_session()
+    previous_session = StudentAdmission.generate_session(today.year - 1)
 
     active_admission = student.admissions.filter(
         status="active", session=current_session
@@ -68,6 +69,8 @@ def fee_due_generate(student):
         else:
             if is_rte and fee_name.startswith("tuition"):
                 continue  # Skip tuition for RTE
+            if student.admissions.filter(session=previous_session).exists() and fee_name == "registration" and student.student_class not in ["10", "12"]:
+                continue
             FeeDue.objects.create(
                 admission=active_admission, fee_type=fee_type, amount=fee_type.amount
             )
