@@ -407,6 +407,7 @@ def bulk_promote_view(request, class_code):
         for admission in previous_admissions:
             promote_to = request.POST.get(f'promote_to_{admission.id}')
             status = request.POST.get(f'status_{admission.id}')
+            is_rte = request.POST.get(f'is_rte_{admission.id}') == 'yes'
             if not promote_to or not status:
                 continue  # skip if missing
 
@@ -440,7 +441,8 @@ def bulk_promote_view(request, class_code):
                         student=admission.student,
                         session=current_session,
                         student_class=admission.student_class,
-                        status='active'
+                        status='active',
+                        is_rte=is_rte
                     )
                     fee_due_generate(admission.student)
             else:
@@ -460,7 +462,8 @@ def bulk_promote_view(request, class_code):
                         student=admission.student,
                         session=current_session,
                         student_class=next_class,
-                        status='active'
+                        status='active',
+                        is_rte=is_rte
                     )
                     fee_due_generate(admission.student)
 
