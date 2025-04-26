@@ -3,6 +3,7 @@ from django.views.generic import CreateView, ListView, UpdateView, DeleteView, F
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
 from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm
 from django.views import View
+from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.contrib import messages
@@ -90,32 +91,6 @@ class StudentUpdateView(UpdateView):
     template_name = 'students/student_update_form.html'
     success_url = reverse_lazy('student_admission_list')
 
-
-
-
-
-class StudentAdmissionListView(ListView):
-    model = StudentAdmission
-    template_name = 'students/admission_list.html'
-    context_object_name = 'student_admissions'
-    paginate_by = 50
-
-    def get_queryset(self):
-        # Prefetch related data to reduce queries
-        queryset = StudentAdmission.objects.select_related(
-            'student__user', 
-            'serial_no', 
-            'fee_structure'
-        ).prefetch_related(
-            Prefetch('student__user__phones'), 
-            Prefetch('student__previous_institution')
-        ).order_by('-admission_date')
-    
-        # Add profile_photo to each admission
-        for admission in queryset:
-            admission.profile_photo = admission.student.user.documents.filter(document_name="profile_photo").first()
-        
-        return queryset
 
 
 
@@ -495,3 +470,58 @@ def bulk_promote_view(request, class_code):
         'class_choices': valid_class_choices,
     })
 
+
+
+class StudentAdmissionListView(ListView):
+    model = StudentAdmission
+    template_name = 'students/admission_list.html'
+    context_object_name = 'student_admissions'
+    paginate_by = 500
+
+    def get_queryset(self):
+        session = self.request.GET.get('session')
+        class_code = self.request.GET.get('class_code')
+
+        if not session:
+            session = StudentAdmission.generate_session()
+
+        queryset = StudentAdmission.objects.select_related(
+            'student__user__family_member__family', 
+            'serial_no', 
+            'fee_structure'
+        ).prefetch_related(
+            Prefetch('student__user__phones'), 
+            Prefetch('student__previous_institution')
+        ).filter(
+            session=session,
+        ).order_by('-admission_date')
+
+        if class_code:
+            queryset = queryset.filter(student_class=class_code)
+
+        for admission in queryset:
+            admission.profile_photo_url = admission.student.user.profile_photo
+
+            # Correct fetching of family name
+            family_member = getattr(admission.student.user, 'family_member', None)
+            admission.family_name = family_member.family.family_name if family_member and family_member.family else ''
+
+            admission.student_serial_number = admission.serial_no.serial_number if admission.serial_no else ''
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Build session list from 2023 to current
+        start_year = 2022
+        current_year = timezone.localtime(timezone.now()).date().year
+        sessions = []
+        for year in range(start_year, current_year + 2):  # +2 to include session like 2024-2025
+            sessions.append(f"{year}-{year + 1}")
+
+        context['class_choices'] = StudentAdmission.CLASS_CHOICES
+        context['current_session'] = self.request.GET.get('session') or StudentAdmission.generate_session()
+        context['selected_class_code'] = self.request.GET.get('class_code', '')
+        context['session_list'] = sessions
+        return context

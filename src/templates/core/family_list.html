@@ -20,7 +20,8 @@
         </div>
         <!-- Family cards -->
         {% for family in families %}
-            <div class="bg-white shadow-lg rounded-xl overflow-hidden mb-8 hover:shadow-xl transition-shadow duration-300">
+            <div class="bg-white shadow-lg rounded-xl overflow-hidden mb-8 hover:shadow-xl transition-shadow duration-300"
+                 id="family-{{ family.id }}">
                 <!-- Family header -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-100">
                     <div class="flex flex-wrap justify-between items-center">
