@@ -34,49 +34,59 @@
                                     </td>
                                     {% if admission.is_rte %}
                                         <td class="px-4 py-2 text-red-500">
-                                            {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }} RTE) from "{{ admission.student.user.family_member.family.family_name }}"
-                                        </td>
-                                    {% else %}
-                                        <td class="px-4 py-2">
-                                            {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }}) from "{{ admission.student.user.family_member.family.family_name }}"
-                                        </td>
-                                    {% endif %}
-                                    <td class="px-4 py-2">
-                                        <select name="promote_to_{{ admission.id }}" class="border rounded p-1">
-                                            {% for code, name in class_choices %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
-                                        </select>
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <select name="status_{{ admission.id }}" class="border rounded p-1">
-                                            {% if class_code == '10' or class_code == '12' %}<option value="graduated">Graduated</option>{% endif %}
-                                            <option value="passed">Passed</option>
-                                            <option value="failed">Failed</option>
-                                            <option value="dropped">Dropped</option>
-                                            <option value="skip">Skip</option>
-                                        </select>
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <select name="is_rte_{{ admission.id }}" class="border rounded p-1">
-                                            <option value="no">No</option>
-                                            <option value="yes">Yes</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <button type="submit"
-                            class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                        Submit Promotions
-                    </button>
-                </form>
-            {% else %}
-                <p class="text-gray-600 mt-4">
-                    No students found for promotion from {{ class_code }} in session {{ previous_session }}.
-                </p>
-            {% endif %}
-        {% endif %}
-        <a href="{% url 'promotion_class_selection' %}"
-           class="mt-4 text-blue-600 hover:underline">← Back to Class Selection</a>
-    </div>
-{% endblock content %}
+                                            <a href="{% url 'user_profile' admission.student.user.username %}">
+                                                {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }} RTE)</a> from
+                                                {% if admission.student.user.family_member %}
+                                                    <a href="{% url 'family_list' %}#family-{{ admission.student.user.family_member.family.id }}"
+                                                       class="text-indigo-600 hover:underline">
+                                                        "{{ admission.student.user.family_member.family.family_name }}"
+                                                    </a>
+                                                {% else %}
+                                                    "{{ admission.student.user.family_member.family.family_name }}"
+                                                {% endif %}
+                                            </td>
+                                        {% else %}
+                                            <td class="px-4 py-2">
+                                                <a href="{% url 'user_profile' admission.student.user.username %}">
+                                                    {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }})</a> from "{{ admission.student.user.family_member.family.family_name }}"
+                                                </td>
+                                            {% endif %}
+                                            <td class="px-4 py-2">
+                                                <select name="promote_to_{{ admission.id }}" class="border rounded p-1">
+                                                    {% for code, name in class_choices %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+                                                </select>
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <select name="status_{{ admission.id }}" class="border rounded p-1">
+                                                    {% if class_code == '10' or class_code == '12' %}<option value="graduated">Graduated</option>{% endif %}
+                                                    <option value="passed">Passed</option>
+                                                    <option value="failed">Failed</option>
+                                                    <option value="dropped">Dropped</option>
+                                                    <option value="skip">Skip</option>
+                                                </select>
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <select name="is_rte_{{ admission.id }}" class="border rounded p-1">
+                                                    <option value="no">No</option>
+                                                    <option value="yes">Yes</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <button type="submit"
+                                    class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                Submit Promotions
+                            </button>
+                        </form>
+                    {% else %}
+                        <p class="text-gray-600 mt-4">
+                            No students found for promotion from {{ class_code }} in session {{ previous_session }}.
+                        </p>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'promotion_class_selection' %}"
+                   class="mt-4 text-blue-600 hover:underline">← Back to Class Selection</a>
+            </div>
+        {% endblock content %}
