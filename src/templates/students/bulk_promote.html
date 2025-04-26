@@ -20,7 +20,20 @@
                         <tbody>
                             {% for admission in students_to_promote %}
                                 <tr class="border-t">
-                                    <td class="px-4 py-2">{{ admission.student.user.get_full_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if admission.student.user.profile_photo %}
+                                            <img height="50"
+                                                 width="50"
+                                                 class="h-10 w-10 rounded-full object-cover"
+                                                 src="{{ admission.student.user.profile_photo }}"
+                                                 alt="Profile Photo">
+                                        {% else %}
+                                            <span class="text-gray-400">No Photo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }}) from "{{ admission.student.user.family_member.family.family_name }}"
+                                    </td>
                                     <td class="px-4 py-2">
                                         <select name="promote_to_{{ admission.id }}" class="border rounded p-1">
                                             {% for code, name in class_choices %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
