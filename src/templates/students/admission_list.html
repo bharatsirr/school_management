@@ -60,9 +60,15 @@
                                     <span class="text-gray-400">No Photo</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ admission.student.user.get_full_name }}
-                            </td>
+                            {% if admission.is_rte %}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ admission.student.user.get_full_name }} (RTE)
+                                </td>
+                            {% else %}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ admission.student.user.get_full_name }}
+                                </td>
+                            {% endif %}
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {% if admission.family_name %}
                                     <a href="{% url 'family_list' %}#family-{{ admission.student.user.family_member.family.id }}"
