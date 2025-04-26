@@ -445,6 +445,21 @@ def bulk_promote_view(request, class_code):
                         is_rte=is_rte
                     )
                     fee_due_generate(admission.student)
+
+            elif promote_to_index > current_class_index and status == 'passed':
+                # Student is promoted, mark as passed and promote to requested class
+                with transaction.atomic():
+                    admission.status = 'passed'
+                    admission.save()
+
+                    StudentAdmission.objects.create(
+                        student=admission.student,
+                        session=current_session,
+                        student_class=promote_to,
+                        status='active',
+                        is_rte=is_rte
+                    )
+                    fee_due_generate(admission.student)
             else:
                 # Student promoted to next class in the order
                 with transaction.atomic():
