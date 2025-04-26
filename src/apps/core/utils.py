@@ -69,7 +69,7 @@ def fee_due_generate(student):
         else:
             if is_rte and fee_name.startswith("tuition"):
                 continue  # Skip tuition for RTE
-            if student.admissions.filter(session=previous_session).exists() and fee_name == "registration" and student.admissions.student_class not in ["10", "12"]:
+            if student.admissions.filter(session=previous_session).exists() and fee_name == "registration" and active_admission.student_class not in ["10", "12"]:
                 continue
             FeeDue.objects.create(
                 admission=active_admission, fee_type=fee_type, amount=fee_type.amount
