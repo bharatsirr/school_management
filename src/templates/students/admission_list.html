@@ -61,7 +61,7 @@
                                 {% endif %}
                             </td>
                             {% if admission.is_rte %}
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-500">
                                     {{ admission.student.user.get_full_name }} (RTE)
                                 </td>
                             {% else %}

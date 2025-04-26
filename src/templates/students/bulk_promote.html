@@ -34,7 +34,7 @@
                                     </td>
                                     {% if admission.is_rte %}
                                         <td class="px-4 py-2 text-red-500">
-                                            {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }}{{ admission.is_rte }}) from "{{ admission.student.user.family_member.family.family_name }}"
+                                            {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }} RTE) from "{{ admission.student.user.family_member.family.family_name }}"
                                         </td>
                                     {% else %}
                                         <td class="px-4 py-2">
