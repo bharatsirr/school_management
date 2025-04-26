@@ -26,7 +26,8 @@
                                                  width="50"
                                                  class="h-10 w-10 rounded-full object-cover"
                                                  src="{{ admission.student.user.profile_photo }}"
-                                                 alt="Profile Photo">
+                                                 alt="Profile Photo"
+                                                 loading="lazy">
                                         {% else %}
                                             <span class="text-gray-400">No Photo</span>
                                         {% endif %}
