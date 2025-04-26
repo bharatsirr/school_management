@@ -48,7 +48,15 @@
                                         {% else %}
                                             <td class="px-4 py-2">
                                                 <a href="{% url 'user_profile' admission.student.user.username %}">
-                                                    {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }})</a> from "{{ admission.student.user.family_member.family.family_name }}"
+                                                    {{ admission.student.user.username }} ({{ admission.serial_no.serial_number }})</a> from
+                                                    {% if admission.student.user.family_member %}
+                                                        <a href="{% url 'family_list' %}#family-{{ admission.student.user.family_member.family.id }}"
+                                                           class="text-indigo-600 hover:underline">
+                                                            "{{ admission.student.user.family_member.family.family_name }}"
+                                                        </a>
+                                                    {% else %}
+                                                        "{{ admission.student.user.family_member.family.family_name }}"
+                                                    {% endif %}
                                                 </td>
                                             {% endif %}
                                             <td class="px-4 py-2">
