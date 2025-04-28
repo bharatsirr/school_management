@@ -13,14 +13,39 @@ class StudentSerialAdmin(admin.ModelAdmin):
 
 @admin.register(StudentAdmission)
 class StudentAdmissionAdmin(admin.ModelAdmin):
-    list_display = ('student', 'student_class', 'section', 'session', 'roll_number', 'status')
+    list_display = ('student', 'student_class', 'section', 'session', 'roll_number', 'status', 'admission_date')
     search_fields = ('student__user__username', 'student_class', 'session')
     
 
 @admin.register(FeeDue)
 class FeeDueAdmin(admin.ModelAdmin):
-    list_display = ('admission', 'amount', 'fee_type', 'paid')
-    search_fields = ('admission__student__user__username', 'fee_type__name')
+    list_display = (
+        'admission', 
+        'get_student_name', 
+        'amount', 
+        'fee_type', 
+        'paid',
+        'get_fee_structure_name',
+        'start_date',
+    )
+    search_fields = (
+        'admission__student__user__username', 
+        'fee_type__name', 
+        'admission__student__user__first_name', 
+        'admission__student__user__last_name'
+    )
+
+    def get_student_name(self, obj):
+        return obj.admission.student.user.get_full_name()  # or just username or first_name
+    get_student_name.short_description = 'Student Name'
+
+    def get_fee_structure_name(self, obj):
+        return obj.fee_type.fee_structure.name  # Or obj.admission.fee_structure.name if it's that way
+    get_fee_structure_name.short_description = 'Fee Structure'
+
+    def start_date(self, obj):
+        return obj.fee_type.fee_structure.start_date
+    start_date.short_description = 'Start Date'
 
 @admin.register(PreviousInstitutionDetail)
 class PreviousInstitutionDetailAdmin(admin.ModelAdmin):
