@@ -84,7 +84,9 @@
                                 {{ admission.get_student_class_display }} {{ admission.section }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ admission.roll_number }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ admission.admission_date|date:"Y-m-d" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <a href="{% url 'admission_print' admission.id %}">{{ admission.admission_date|date:"Y-m-d" }}</a>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 {% if admission.status == 'active' %}
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ admission.status }}</span>

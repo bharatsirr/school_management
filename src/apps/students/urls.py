@@ -29,7 +29,7 @@ urlpatterns = [
     path('pay/family/fee/dues/<int:family_id>/', PayFamilyFeeDuesView.as_view(), name='pay_family_fee_dues'),
     path('family/fee/dues/<int:family_id>/', FamilyFeeDuesView.as_view(), name='family_fee_dues'),
     # Admission Print URLs
-    path('admission/print/<int:student_id>/', admission_print_view, name='admission_print'),
+    path('admission/print/<int:studentadmission_id>/', admission_print_view, name='admission_print'),
     path('students/promote/', promotion_class_selection, name='promotion_class_selection'),
     path('students/promote/<str:class_code>', bulk_promote_view, name='bulk_promote'),
 ]

@@ -196,11 +196,12 @@ class PayFamilyFeeDuesView(FormView):
 
 
 
-def admission_print_view(request, student_id):
-    """Generates a final admission printout for a student."""
-    student = get_object_or_404(Student, id=student_id)
-    student_admission = student.admissions.first()  # Fetch admission record
+def admission_print_view(request, studentadmission_id):
+    """Generates a final admission printout for a student based on the specific admission ID."""
+    student_admission = get_object_or_404(StudentAdmission, id=studentadmission_id)
+    student = student_admission.student  # Fetch the related student
     student_class = student_admission.student_class if student_admission else None
+
     # Determine School Name
     if student_admission:
         if student_admission.student_class.lower() in ['nur', 'lkg', 'ukg'] or (student_admission.student_class and student_admission.student_class.isdigit() and int(student_admission.student_class) <= 5):
@@ -231,17 +232,17 @@ def admission_print_view(request, student_id):
     father = None
 
     # Fetch Parent Details
-    family = Family.objects.filter(members__user=student.user).first()  # Find family of student
-    
+    family = Family.objects.filter(members__user=student.user).first()
+
     if family:
         mother = FamilyMember.objects.filter(family=family, member_type='parent', user__gender='Female').first()
         father = FamilyMember.objects.filter(family=family, member_type='parent', user__gender='Male').first()
-        
+
         if mother:
             mother_aadhar = mother.user.aadhar_number
             mother_occupation = mother.user.occupation
             mother_phones = mother.user.phones.all()
-        
+
         if father:
             father_aadhar = father.user.aadhar_number
             father_occupation = father.user.occupation
@@ -272,7 +273,7 @@ def admission_print_view(request, student_id):
         "student_serial": student_serial,
         "school_code": school_code,
     }
-    
+
     return render(request, "students/admission_printout.html", context)
 
 
