@@ -285,18 +285,17 @@ class FamilyFeeDuesView(LoginRequiredMixin, ListView):
     def get_family(self):
         return get_object_or_404(Family, id=self.kwargs.get('family_id'))
 
-    def get_queryset(self):
+    def get_students(self):
         family = self.get_family()
+        family_members_users = family.members.values_list('user', flat=True)
+        return Student.objects.filter(user__in=family_members_users)
 
-        # Get all students in the family with active admissions
-        family_members = family.members.all()
-        family_members_users = family_members.values_list('user', flat=True)
-        students = Student.objects.filter(user__in=family_members_users)
+    def get_queryset(self):
+        students = self.get_students()
 
-        # Get all unpaid fee dues across all sessions
-        fee_dues = FeeDue.objects.filter(
-            admission__student__in=students,
-            paid=False  # Only unpaid dues
+        # All dues: both paid and unpaid
+        all_dues = FeeDue.objects.filter(
+            admission__student__in=students
         ).select_related(
             'admission__student__user',
             'admission__serial_no',
@@ -304,26 +303,23 @@ class FamilyFeeDuesView(LoginRequiredMixin, ListView):
             'fee_type',
             'transaction'
         ).order_by(
-            'admission__session',  # CharField: "2023-2024"
+            'admission__session',
             'admission__student__user__first_name',
             'fee_type__name'
         )
-        return fee_dues
+        return all_dues
 
     def group_fee_dues_by_session(self, fee_dues):
-        """Groups fee dues by academic session."""
         grouped = defaultdict(list)
         for due in fee_dues:
-            session = due.admission.session  # This is a CharField
+            session = due.admission.session
             grouped[session].append(due)
 
-        # Sort by session string descending (e.g., "2023-2024")
         def session_sort_key(session_str):
             try:
-                start_year = int(session_str.split('-')[0])
-                return start_year
+                return int(session_str.split('-')[0])
             except (ValueError, IndexError):
-                return 0  # fallback in case of malformed session string
+                return 0
 
         return dict(sorted(grouped.items(), key=lambda x: session_sort_key(x[0]), reverse=True))
 
@@ -331,19 +327,21 @@ class FamilyFeeDuesView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         family = self.get_family()
         current_session = StudentAdmission.generate_session()
-        fee_dues = self.get_queryset()
+        all_dues = self.get_queryset()
 
-        # Group dues by session
-        grouped_dues = self.group_fee_dues_by_session(fee_dues)
+        grouped_dues = self.group_fee_dues_by_session(all_dues)
 
-        # Calculate totals
-        total_dues = fee_dues.aggregate(total=Sum('amount'))['total'] or 0
+        total_paid = all_dues.filter(paid=True).aggregate(total=Sum('amount'))['total'] or 0
+        total_pending = all_dues.filter(paid=False).aggregate(total=Sum('amount'))['total'] or 0
+        total_dues = total_pending + total_paid  # can also be computed as (total_due - total_paid)
 
         context.update({
             'family': family,
             'current_session': current_session,
             'fee_dues_by_session': grouped_dues,
+            'total_paid': total_paid,
             'total_dues': total_dues,
+            'total_pending': total_pending,
         })
         return context
 
