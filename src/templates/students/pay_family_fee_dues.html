@@ -1,24 +1,66 @@
 {% extends "base.html" %}
 {% load tailwind_filters %}
 {% block content %}
-    <div class="container mx-auto px-4 py-8 items-center">
-        <div class="row">
-            <div class="col-md-6">
-                <h1>Confirm Payment for all fees dues for {{ family.family_name }}?</h1>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <form method="post">
-                    {% csrf_token %}
+    <div class="max-w-5xl mx-auto p-6 bg-white shadow-xl rounded-xl">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Pay Fee Dues for {{ family }}</h2>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% if dues_by_student %}
+                <div class="space-y-8">
+                    {% for student, dues in dues_by_student %}
+                        <div class="border border-gray-200 rounded-lg p-4 shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-3">
+                                {{ student.user.get_full_name }} ({{ student.admissions.last.student_class }} {{ student.admissions.last.section }})
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-left text-sm text-gray-600">
+                                    <thead class="bg-gray-100 text-gray-700 font-semibold uppercase text-xs tracking-wider">
+                                        <tr>
+                                            <th class="px-4 py-2">Select</th>
+                                            <th class="px-4 py-2">Fee Type</th>
+                                            <th class="px-4 py-2">Session</th>
+                                            <th class="px-4 py-2">Class</th>
+                                            <th class="px-4 py-2">Amount (₹)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for due in dues %}
+                                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                                <td class="px-4 py-2">
+                                                    <input type="checkbox"
+                                                           name="due_ids"
+                                                           value="{{ due.id }}"
+                                                           class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                                </td>
+                                                <td class="px-4 py-2">{{ due.fee_type.name }}</td>
+                                                <td class="px-4 py-2">{{ due.admission.session }}</td>
+                                                <td class="px-4 py-2">{{ due.admission.student_class }}</td>
+                                                <td class="px-4 py-2 font-semibold text-gray-900">{{ due.amount }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="flex items-center justify-between mt-6">
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox"
+                               name="pay_all"
+                               class="h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500">
+                        <span class="text-sm text-gray-700">Pay all dues</span>
+                    </label>
                     <button type="submit"
-                            class="w-16 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                        Yes
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition">
+                        Pay Now
                     </button>
-                    <a href="{% url 'family_list' %}"
-                       class="text-blue-600 mt-4 inline-block">Back to Families</a>
-                </form>
-            </div>
-        </div>
+                </div>
+            {% else %}
+                <div class="text-center text-gray-600 mt-10">
+                    <p>No dues found for any students in this family.</p>
+                </div>
+            {% endif %}
+        </form>
     </div>
 {% endblock content %}

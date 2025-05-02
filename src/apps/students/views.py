@@ -176,16 +176,36 @@ class PayFamilyFeeDuesView(FormView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
+        kwargs['family'] = self.get_family()
         return kwargs
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['family'] = self.get_family()
-        return context
-
-    def form_valid(self, form):
         family = self.get_family()
-        form.save(family=family)
+        context['family'] = family
+
+        # Get family members' users
+        family_members_users = family.members.values_list('user', flat=True)
+
+        # Get active students associated with those users
+        students = Student.objects.filter(user__in=family_members_users).distinct()
+
+        # Build dues_by_student
+        dues_by_student = defaultdict(list)
+        for student in students:
+            
+            unpaid_dues = FeeDue.objects.filter(
+                admission__student=student,
+                paid=False
+            ).select_related('fee_type', 'admission').order_by("admission__admission_date", "id")
+
+            if unpaid_dues.exists():
+                dues_by_student[student] = unpaid_dues
+        context['dues_by_student'] = [(student, dues_by_student[student]) for student in dues_by_student]
+        
+        return context
+    def form_valid(self, form):
+        form.save()
         messages.success(self.request, "Fee dues paid successfully")
         return super().form_valid(form)
     

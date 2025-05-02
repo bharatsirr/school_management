@@ -52,7 +52,9 @@
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800">Fee Dues for {{ family.family_name }}</h2>
-                        <p class="text-gray-600">Session: {{ current_session }}</p>
+                        <p class="text-gray-600">
+                            Session: {{ current_session }} (Current Balance: <span class="text-green-600">₹{{ family.wallet_balance }}</span>)
+                        </p>
                     </div>
                     <div class="mt-4 md:mt-0">
                         <p class="text-sm text-gray-500">Generated on: {% now "F d, Y" %}</p>

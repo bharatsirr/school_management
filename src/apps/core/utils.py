@@ -88,7 +88,7 @@ def fee_due_generate_all():
 
 
 
-def pay_fee_dues(student, transaction, budget):
+def pay_fee_dues(student, transaction, budget, dues=None):
     """Pays student's fee dues from the oldest to the newest within the given budget.
     
     Args:
@@ -101,7 +101,8 @@ def pay_fee_dues(student, transaction, budget):
     """
 
     # Fetch all unpaid dues for all admissions of the student, ordered from oldest to newest
-    dues = FeeDue.objects.filter(admission__student=student, paid=False).order_by("admission__admission_date", "id")
+    if dues is None:
+        dues = FeeDue.objects.filter(admission__student=student, paid=False).order_by("admission__admission_date", "id")
 
     for due in dues:
         if budget >= due.amount:
@@ -115,53 +116,56 @@ def pay_fee_dues(student, transaction, budget):
     return budget  # Return the remaining amount that couldn't be used
 
 
-def pay_family_fee_dues(family, transaction):
+def pay_family_fee_dues(family, transaction, selected_due_ids=None):
     """
-    Pays fee dues for all active students in a family within the given budget.
+    Pays fee dues for selected or all active students in a family within the given budget.
 
     Args:
         family (Family): The family whose students' fees are being paid.
         transaction (PaymentTransaction): The transaction associated with this payment.
+        selected_due_ids (list, optional): List of FeeDue IDs to pay. If None, pays all.
 
     Returns:
         tuple: (remaining_budget, payment_data)
     """
     budget = family.wallet_balance
-    family_members = family.members.all()  # Get all users in the family
+    family_members = family.members.all()
     family_members_users = family_members.values_list('user', flat=True)
-
     students = Student.objects.filter(user__in=family_members_users, admissions__status="active").distinct()
 
-    payment_data = {"students": {}}  # Store payment details here
-    dues_found = False  # Flag to check if any dues exist
+    payment_data = {"students": {}}
+    dues_found = False
 
     for student in students:
-        student_fees = {}  # Fees paid for this student
-        dues = FeeDue.objects.filter(admission__student=student, paid=False).order_by("admission__admission_date", "id")
+        student_fees = {}
 
-        if not dues.exists():  # Check if there are no dues for this student
-            continue  # Skip to the next student
+        all_dues = FeeDue.objects.filter(admission__student=student, paid=False)
+        if selected_due_ids is not None:
+            dues = all_dues.filter(id__in=selected_due_ids).order_by("admission__admission_date", "id")
+        else:
+            dues = all_dues.order_by("admission__admission_date", "id")
 
-        dues_found = True  # Dues exist for at least one student
+        if not dues.exists():
+            continue
+
+        dues_found = True
 
         for due in dues:
             if budget >= due.amount:
                 due.mark_as_paid(transaction)
                 budget -= due.amount
-                student_fees[f'{due.fee_type.name}({due.admission.session}>>>{due.admission.student_class})'] = float(due.amount)  # Convert to float for JSON compatibility
+                key = f'{due.fee_type.name}({due.admission.student_class} {due.admission.section} - {due.admission.session})'
+                student_fees[key] = float(due.amount)
             else:
-                # Budget is insufficient for this fee, skip it
                 continue
 
         if student_fees:
-            payment_data["students"][f"{student.user.first_name} {student.user.last_name} - {student.admissions.order_by('-admission_date').first().student_class} {student.admissions.order_by('-admission_date').first().section} - {student.admissions.order_by('-admission_date').first().session}"] = {"fees": student_fees}
-        else:
-            raise ValidationError("Insufficient budget.")
+            key = f"{student.user.first_name} {student.user.last_name} - {student.admissions.order_by('-admission_date').first().student_class} {student.admissions.order_by('-admission_date').first().section} - {student.admissions.order_by('-admission_date').first().session}"
+            payment_data["students"][key] = {"fees": student_fees}
+        elif selected_due_ids:
+            raise ValidationError("Insufficient budget for selected dues.")
 
-    # Raise an error if no dues were found for any student
     if not dues_found:
-        raise ValidationError("No fee dues found for any student in the family.")
+        raise ValidationError("No fee dues found for selected dues.")
 
-    remaining_budget = budget  # Ensure compatibility with JSON
-
-    return remaining_budget, payment_data
+    return budget, payment_data

@@ -391,86 +391,119 @@ class FeeTypeForm(forms.ModelForm):
 
 
 class PayFamilyFeeDuesForm(forms.Form):
+    due_ids = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Select Fee Dues to Pay"
+    )
+    pay_all = forms.BooleanField(required=False, label="Pay All Dues")
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.family = kwargs.pop('family', None)
         super().__init__(*args, **kwargs)
 
-    def save(self, family):
-        try:
-            with transaction.atomic():
-                
-                if not family:
-                    raise ValueError("Family not provided.")
-                
-                # get the amount
-                old_balance = family.wallet_balance
-                if old_balance <= 0:
-                    raise ValueError("Family wallet balance is 0.")
-                # Try to get a male member first
-                family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Male').first()
+        # Populate due choices dynamically
+        if self.family:
+            member_users = self.family.members.values_list('user', flat=True)
+            dues = FeeDue.objects.filter(
+                admission__student__user__in=member_users,
+                paid=False
+            ).select_related('fee_type', 'admission')
 
-                # If no male member exists, get the first female member
-                if not family_parent:
-                    family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Female').first()
+            choices = []
+            for due in dues:
+                label = f"{due.admission.student.user.get_full_name()} - {due.fee_type.name} - ₹{due.amount}"
+                choices.append((str(due.id), label))
 
-                if not family_parent:
-                    raise ValueError("No family user found.")
-                
+            self.fields['due_ids'].choices = choices
 
-                family_user = family_parent.user
-                # Now family_user will be either the first male or female member
-                
-                payment_transaction = PaymentTransaction.objects.create(
-                    user=family_user,
-                    agent=self.user,
-                    method='WALLET',
-                    status='SUCCESSFUL',
-                )
-                
-                left_over_budget, payment_data = pay_family_fee_dues(family, payment_transaction)
+    def clean(self):
+        cleaned_data = super().clean()
+        pay_all = cleaned_data.get("pay_all", False)
 
-                # update the family wallet balance
-                family.wallet_balance = left_over_budget
-                family.save()
-                
-                # update the payment transaction amount
-                payment_transaction.amount = old_balance - left_over_budget
-                payment_transaction.description = f"Fee dues payment of ₹{old_balance - left_over_budget}"
-                payment_transaction.save()
-                
-                # create a wallet transaction
-                WalletTransaction.objects.create(
-                    family=family,
-                    current_balance=family.wallet_balance,
-                    previous_balance=old_balance,
-                    transaction_type='DEBIT',
-                    payment_transaction=payment_transaction
-                )
-                # create a payment summary
-                PaymentSummary.objects.create(
-                    payment_transaction=payment_transaction,
-                    customer=family_user,
-                    amount=old_balance - left_over_budget,
-                    details={"type": "fee", **payment_data}
-                )
+        if not pay_all:
+            # Manually override due_ids from raw POST in case HTML checkboxes were manually rendered
+            selected_due_ids = self.data.getlist("due_ids")
+            cleaned_data["due_ids"] = selected_due_ids
 
-                # create a ledger entry
-                LedgerEntry.objects.create(
-                    payment_transaction=payment_transaction,
-                    amount=old_balance - left_over_budget,
-                    entry_type='DEBIT',
-                    account_type=LedgerAccountType.objects.get(name='WALLET'),
-                    description=f"Fee dues payment of ₹{old_balance - left_over_budget}"
-                )
-                LedgerEntry.objects.create(
-                    payment_transaction=payment_transaction,
-                    amount=old_balance - left_over_budget,
-                    entry_type='CREDIT',
-                    account_type=LedgerAccountType.objects.get(name='FEE'),
-                    description=f"Fee dues payment of ₹{old_balance - left_over_budget}"
-                )
+        return cleaned_data
 
-        except Exception as e:
-            logger.error(f"Failed to pay family fee dues: {e}")
-            raise e
+    def save(self):
+        family = self.family
+        pay_all = self.cleaned_data.get('pay_all', False)
+
+        # Always pull raw due_ids from form data directly
+        raw_selected_ids = self.data.getlist("due_ids")  # <-- critical fix
+
+        if not family:
+            raise ValueError("Family not provided.")
+
+        with transaction.atomic():
+            old_balance = family.wallet_balance
+            if old_balance <= 0:
+                raise ValueError("Family wallet balance is 0.")
+
+            family_parent = family.members.filter(
+                member_type=FamilyMember.MemberType.PARENT, user__gender='Male'
+            ).first() or family.members.filter(
+                member_type=FamilyMember.MemberType.PARENT, user__gender='Female'
+            ).first()
+
+            if not family_parent:
+                raise ValueError("No family user found.")
+
+            family_user = family_parent.user
+
+            payment_transaction = PaymentTransaction.objects.create(
+                user=family_user,
+                agent=self.user,
+                method='WALLET',
+                status='SUCCESSFUL',
+            )
+
+            selected_due_ids = None if pay_all else list(map(int, raw_selected_ids))
+            
+            left_over_budget, payment_data = pay_family_fee_dues(family, payment_transaction, selected_due_ids)
+
+            family.wallet_balance = left_over_budget
+            family.save()
+
+            amount_paid = old_balance - left_over_budget
+            payment_transaction.amount = amount_paid
+            payment_transaction.description = f"Fee dues payment of ₹{amount_paid}"
+            payment_transaction.save()
+
+            WalletTransaction.objects.create(
+                family=family,
+                current_balance=family.wallet_balance,
+                previous_balance=old_balance,
+                transaction_type='DEBIT',
+                payment_transaction=payment_transaction
+            )
+
+            PaymentSummary.objects.create(
+                payment_transaction=payment_transaction,
+                customer=family_user,
+                amount=amount_paid,
+                details={"type": "fee", **payment_data}
+            )
+
+            fee_account = LedgerAccountType.objects.get(name='FEE')
+            wallet_account = LedgerAccountType.objects.get(name='WALLET')
+
+            LedgerEntry.objects.create(
+                payment_transaction=payment_transaction,
+                amount=amount_paid,
+                entry_type='DEBIT',
+                account_type=wallet_account,
+                description=f"Fee dues payment of ₹{amount_paid}"
+            )
+            LedgerEntry.objects.create(
+                payment_transaction=payment_transaction,
+                amount=amount_paid,
+                entry_type='CREDIT',
+                account_type=fee_account,
+                description=f"Fee dues payment of ₹{amount_paid}"
+            )
 
