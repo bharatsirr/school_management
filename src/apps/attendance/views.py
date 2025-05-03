@@ -1,4 +1,6 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils.timezone import now
 from apps.students.models import Student
@@ -7,16 +9,19 @@ from django.views.generic.edit import FormView
 from .forms import BulkAttendanceForm
 from django.utils import timezone
 
-
+@login_required
 def attendance_error(request):
     return render(request, "attendance/attendance_error.html")
 
+@login_required
 def attendance_success(request):
     return render(request, "attendance/attendance_success.html")
 
+@login_required
 def attendance_already_taken(request):
     return render(request, "attendance/attendance_already_taken.html")
 
+@login_required
 def class_selection(request):
     """Renders a page with buttons to select a class for attendance marking."""
     class_options = [
@@ -27,7 +32,7 @@ def class_selection(request):
 
     return render(request, "attendance/class_selection.html", {"class_options": class_options})
 
-class BulkAttendanceView(FormView):
+class BulkAttendanceView(LoginRequiredMixin, FormView):
     template_name = "attendance/bulk_attendance.html"
     form_class = BulkAttendanceForm
 

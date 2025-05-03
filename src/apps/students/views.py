@@ -1,4 +1,4 @@
-from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
 from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm
@@ -28,7 +28,7 @@ User = get_user_model()
     
 
 # Student Registration View
-class StudentRegistrationView(View):
+class StudentRegistrationView(LoginRequiredMixin, View):
     template_name = 'students/registration_form.html'
     success_url = reverse_lazy('home')
 
@@ -85,7 +85,7 @@ class StudentDocumentUploadView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
     
 
-class StudentUpdateView(UpdateView):
+class StudentUpdateView(LoginRequiredMixin, UpdateView):
     model = Student
     form_class = StudentUpdateForm
     template_name = 'students/student_update_form.html'
@@ -95,7 +95,7 @@ class StudentUpdateView(UpdateView):
 
 
 # Fee Structure Creation View
-class FeeStructureCreateView(CreateView):
+class FeeStructureCreateView(LoginRequiredMixin, CreateView):
     model = FeeStructure
     form_class = FeeStructureForm
     template_name = 'students/fee_structure_form.html'
@@ -107,7 +107,7 @@ class FeeStructureCreateView(CreateView):
         return redirect(self.success_url)
     
     
-class FeeStructureListView(ListView):
+class FeeStructureListView(LoginRequiredMixin, ListView):
     model = FeeStructure
     template_name = 'students/fee_structure_list.html'
     context_object_name = 'fee_structures'
@@ -115,7 +115,7 @@ class FeeStructureListView(ListView):
 
 
 # Fee Structure Update View
-class FeeStructureUpdateView(UpdateView):
+class FeeStructureUpdateView(LoginRequiredMixin, UpdateView):
     model = FeeStructure
     form_class = FeeStructureForm
     template_name = 'students/fee_structure_form.html'
@@ -123,7 +123,7 @@ class FeeStructureUpdateView(UpdateView):
 
 
 
-class AddFeeTypeView(CreateView):
+class AddFeeTypeView(LoginRequiredMixin, CreateView):
     model = FeeType
     form_class = FeeTypeForm
     template_name = 'students/add_fee_type.html'
@@ -165,7 +165,7 @@ class AddFeeTypeView(CreateView):
 
 
 
-class PayFamilyFeeDuesView(FormView):
+class PayFamilyFeeDuesView(LoginRequiredMixin, FormView):
     form_class = PayFamilyFeeDuesForm
     template_name = 'students/pay_family_fee_dues.html'
     success_url = reverse_lazy('family_list')
@@ -215,7 +215,7 @@ class PayFamilyFeeDuesView(FormView):
 
 
 
-
+@login_required
 def admission_print_view(request, studentadmission_id):
     """Generates a final admission printout for a student based on the specific admission ID."""
     student_admission = get_object_or_404(StudentAdmission, id=studentadmission_id)
@@ -368,13 +368,13 @@ class FamilyFeeDuesView(LoginRequiredMixin, ListView):
 
 
 
-
+@login_required
 def promotion_class_selection(request):
     class_choices = StudentAdmission.CLASS_CHOICES
     return render(request, 'students/promotion_class_selection.html', {'class_choices': class_choices})
 
 
-
+@login_required
 def bulk_promote_view(request, class_code):
     current_session = StudentAdmission.generate_session()
     start_year = int(current_session.split('-')[0])
@@ -491,7 +491,7 @@ def bulk_promote_view(request, class_code):
 
 
 
-class StudentAdmissionListView(ListView):
+class StudentAdmissionListView(LoginRequiredMixin, ListView):
     model = StudentAdmission
     template_name = 'students/admission_list.html'
     context_object_name = 'student_admissions'

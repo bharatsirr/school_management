@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404, JsonResponse, HttpResponse
@@ -16,7 +17,7 @@ import logging
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
-class HomeView(View):
+class HomeView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'core/home.html')
 
@@ -80,7 +81,7 @@ class LogoutView(View):
 
 
 
-class FamilyCreateView(View):
+class FamilyCreateView(LoginRequiredMixin, View):
     template_name = 'core/family_form.html'
 
     def get(self, request):
@@ -119,7 +120,7 @@ class FamilyListView( LoginRequiredMixin, ListView):
         return context
 
 # Add Member to Family View
-class AddFamilyMemberView( LoginRequiredMixin, View):
+class AddFamilyMemberView(LoginRequiredMixin, View):
     template_name = 'core/add_family_member.html'
 
     def get(self, request, family_id):
@@ -143,7 +144,7 @@ class AddFamilyMemberView( LoginRequiredMixin, View):
 
 
 
-class WalletTopupView(FormView):
+class WalletTopupView(LoginRequiredMixin, FormView):
     template_name = "core/wallet_topup.html"  # Create a template for this view
     form_class = WalletTopupForm
     success_url = reverse_lazy("family_list")  # Redirect to a relevant page after top-up
@@ -369,7 +370,7 @@ class UserDocumentDeleteView(LoginRequiredMixin, View):
 
 
 
-
+@login_required
 def generate_fee_due_view(request):
     # Call the fee_due_generate_all function to generate fee dues for all students
     fee_due_generate_all()
