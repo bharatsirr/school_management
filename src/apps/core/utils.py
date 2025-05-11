@@ -131,7 +131,7 @@ def pay_family_fee_dues(family, transaction, selected_due_ids=None):
     budget = family.wallet_balance
     family_members = family.members.all()
     family_members_users = family_members.values_list('user', flat=True)
-    students = Student.objects.filter(user__in=family_members_users, admissions__status="active").distinct()
+    students = Student.objects.filter(user__in=family_members_users).distinct()
 
     payment_data = {"students": {}}
     dues_found = False
