@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 from django.utils import timezone
 
-def fee_due_generate(student):
+def fee_due_generate(student, generate_all=False):
     """Generates fee dues for a student's latest active admission."""
     today = timezone.localtime(timezone.now()).date()
     current_session = StudentAdmission.generate_session()
@@ -61,7 +61,7 @@ def fee_due_generate(student):
         if is_quarterly_fee:
             if is_rte and fee_name.startswith("tuition"):
                 continue  # Skip tuition fees for RTE students
-            if quarter_num <= current_quarter:
+            if quarter_num <= current_quarter or generate_all:
                 FeeDue.objects.create(
                     admission=active_admission, fee_type=fee_type, amount=fee_type.amount
                 )

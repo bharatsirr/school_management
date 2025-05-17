@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% block title %}
+    Generate All Fee Dues for a Student
+{% endblock title %}
+{% block content %}
+    <h2 class="text-2xl font-semibold mb-6">Generate Fee Dues for:</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="username" class="block mb-2">Student Username:</label>
+        <input type="text"
+               name="username"
+               id="username"
+               placeholder="Enter Student username from profile"
+               class="border border-gray-300 p-2 rounded-lg w-full mb-4">
+        <button type="submit"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+            Generate Dues
+        </button>
+    </form>
+{% endblock content %}

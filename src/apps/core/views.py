@@ -9,8 +9,9 @@ from django.urls import reverse_lazy
 from .forms import UserCreationForm, FamilyForm, FamilyMemberForm, UserProfileForm, UserProfilePhotoForm, WalletTopupForm, FamilyDiscountForm, UserDocumentForm
 from django.contrib import messages
 from .models import Family, UserDocument
+from apps.students.models import Student
 from django.core.exceptions import PermissionDenied
-from .utils import fee_due_generate_all
+from .utils import fee_due_generate_all, fee_due_generate
 import os
 import logging
 
@@ -377,3 +378,23 @@ def generate_fee_due_view(request):
 
     # Return an HTTP response with a simple success message
     return HttpResponse("Fee dues generated successfully.", content_type="text/html")
+
+
+class GenerateAllFeeDuesView(LoginRequiredMixin, View):
+    def get(self, request):
+        # render a form to select receive a username for which the fee dues are to be generated
+        return render(request, 'core/generate_fee_dues.html')
+    
+    def post(self, request):
+        username = request.POST.get('username').strip().lower().replace(" ", "")
+        try:
+            student_user = User.objects.get(username=username)
+            student = Student.objects.get(user=student_user)
+            family_id = student_user.family_member.family.id
+        except (User.DoesNotExist, Student.DoesNotExist):
+            messages.error(request, f"No active student found for the username: {username}.")
+            return redirect('generate_all_fee_dues')
+        
+        fee_due_generate(student, generate_all=True)
+        messages.success(request, f"Fee dues generated for {username}.")
+        return redirect('family_fee_dues', family_id=family_id)
