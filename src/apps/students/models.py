@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Max
 from datetime import datetime, date
 import logging
+import uuid
 
 from django.utils import timezone
 
@@ -16,6 +17,7 @@ User = get_user_model()
 
 
 class Student(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student', unique=True)
     height = models.FloatField(help_text="Height in cm", blank=True, null=True)
     weight = models.FloatField(help_text="Weight in kg", blank=True, null=True)
@@ -37,6 +39,7 @@ class Student(models.Model):
 
 
 class PreviousInstitutionDetail(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.OneToOneField('Student', on_delete=models.CASCADE, related_name='previous_institution')
     previous_institution = models.CharField(max_length=255, help_text="Name of the last attended institution")
     score = models.DecimalField(max_digits=7, decimal_places=2, help_text="Obtained marks")
@@ -69,6 +72,7 @@ class ActiveFeeStructureManager(models.Manager):
     
 
 class FeeStructure(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, help_text="e.g., class_6_fees")
     is_active = models.BooleanField(default=True)
     start_date = models.DateField(help_text="Fee structure validity start date", default=date.today)
@@ -93,6 +97,7 @@ class FeeStructure(models.Model):
 
 
 class FeeType(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="fee_types")
     name = models.CharField(max_length=100, help_text="e.g., tuition, exam")
     amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount for this fee type")
@@ -108,6 +113,7 @@ class FeeType(models.Model):
 
 
 class FeeDue(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     admission = models.ForeignKey('StudentAdmission', on_delete=models.CASCADE, related_name="fee_dues")
     amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Due amount")
     fee_type = models.ForeignKey(FeeType, on_delete=models.CASCADE, related_name="fee_dues")
@@ -137,6 +143,7 @@ class StudentSerial(models.Model):
         ('KDPV', 'KDPV'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='serials')
     school_name = models.CharField(max_length=10, choices=SCHOOL_CHOICES)
     serial_number = models.CharField(max_length=20, unique=True)
@@ -225,6 +232,7 @@ class StudentAdmission(models.Model):
     ]
     CLASS_ORDER = ['NUR', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
     
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admissions')
     section = models.CharField(max_length=1, choices=SECTION_CHOICES, default='A')
     serial_no = models.ForeignKey(StudentSerial, on_delete=models.CASCADE, related_name='admissions')

@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 import datetime
+import uuid
 
 User = get_user_model()
 
@@ -12,6 +13,7 @@ class Letter(models.Model):
         ('certificate_generation', 'Certificate Generation'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     letter_number = models.CharField(max_length=20, unique=True, editable=False)
     letter_type = models.CharField(max_length=30, choices=LETTER_TYPES, help_text="Type of Letter")
     letter_content = models.JSONField(help_text="Letter content in JSON format")

@@ -52,6 +52,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     ('AB+', 'AB+'), ('AB-', 'AB-'),
     ('O+', 'O+'), ('O-', 'O-'), 
     ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=150, unique=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150, blank=True, default='')
@@ -117,6 +119,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Phone(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='phones')
     phone_number = models.CharField(max_length=10, unique=True)
     is_whatsapp = models.BooleanField(default=False)
@@ -141,6 +144,7 @@ class UserDocument(models.Model):
         ('general', 'General'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='documents')
     file_path = models.FileField(upload_to=user_document_upload_path)
     document_name = models.CharField(max_length=100)  # e.g., Aadhar, PAN Card
@@ -160,6 +164,7 @@ class UserDocument(models.Model):
 
 
 class Family(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     family_name = models.CharField(max_length=255, unique=True)
     wallet_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -180,6 +185,7 @@ class FamilyMember(models.Model):
         GRANDPARENT = 'grandparent', 'Grandparent'
         OTHER = 'other', 'Other'
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='members')
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='family_member')
     member_type = models.CharField(max_length=20, choices=MemberType.choices)

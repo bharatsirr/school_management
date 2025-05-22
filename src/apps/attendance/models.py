@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Count
 from django.contrib.auth import get_user_model
 import datetime
+import uuid
 User = get_user_model()
 
 class Attendance(models.Model):
@@ -10,6 +11,7 @@ class Attendance(models.Model):
         ('absent', 'Absent'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='attendance_records')
     date = models.DateField(help_text="Attendance date")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
@@ -27,6 +29,7 @@ class Attendance(models.Model):
 
 
 class HolidayTable(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     date = models.DateField(unique=True, help_text="Holiday date")
     name = models.CharField(max_length=255, help_text="Holiday name (e.g., Independence Day)")
     is_sunday_override = models.BooleanField(default=False, help_text="Is a working day on Sunday?")
@@ -40,6 +43,7 @@ class HolidayTable(models.Model):
 
 
 class AttendanceSummary(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='attendance_summaries')
     month = models.PositiveSmallIntegerField(help_text="Month (1-12)")
     year = models.PositiveSmallIntegerField(help_text="Year (e.g., 2024)")

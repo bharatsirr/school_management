@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
 from apps.core.models import Family
@@ -11,6 +12,7 @@ class BankAccountDetail(models.Model):
         ('BUSINESS', 'Business'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bank_accounts')
     account_holder_name = models.CharField(max_length=255)
     account_number = models.CharField(max_length=50, unique=True)
@@ -34,6 +36,7 @@ class LedgerAccountType(models.Model):
         ('LIABILITY', 'Liability'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='sub_accounts')
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES)
@@ -63,6 +66,7 @@ class PaymentTransaction(models.Model):
         ('SUCCESSFUL', 'Successful'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
@@ -82,6 +86,7 @@ class LedgerEntry(models.Model):
         ('DEBIT', 'Debit'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     payment_transaction = models.ForeignKey(PaymentTransaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='ledger_entries')
     date = models.DateTimeField(auto_now_add=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
@@ -104,6 +109,7 @@ class WalletTransaction(models.Model):
         ('DEBIT', 'Debit'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='wallet_transactions')
     current_balance = models.DecimalField(max_digits=12, decimal_places=2, help_text="Balance after the transaction")
     previous_balance = models.DecimalField(max_digits=12, decimal_places=2, help_text="Balance before the transaction")
@@ -121,9 +127,11 @@ class Discount(models.Model):
         ('GENERAL_DISCOUNT', 'General Discount'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     payment_transaction = models.ForeignKey('PaymentTransaction', on_delete=models.CASCADE, related_name='discounts')
     discount_amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount of discount given")
     discount_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='discounts_given')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='discounts_received')
     discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -150,6 +158,7 @@ class ManagementExpense(models.Model):
         ('TRANSPORT', 'Transport'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)    
     spent_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     description = models.TextField(help_text="Details of the expense")
     expense_category = models.CharField(max_length=50, choices=EXPENSE_CATEGORIES)
@@ -169,6 +178,7 @@ class ManagementExpense(models.Model):
 
 
 class PaymentSummary(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     payment_transaction = models.OneToOneField(PaymentTransaction, on_delete=models.CASCADE, related_name='invoices')
     date = models.DateField(auto_now_add=True)
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invoices')

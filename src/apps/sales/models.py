@@ -6,6 +6,7 @@ import uuid
 User = get_user_model()
 
 class Product(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True, help_text="e.g., T-shirt, Pant")
     description = models.TextField(help_text="Product specifications (e.g., size 23, 26)")
     unit_rate = models.DecimalField(max_digits=12, decimal_places=2, help_text="Cost per unit (e.g., 100)")
@@ -26,7 +27,8 @@ class Product(models.Model):
 
 
 
-class OrderItem(models.Model):# edit this to in
+class OrderItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="order_items")
     batch = models.ForeignKey('ProductBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name="order_items")
@@ -52,6 +54,7 @@ class OrderItem(models.Model):# edit this to in
 
 
 class ProductBatch(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="batches")
     batch_number = models.CharField(max_length=50, unique=True, editable=False, help_text="Auto-generated batch ID")
     purchase_date = models.DateField(help_text="Batch purchase date")

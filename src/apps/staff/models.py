@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-import json
+import uuid
 
 User = get_user_model()
 
@@ -12,6 +12,7 @@ class Staff(models.Model):
         (NON_TEACHING, 'Non-Teaching'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="staff_profile")
     staff_type = models.CharField(max_length=20, choices=STAFF_TYPES)
     joining_date = models.DateField(help_text="Date when the staff joined")
@@ -39,6 +40,7 @@ class Staff(models.Model):
 
 
 class Qualification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name="qualifications")
     degree = models.CharField(max_length=255, help_text="Degree name (e.g., B.Ed, M.Sc.)")
     institution = models.CharField(max_length=255, help_text="Institution name")
@@ -69,6 +71,7 @@ class TeachingStaff(models.Model):
         (SENIOR_SECONDARY, 'Senior Secondary'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     staff = models.OneToOneField(Staff, on_delete=models.CASCADE, related_name="teaching_info")
     national_teacher_id = models.CharField(max_length=50, unique=True, help_text="National Teacher ID")
     state_teacher_id = models.CharField(max_length=50, unique=True, help_text="State Teacher ID")
@@ -94,6 +97,7 @@ class TeachingStaffSubject(models.Model):
         ('computer_science', 'Computer Science'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     staff = models.ForeignKey(TeachingStaff, on_delete=models.CASCADE, related_name="subjects")
     subject = models.CharField(max_length=50, choices=SUBJECT_CHOICES, help_text="Subject specialization")
     preference = models.PositiveSmallIntegerField(help_text="Subject preference (1 for highest)")
@@ -130,7 +134,8 @@ class Timetable(models.Model):
         ('lkg', 'LKG'),
         ('ukg', 'UKG'),
     ] + [(str(i), f"Class {i}") for i in range(1, 13)]
-
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     teacher = models.ForeignKey('TeachingStaff', on_delete=models.CASCADE, related_name="timetable_entries")
     period = models.PositiveSmallIntegerField(choices=PERIOD_CHOICES, help_text="Period number (1-8)")
     class_name = models.CharField(max_length=10, choices=CLASS_CHOICES, help_text="Class (Nursery-12)")
