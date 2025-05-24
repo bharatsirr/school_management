@@ -320,7 +320,7 @@ class StudentAdmission(models.Model):
         try:
             with transaction.atomic():
                 # Ensure serial number is created based on the class and student
-                if not self.pk:  # Only do this for new records
+                if self._state.adding:  # Only do this for new records
 
                     # Auto assign fee structure
                     fee_structure_name = f"class_{self.student_class}_fees".lower()
