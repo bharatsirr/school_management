@@ -424,6 +424,7 @@ class FamilyDiscountForm(forms.Form):
                     payment_transaction=payment_transaction,
                     discount_amount=self.cleaned_data['amount'],
                     discount_by=self.user,
+                    user=family_user,
                     discount_type='GENERAL_DISCOUNT'
                 )
 
