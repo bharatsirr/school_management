@@ -9,6 +9,7 @@ from apps.finance.models import BankAccountDetail, PaymentTransaction, PaymentSu
 from apps.core.utils import pay_family_fee_dues
 from apps.core.models import FamilyMember
 from django.core.validators import RegexValidator
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -462,7 +463,7 @@ class PayFamilyFeeDuesForm(forms.Form):
                 status='SUCCESSFUL',
             )
 
-            selected_due_ids = None if pay_all else list(map(int, raw_selected_ids))
+            selected_due_ids = None if pay_all else list(map(uuid.UUID, raw_selected_ids))
             
             left_over_budget, payment_data = pay_family_fee_dues(family, payment_transaction, selected_due_ids)
 
