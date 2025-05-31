@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third-party apps
+    'graphene_django',
     'crispy_forms',
     'crispy_tailwind',
     'storages',

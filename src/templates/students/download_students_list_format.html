@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description"
+              content="{% block description %}Welcome to our school, where learning shapes future.{% endblock description %}">
+        <meta name="keywords"
+              content="{% block keywords %}school, education, learning{% endblock keywords %}">
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+        {% block extra_css %}
+        {% endblock extra_css %}
+        <title>
+            {% block title %}
+                Welcome!
+            {% endblock title %}
+        </title>
+    </head>
+    <style>
+        @font-face {
+                font-family: 'Algerian';
+                src: url('{% static "fonts/Algerian.ttf" %}') format('truetype');
+            }
+    @page {
+        size: A4;
+        margin: 1cm 1cm 1cm 1cm;  /* top, right, bottom, left */
+        
+        @top-center {
+            content: "{{ school_name }}";
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Algerian';
+            color: #0000a5;
+        }
+    }
+
+    body {
+        font-size: 8px;
+        
+    }
+
+    .card {
+        page-break-inside: avoid;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+        display: flex;
+        gap: 10px;
+        background: white;
+    }
+
+    .photo-container {
+        flex: 0 0 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .photo-container img {
+        max-width: 60px;
+        height: auto;
+        border-radius: 4px;
+    }
+
+    .info {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+    }
+
+    .info p {
+        margin: 2px 0;
+    }
+
+    .info p:nth-child(3n+1) {
+    flex: 1 1 20%; /* First column in each row */
+    }
+
+    .info p:nth-child(3n+2) {
+        flex: 1 1 30%; /* Second columns in each row */
+    }
+    .info p:nth-child(3n+3) {
+        flex: 1 1 40%; /* Second and third columns in each row */
+    }
+
+    strong {
+        font-weight: 600;
+    }
+    </style>
+    <body>
+        <div>
+            {% for serial in serials %}
+                <div class="card">
+                    <!-- Image -->
+                    <div class="photo-container">
+                        <img height="100"
+                             width="100"
+                             src="{{ serial.student_photo }}"
+                             alt="Student Photo">
+                    </div>
+                    <!-- Info -->
+                    <div class="info">
+                        <p>
+                            <strong>Name:</strong> {{ serial.student_user.get_full_name }}
+                        </p>
+                        <p>
+                            <strong>Serial:</strong> {{ serial.serial_number }}
+                        </p>
+                        <p>
+                            <strong>Apaar ID:</strong> {{ serial.apaar_id }}
+                        </p>
+                        <p>
+                            <strong>Class:</strong> {{ serial.admission.student_class }}
+                        </p>
+                        <p>
+                            <strong>Admission Date:</strong> {{ serial.admission_date }}
+                        </p>
+                        <p>
+                            <strong>Adhaar:</strong> {{ serial.student_user.aadhar_number }}
+                        </p>
+                        <p>
+                            <strong>DOB:</strong> {{ serial.student_user.dob }}
+                        </p>
+                        <p>
+                            <strong>Gender:</strong> {{ serial.student_user.gender }}
+                        </p>
+                        {% if serial.student_phone %}
+                            <p>
+                                <strong>Mobile:</strong> {{ serial.student_phone }}
+                            </p>
+                        {% endif %}
+                        <p>
+                            <strong>Father:</strong> {{ serial.student_user.father_name }}
+                            {% if serial.father_phone %}({{ serial.father_phone }}){% endif %}
+                        </p>
+                        <p>
+                            <strong>Mother:</strong> {{ serial.student_user.mother_name }}
+                            {% if serial.mother_phone %}({{ serial.mother_phone }}){% endif %}
+                        </p>
+                        <p>
+                            <strong>Caste/Rel/Cat:</strong> {{ serial.student_user.caste }}/{{ serial.student_user.religion }}/{{ serial.student_user.category }}
+                        </p>
+                        <p>
+                            <strong>Address:</strong> {{ serial.student_user.village }}, {{ serial.student_user.pincode }}
+                        </p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </body>
+</html>

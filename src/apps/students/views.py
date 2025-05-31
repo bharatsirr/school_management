@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -17,6 +17,10 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from apps.core.models import Family, FamilyMember
 from django.templatetags.static import static
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from weasyprint import HTML
+import tempfile
 from apps.core.utils import fee_due_generate
 User = get_user_model()
 
@@ -544,3 +548,95 @@ class StudentAdmissionListView(LoginRequiredMixin, ListView):
         context['selected_class_code'] = self.request.GET.get('class_code', '')
         context['session_list'] = sessions
         return context
+    
+
+
+
+
+class DownloadStudentsListView(LoginRequiredMixin, View):
+    def get(self, request):
+        
+        return render(request, 'students/download_students_list.html')
+
+
+
+    def post(self, request):
+        school = request.POST.get('school', '').strip().upper()
+        school_name = (
+            "Keshmati Devi Intermediate College, Affi: 86/20-05-2023 Clg: 1553 U-DISE: 09600104005"
+            if school == 'KDIC'
+            else "Keshmati Devi Prathmik Vidyalaya, Recogn: 05/10-08-2020 U-DISE Code: 09600104003"
+        )
+
+        # Prefetch admissions, family members, and phones
+        admissions_prefetch = Prefetch(
+            'student__admissions',
+            queryset=StudentAdmission.objects.order_by('admission_date'),
+            to_attr='ordered_admissions'
+        )
+
+        family_members_prefetch = Prefetch(
+            'student__user__family_member__family__members',
+            queryset=FamilyMember.objects.select_related('user'),
+            to_attr='all_members'
+        )
+
+        phones_prefetch = Prefetch(
+            'student__user__family_member__family__members__user__phones',
+            to_attr='all_phones'
+        )
+
+        # Optimized query
+        serials = (
+            StudentSerial.objects
+            .filter(school_name=school)
+            .select_related('student__user')
+            .prefetch_related(admissions_prefetch, family_members_prefetch, phones_prefetch)
+            .order_by('serial_number')
+        )
+
+        # Populate additional data for PDF
+        for serial in serials:
+            # First admission
+            admission = serial.student.ordered_admissions[0] if serial.student.ordered_admissions else None
+            if not admission:
+                continue
+
+            serial.admission = admission
+            serial.admission_date = admission.admission_date.strftime('%d-%m-%Y')
+            serial.student_user = admission.student.user
+            serial.student_photo = request.build_absolute_uri(serial.student_user.profile_photo)
+
+            # Prefetched family members
+            members = getattr(serial.student_user.family_member.family, 'all_members', [])
+
+            father_user = next(
+                (m.user for m in members if m.member_type == FamilyMember.MemberType.PARENT and m.user.gender == 'Male'),
+                None
+            )
+            mother_user = next(
+                (m.user for m in members if m.member_type == FamilyMember.MemberType.PARENT and m.user.gender == 'Female'),
+                None
+            )
+
+            # Prefetched phones
+            serial.father_phone = getattr(father_user, 'all_phones', [None])[0] if father_user else ''
+            serial.mother_phone = getattr(mother_user, 'all_phones', [None])[0] if mother_user else ''
+
+        # Render HTML template
+        html_string = render_to_string(
+            'students/download_students_list_format.html',
+            {
+                'serials': serials,
+                'request': request,
+                'school_name': school_name
+            }
+        )
+
+        # Generate PDF with WeasyPrint
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as pdf_file:
+            HTML(string=html_string, base_url=request.build_absolute_uri("/")).write_pdf(pdf_file.name)
+            pdf_file.seek(0)
+            response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="students-list.pdf"'
+            return response
