@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -15,7 +15,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from apps.core.models import Family, FamilyMember
+from apps.core.models import Family, FamilyMember, Phone
 from django.templatetags.static import static
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -568,6 +568,12 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
             else "Keshmati Devi Prathmik Vidyalaya, Recogn: 05/10-08-2020 U-DISE Code: 09600104003"
         )
 
+        user_with_phones = Prefetch(
+            'user__phones',
+            queryset=Phone.objects.all(),
+            to_attr='all_phones'
+        )
+
         # Prefetch admissions, family members, and phones
         admissions_prefetch = Prefetch(
             'student__admissions',
@@ -577,12 +583,19 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
 
         family_members_prefetch = Prefetch(
             'student__user__family_member__family__members',
-            queryset=FamilyMember.objects.select_related('user'),
+            queryset=FamilyMember.objects.select_related('user').prefetch_related(user_with_phones),
             to_attr='all_members'
         )
 
-        phones_prefetch = Prefetch(
-            'student__user__family_member__family__members__user__phones',
+        previous_institution_prefetch = Prefetch(
+            'student__previous_institution',
+            queryset=PreviousInstitutionDetail.objects.all(),  # or by date, or whatever criteria
+            to_attr='fetched_previous_institutions'
+        )
+
+        student_user_phones_prefetch = Prefetch(
+            'student__user__phones',
+            queryset=Phone.objects.all(),
             to_attr='all_phones'
         )
 
@@ -591,7 +604,7 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
             StudentSerial.objects
             .filter(school_name=school)
             .select_related('student__user')
-            .prefetch_related(admissions_prefetch, family_members_prefetch, phones_prefetch)
+            .prefetch_related(admissions_prefetch, family_members_prefetch, previous_institution_prefetch, student_user_phones_prefetch)
             .order_by('serial_number')
         )
 
@@ -601,10 +614,19 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
             admission = serial.student.ordered_admissions[0] if serial.student.ordered_admissions else None
             if not admission:
                 continue
+            student = admission.student
+            serial.pen = student.pen_number
+            serial.apaar_id = student.apaar_id
 
+            previous_institution = getattr(student, 'fetched_previous_institutions', [None])
+            if previous_institution:
+                print(previous_institution.previous_institution)
+
+            serial.previous_institution = previous_institution.previous_institution if previous_institution else ''
             serial.admission = admission
             serial.admission_date = admission.admission_date.strftime('%d-%m-%Y')
             serial.student_user = admission.student.user
+            serial.student_dob = serial.student_user.dob.strftime('%d-%m-%Y')
             serial.student_photo = request.build_absolute_uri(serial.student_user.profile_photo)
 
             # Prefetched family members
@@ -619,9 +641,15 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
                 None
             )
 
-            # Prefetched phones
-            serial.father_phone = getattr(father_user, 'all_phones', [None])[0] if father_user else ''
-            serial.mother_phone = getattr(mother_user, 'all_phones', [None])[0] if mother_user else ''
+            father_phone_obj = getattr(father_user, 'all_phones', [])
+            serial.father_phone = father_phone_obj[0].phone_number if father_phone_obj else ''
+
+            mother_phone_obj = getattr(mother_user, 'all_phones', [])
+            serial.mother_phone = mother_phone_obj[0].phone_number if mother_phone_obj else ''
+
+            student_phone_obj = getattr(serial.student_user, 'all_phones', [])
+            serial.student_phone = student_phone_obj[0].phone_number if student_phone_obj else ''
+
 
         # Render HTML template
         html_string = render_to_string(

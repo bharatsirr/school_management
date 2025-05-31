@@ -13,7 +13,7 @@
         {% endblock extra_css %}
         <title>
             {% block title %}
-                Welcome!
+                List of Students - {{ school_name }}
             {% endblock title %}
         </title>
     </head>
@@ -110,38 +110,42 @@
                             <strong>Serial:</strong> {{ serial.serial_number }}
                         </p>
                         <p>
-                            <strong>Apaar ID:</strong> {{ serial.apaar_id }}
+                            <strong>Father:</strong> {{ serial.student_user.father_name }}
+                            {% if serial.father_phone %}({{ serial.father_phone }}){% endif %}
                         </p>
                         <p>
                             <strong>Class:</strong> {{ serial.admission.student_class }}
                         </p>
                         <p>
-                            <strong>Admission Date:</strong> {{ serial.admission_date }}
-                        </p>
-                        <p>
-                            <strong>Adhaar:</strong> {{ serial.student_user.aadhar_number }}
-                        </p>
-                        <p>
-                            <strong>DOB:</strong> {{ serial.student_user.dob }}
-                        </p>
-                        <p>
-                            <strong>Gender:</strong> {{ serial.student_user.gender }}
-                        </p>
-                        {% if serial.student_phone %}
-                            <p>
-                                <strong>Mobile:</strong> {{ serial.student_phone }}
-                            </p>
-                        {% endif %}
-                        <p>
-                            <strong>Father:</strong> {{ serial.student_user.father_name }}
-                            {% if serial.father_phone %}({{ serial.father_phone }}){% endif %}
+                            <strong>Apaar ID:</strong> {{ serial.apaar_id }}
                         </p>
                         <p>
                             <strong>Mother:</strong> {{ serial.student_user.mother_name }}
                             {% if serial.mother_phone %}({{ serial.mother_phone }}){% endif %}
                         </p>
                         <p>
+                            <strong>Date of Admission:</strong> {{ serial.admission_date }}
+                        </p>
+                        <p>
+                            <strong>Pen Number:</strong> {{ serial.pen }}
+                        </p>
+                        <p>
                             <strong>Caste/Rel/Cat:</strong> {{ serial.student_user.caste }}/{{ serial.student_user.religion }}/{{ serial.student_user.category }}
+                        </p>
+                        <p>
+                            <strong>DOB:</strong> {{ serial.student_dob }}
+                        </p>
+                        <p>
+                            <strong>Adhaar:</strong> {{ serial.student_user.aadhar_number }}
+                        </p>
+                        <p>
+                            <strong>Previous Institution:</strong> {{ serial.previous_institution }}
+                        </p>
+                        <p>
+                            <strong>Gender:</strong> {{ serial.student_user.gender }}
+                        </p>
+                        <p>
+                            <strong>Mobile:</strong> {{ serial.student_phone }}
                         </p>
                         <p>
                             <strong>Address:</strong> {{ serial.student_user.village }}, {{ serial.student_user.pincode }}
