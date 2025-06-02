@@ -17,10 +17,6 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from apps.core.models import Family, FamilyMember, Phone
 from django.templatetags.static import static
-from django.template.loader import render_to_string
-from django.http import HttpResponse
-from weasyprint import HTML
-import tempfile
 from apps.core.utils import fee_due_generate
 User = get_user_model()
 

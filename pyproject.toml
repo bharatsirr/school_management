@@ -22,7 +22,6 @@ dependencies = [
     "uwsgi (>=2.0.28,<3.0.0)",
     "botocore (>=1.37.28,<2.0.0)",
     "graphene-django (>=3.2.3,<4.0.0)",
-    "weasyprint (>=65.1,<66.0)",
 ]
 
 [project.optional-dependencies]
