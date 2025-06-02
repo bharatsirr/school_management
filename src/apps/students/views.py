@@ -652,19 +652,4 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
 
 
         # Render HTML template
-        html_string = render_to_string(
-            'students/download_students_list_format.html',
-            {
-                'serials': serials,
-                'request': request,
-                'school_name': school_name
-            }
-        )
-
-        # Generate PDF with WeasyPrint
-        with tempfile.NamedTemporaryFile(suffix=".pdf") as pdf_file:
-            HTML(string=html_string, base_url=request.build_absolute_uri("/")).write_pdf(pdf_file.name)
-            pdf_file.seek(0)
-            response = HttpResponse(pdf_file.read(), content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="students-list.pdf"'
-            return response
+        return render(request, 'students/download_students_list_format.html', {'serials': serials, 'school_name': school_name})
