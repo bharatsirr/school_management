@@ -498,12 +498,11 @@ class StudentAdmissionListView(LoginRequiredMixin, ListView):
     paginate_by = 500
 
     def get_queryset(self):
-        session = self.request.GET.get('session')
-        class_code = self.request.GET.get('class_code')
+        session = self.request.GET.get('session', '').strip()
+        class_code = self.request.GET.get('class_code', '').strip()
+        school = self.request.GET.get('school', '').strip()
 
-        if not session:
-            session = StudentAdmission.generate_session()
-
+        
         queryset = StudentAdmission.objects.select_related(
             'student__user__family_member__family', 
             'serial_no', 
@@ -511,12 +510,27 @@ class StudentAdmissionListView(LoginRequiredMixin, ListView):
         ).prefetch_related(
             Prefetch('student__user__phones'), 
             Prefetch('student__previous_institution')
-        ).filter(
-            session=session,
         ).order_by('-admission_date')
 
+        filters = {}
         if class_code:
-            queryset = queryset.filter(student_class=class_code)
+            filters['student_class'] = class_code
+        if session:
+            filters['session'] = session
+        if school:
+            filters['serial_no__serial_number__icontains'] = school
+
+        queryset = queryset.filter(**filters)
+
+        total_admissions = queryset.count()
+        girls_count = queryset.filter(student__user__gender='Female').count()
+        boys_count = queryset.filter(student__user__gender='Male').count()
+
+        self.extra_context = {
+            'total_admissions': total_admissions,
+            'girls_count': girls_count,
+            'boys_count': boys_count
+        }
 
         for admission in queryset:
             admission.profile_photo_url = admission.student.user.profile_photo
@@ -540,8 +554,9 @@ class StudentAdmissionListView(LoginRequiredMixin, ListView):
             sessions.append(f"{year}-{year + 1}")
 
         context['class_choices'] = StudentAdmission.CLASS_CHOICES
-        context['current_session'] = self.request.GET.get('session') or StudentAdmission.generate_session()
+        context['current_session'] = self.request.GET.get('session')
         context['selected_class_code'] = self.request.GET.get('class_code', '')
+        context['selected_school'] = self.request.GET.get('school', '')
         context['session_list'] = sessions
         return context
     

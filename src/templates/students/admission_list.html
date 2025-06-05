@@ -8,11 +8,21 @@
                 <label class="block text-sm font-medium text-gray-700">Session</label>
                 <select name="session"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                    <option value="">All Time</option>
                     {% for session in session_list %}
                         <option value="{{ session }}"
                                 {% if session == current_session %}selected{% endif %}>{{ session }}</option>
                     {% endfor %}
                 </select>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">School</label>
+                    <select name="school"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                        <option value="">All</option>
+                        <option value="kdic" {% if selected_school == 'kdic' %}selected{% endif %}>KDIC</option>
+                        <option value="kdpv" {% if selected_school == 'kdpv' %}selected{% endif %}>KDPV</option>
+                    </select>
+                </div>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Class</label>
@@ -30,6 +40,11 @@
                         class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Filter</button>
             </div>
         </form>
+        <div class="mb-4">
+            <p>Total Admissions: {{ total_admissions }}</p>
+            <p>Girls: {{ girls_count }}</p>
+            <p>Boys: {{ boys_count }}</p>
+        </div>
         <!-- Student Admissions List -->
         <div class="overflow-x-auto bg-white shadow-md rounded-lg">
             <table class="min-w-full divide-y divide-gray-200">
