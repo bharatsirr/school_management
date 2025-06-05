@@ -16,7 +16,7 @@ class Attendance(models.Model):
     date = models.DateField(help_text="Attendance date")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
     recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='recorded_attendance')
-    recorded_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'date')  # Ensure one attendance record per user per day
@@ -33,6 +33,7 @@ class HolidayTable(models.Model):
     date = models.DateField(unique=True, help_text="Holiday date")
     name = models.CharField(max_length=255, help_text="Holiday name (e.g., Independence Day)")
     is_sunday_override = models.BooleanField(default=False, help_text="Is a working day on Sunday?")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['date']
@@ -50,6 +51,7 @@ class AttendanceSummary(models.Model):
     total_working_days = models.PositiveIntegerField(default=0)
     present_days = models.PositiveIntegerField(default=0)
     absent_days = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'month', 'year')
