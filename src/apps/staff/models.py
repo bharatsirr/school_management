@@ -15,7 +15,7 @@ class Staff(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="staff_profile")
     staff_type = models.CharField(max_length=20, choices=STAFF_TYPES)
-    joining_date = models.DateField(help_text="Date when the staff joined")
+    joining_date = models.DateField(help_text="Date when the staff joined", default=models.DateField(auto_now_add=True))
     leaving_date = models.DateField(null=True, blank=True, help_text="Date when the staff left")
     leaving_reason = models.TextField(blank=True, null=True, help_text="Reason for leaving")
     salary = models.DecimalField(max_digits=12, decimal_places=2, help_text="Monthly salary")
@@ -76,6 +76,8 @@ class TeachingStaff(models.Model):
     national_teacher_id = models.CharField(max_length=50, unique=True, help_text="National Teacher ID")
     state_teacher_id = models.CharField(max_length=50, unique=True, help_text="State Teacher ID")
     teacher_level = models.CharField(max_length=20, choices=TEACHER_LEVEL_CHOICES)
+    experience = models.PositiveIntegerField(null=True, blank=True, help_text="Years of teaching experience")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.staff.user.username} - {self.teacher_level}"
@@ -101,6 +103,7 @@ class TeachingStaffSubject(models.Model):
     staff = models.ForeignKey(TeachingStaff, on_delete=models.CASCADE, related_name="subjects")
     subject = models.CharField(max_length=50, choices=SUBJECT_CHOICES, help_text="Subject specialization")
     preference = models.PositiveSmallIntegerField(help_text="Subject preference (1 for highest)")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.staff.staff.user.username} - {self.subject} (Preference {self.preference})"
@@ -115,6 +118,7 @@ class TeachingStaffSubject(models.Model):
 class OtherStaff(models.Model):
     staff = models.OneToOneField(Staff, on_delete=models.CASCADE, primary_key=True, related_name="other_info")
     position = models.CharField(max_length=255, help_text="Position (e.g., Accountant, Admin)")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.staff.user.username} - {self.position}"
@@ -143,6 +147,7 @@ class Timetable(models.Model):
     time_start = models.TimeField(help_text="Start time of the period (e.g., 09:00 AM)")
     time_end = models.TimeField(help_text="End time of the period (e.g., 09:40 AM)")
     is_active = models.BooleanField(default=True, help_text="Is this timetable entry active?")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.get_class_name_display()} - Period {self.period} ({self.subject})"
