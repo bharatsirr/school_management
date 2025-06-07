@@ -24,6 +24,8 @@ class Student(models.Model):
     apaar_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     pen_number = models.CharField(max_length=20, unique=True, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
@@ -46,6 +48,7 @@ class PreviousInstitutionDetail(models.Model):
     mm = models.DecimalField(max_digits=7, decimal_places=2, help_text="Maximum marks")
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
     rte = models.BooleanField(default=False, help_text="Was the student a Right to Education (RTE) beneficiary in the previous institution ?")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.student.user.first_name} {self.student.user.last_name} - {self.previous_institution}"
@@ -101,6 +104,7 @@ class FeeType(models.Model):
     fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="fee_types")
     name = models.CharField(max_length=100, help_text="e.g., tuition, exam")
     amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount for this fee type")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.name} - {self.amount}"
@@ -148,6 +152,7 @@ class StudentSerial(models.Model):
     school_name = models.CharField(max_length=10, choices=SCHOOL_CHOICES)
     serial_number = models.CharField(max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
         # Check if a StudentSerial already exists for this student and school_name
