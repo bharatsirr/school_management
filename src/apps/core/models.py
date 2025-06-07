@@ -109,7 +109,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         latest = UserDocument.objects.filter(
             user=self,
             document_name='profile_photo'
-        ).order_by('-uploaded_at').first()
+        ).order_by('-created_at').first()
         if latest and latest.file_path:
             return latest.file_path.url
         return None
@@ -123,6 +123,7 @@ class Phone(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='phones')
     phone_number = models.CharField(max_length=10, unique=True)
     is_whatsapp = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.phone_number
@@ -151,10 +152,10 @@ class UserDocument(models.Model):
     document_number = models.CharField(max_length=100, blank=True, null=True)  # Optional for non-ID docs
     document_type = models.CharField(max_length=50)  # e.g., ID Card, Certificate, Passport, License
     document_context = models.CharField(max_length=50, choices=DOCUMENT_CONTEXT_CHOICES, default='general')
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-uploaded_at']
+        ordering = ['-created_at']
         verbose_name = "User Document"
         verbose_name_plural = "User Documents"
 
@@ -190,6 +191,7 @@ class FamilyMember(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='family_member')
     member_type = models.CharField(max_length=20, choices=MemberType.choices)
     is_alive = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.member_type}"

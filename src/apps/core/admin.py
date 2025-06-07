@@ -15,7 +15,7 @@ class PhoneAdmin(admin.ModelAdmin):
 
 @admin.register(UserDocument)
 class UserDocumentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'document_type', 'uploaded_at')
+    list_display = ('user', 'document_type', 'created_at')
     search_fields = ('user__username', 'document_type')
 
 
