@@ -12,6 +12,7 @@ class Product(models.Model):
     unit_rate = models.DecimalField(max_digits=12, decimal_places=2, help_text="Cost per unit (e.g., 100)")
     selling_price = models.DecimalField(max_digits=12, decimal_places=2, help_text="Selling price (e.g., 150)")
     category = models.CharField(max_length=100, help_text="e.g., Dress, Transport")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.name} - {self.category}"
@@ -34,7 +35,9 @@ class OrderItem(models.Model):
     batch = models.ForeignKey('ProductBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name="order_items")
     amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Item amount total")
     is_paid = models.BooleanField(default=False, help_text="Payment status for this item")
+    paid_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when item was paid")
     payment = models.ForeignKey('finance.PaymentTransaction', on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.product.name} - {self.amount}"
@@ -57,7 +60,7 @@ class ProductBatch(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="batches")
     batch_number = models.CharField(max_length=50, unique=True, editable=False, help_text="Auto-generated batch ID")
-    purchase_date = models.DateField(help_text="Batch purchase date")
+    purchase_date = models.DateTimeField(help_text="Batch purchase date", auto_now_add=True)
     quantity = models.PositiveIntegerField(help_text="Total quantity purchased")
     unit_cost = models.DecimalField(max_digits=12, decimal_places=2, help_text="Cost per unit")
     remaining_quantity = models.PositiveIntegerField(help_text="Quantity available in stock")
