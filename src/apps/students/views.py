@@ -523,13 +523,20 @@ class StudentAdmissionListView(LoginRequiredMixin, ListView):
         queryset = queryset.filter(**filters)
 
         total_admissions = queryset.count()
-        girls_count = queryset.filter(student__user__gender='Female').count()
-        boys_count = queryset.filter(student__user__gender='Male').count()
+        girls_admissions = queryset.filter(student__user__gender='Female').count()
+        boys_admissions = queryset.filter(student__user__gender='Male').count()
+
+        total_students = Student.objects.count()
+        girls_students = Student.objects.filter(user__gender='Female').count()
+        boys_students = Student.objects.filter(user__gender='Male').count()
 
         self.extra_context = {
             'total_admissions': total_admissions,
-            'girls_count': girls_count,
-            'boys_count': boys_count
+            'girls_admissions': girls_admissions,
+            'boys_admissions': boys_admissions,
+            'total_students': total_students,
+            'girls_students': girls_students,
+            'boys_students': boys_students
         }
 
         for admission in queryset:
