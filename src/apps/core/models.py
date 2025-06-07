@@ -106,6 +106,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     @property
     def profile_photo(self):
+        """
+        Property to get the profile photo of the user.
+        Returns the URL of the latest uploaded profile photo.
+        Returns None if no profile photo is uploaded.
+        """
         latest = UserDocument.objects.filter(
             user=self,
             document_name='profile_photo'
