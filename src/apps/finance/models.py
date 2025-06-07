@@ -43,6 +43,7 @@ class LedgerAccountType(models.Model):
     code = models.CharField(max_length=20, unique=True, help_text="Account identifier (e.g., 1001)")
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -111,6 +112,7 @@ class WalletTransaction(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='wallet_transactions')
+    date = models.DateTimeField(auto_now_add=True)
     current_balance = models.DecimalField(max_digits=12, decimal_places=2, help_text="Balance after the transaction")
     previous_balance = models.DecimalField(max_digits=12, decimal_places=2, help_text="Balance before the transaction")
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
@@ -162,7 +164,8 @@ class ManagementExpense(models.Model):
     spent_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     description = models.TextField(help_text="Details of the expense")
     expense_category = models.CharField(max_length=50, choices=EXPENSE_CATEGORIES)
-    date = models.DateField(help_text="Date of the expense")
+    date = models.DateTimeField(help_text="Date of the expense", auto_now_add=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_transaction = models.ForeignKey('PaymentTransaction', on_delete=models.CASCADE, related_name='expenses')
 
     created_at = models.DateTimeField(auto_now_add=True)
