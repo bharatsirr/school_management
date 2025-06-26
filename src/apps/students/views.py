@@ -1,3 +1,5 @@
+from django.core.files.storage import default_storage
+from django.db import connection
 from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
@@ -569,16 +571,12 @@ class StudentAdmissionListView(LoginRequiredMixin, ListView):
     
 
 
-
-
 class DownloadStudentsListView(LoginRequiredMixin, View):
     def get(self, request):
-        
         return render(request, 'students/download_students_list.html')
 
-
-
     def post(self, request):
+
         school = request.POST.get('school', '').strip().upper()
         school_name = (
             "Keshmati Devi Intermediate College, Affi: 86/20-05-2023 Clg: 1553 U-DISE: 09600104005"
@@ -586,88 +584,91 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
             else "Keshmati Devi Prathmik Vidyalaya, Recogn: 05/10-08-2020 U-DISE Code: 09600104003"
         )
 
-        user_with_phones = Prefetch(
-            'user__phones',
-            queryset=Phone.objects.all(),
-            to_attr='all_phones'
-        )
-
-        # Prefetch admissions, family members, and phones
-        admissions_prefetch = Prefetch(
-            'student__admissions',
-            queryset=StudentAdmission.objects.order_by('admission_date'),
-            to_attr='ordered_admissions'
-        )
-
-        family_members_prefetch = Prefetch(
-            'student__user__family_member__family__members',
-            queryset=FamilyMember.objects.select_related('user').prefetch_related(user_with_phones),
-            to_attr='all_members'
-        )
-
-        previous_institution_prefetch = Prefetch(
-            'student__previous_institution',
-            queryset=PreviousInstitutionDetail.objects.all(),  # or by date, or whatever criteria
-            to_attr='fetched_previous_institutions'
-        )
-
-        student_user_phones_prefetch = Prefetch(
-            'student__user__phones',
-            queryset=Phone.objects.all(),
-            to_attr='all_phones'
-        )
-
-        # Optimized query
-        serials = (
-            StudentSerial.objects
-            .filter(school_name=school)
-            .select_related('student__user')
-            .prefetch_related(admissions_prefetch, family_members_prefetch, previous_institution_prefetch, student_user_phones_prefetch)
-            .order_by('serial_number')
-        )
-
-        # Populate additional data for PDF
-        for serial in serials:
-            # First admission
-            admission = serial.student.ordered_admissions[0] if serial.student.ordered_admissions else None
-            if not admission:
-                continue
-            student = admission.student
-            serial.pen = student.pen_number
-            serial.apaar_id = student.apaar_id
-
-            previous_institution = getattr(student, 'fetched_previous_institutions', [None])
-            if previous_institution:
-                print(previous_institution.previous_institution)
-
-            serial.previous_institution = previous_institution.previous_institution if previous_institution else ''
-            serial.admission = admission
-            serial.admission_date = admission.admission_date.strftime('%d-%m-%Y')
-            serial.student_user = admission.student.user
-            serial.student_dob = serial.student_user.dob.strftime('%d-%m-%Y')
-            serial.student_photo = request.build_absolute_uri(serial.student_user.profile_photo)
-
-            # Prefetched family members
-            members = getattr(serial.student_user.family_member.family, 'all_members', [])
-
-            father_user = next(
-                (m.user for m in members if m.member_type == FamilyMember.MemberType.PARENT and m.user.gender == 'Male'),
-                None
+        # Use raw SQL for efficiency and joins
+        with connection.cursor() as cur:
+            cur.execute("""
+            SELECT
+            ss.id,
+            ss.serial_number,
+            adm.student_id,
+            adm.admission_date,
+            stu.pen_number,
+            stu.apaar_id,
+            u.id AS user_id,
+            u.dob,
+            udoc.file_path AS profile_photo,
+            prev.previous_institution,
+            parent_father.user_id AS father_user_id,
+            pf.phone_number AS father_phone,
+            parent_mother.user_id AS mother_user_id,
+            pm.phone_number AS mother_phone,
+            stph.phone_number AS student_phone
+            FROM students_studentserial ss
+            JOIN students_studentadmission adm
+            ON adm.student_id = ss.student_id
+            JOIN students_student stu
+            ON stu.id = adm.student_id
+            JOIN core_user u
+            ON u.id = stu.user_id
+            LEFT JOIN (
+            SELECT DISTINCT ON (user_id)
+                id, user_id, file_path
+            FROM core_userdocument
+            WHERE document_name = 'profile_photo'
+            ORDER BY user_id, created_at DESC
+            ) udoc
+            ON udoc.user_id = u.id
+            LEFT JOIN students_previousinstitutiondetail prev
+            ON prev.student_id = stu.id
+            LEFT JOIN (
+            SELECT fm.family_id, fm.user_id
+            FROM core_familymember fm
+            WHERE fm.member_type = %s
+            ) parent_father ON parent_father.family_id = stu.user_id
+            LEFT JOIN core_phone pf
+            ON pf.user_id = parent_father.user_id
+            LEFT JOIN (
+            SELECT fm.family_id, fm.user_id
+            FROM core_familymember fm
+            WHERE fm.member_type = %s
+            ) parent_mother ON parent_mother.family_id = stu.user_id
+            LEFT JOIN core_phone pm
+            ON pm.user_id = parent_mother.user_id
+            LEFT JOIN core_phone stph
+            ON stph.user_id = u.id
+            WHERE ss.school_name = %s
+            AND adm.id = (
+                SELECT id FROM students_studentadmission
+                WHERE student_id = ss.student_id
+                ORDER BY admission_date
+                LIMIT 1
             )
-            mother_user = next(
-                (m.user for m in members if m.member_type == FamilyMember.MemberType.PARENT and m.user.gender == 'Female'),
-                None
-            )
-
-            father_phone_obj = getattr(father_user, 'all_phones', [])
-            serial.father_phone = father_phone_obj[0].phone_number if father_phone_obj else ''
-
-            mother_phone_obj = getattr(mother_user, 'all_phones', [])
-            serial.mother_phone = mother_phone_obj[0].phone_number if mother_phone_obj else ''
-
-            student_phone_obj = getattr(serial.student_user, 'all_phones', [])
-            serial.student_phone = student_phone_obj[0].phone_number if student_phone_obj else ''
+            ORDER BY ss.serial_number
+            """, [
+                FamilyMember.MemberType.PARENT,
+                FamilyMember.MemberType.PARENT,
+                school
+            ])
 
 
-        # Render HTML template
-        return render(request, 'students/download_students_list_format.html', {'serials': serials, 'school_name': school_name})
+            rows = cur.fetchall()
+            columns = [col[0] for col in cur.description]
+
+        serials = []
+        for row in rows:
+            data = dict(zip(columns, row))
+
+            if data['profile_photo']:
+                data['profile_photo'] = default_storage.url(data['profile_photo'])  
+                # This will generate a signed URL if your storage backend supports it
+            # Format dates and URIs
+            data['admission_date'] = data['admission_date'].strftime('%d-%m-%Y')
+            data['student_dob'] = data['dob'].strftime('%d-%m-%Y') if data['dob'] else ''
+            data['student_photo'] = request.build_absolute_uri(data['profile_photo']) if data['profile_photo'] else ''
+            serials.append(data)
+
+        return render(request, 'students/download_students_list_format.html', {
+            'serials': serials,
+            'school_name': school_name
+        })
+
