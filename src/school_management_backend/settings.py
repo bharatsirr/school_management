@@ -22,7 +22,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 USE_S3_STORAGE = os.getenv('USE_S3_STORAGE', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # Application definition
 INSTALLED_APPS = [
