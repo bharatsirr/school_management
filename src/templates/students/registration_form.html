@@ -268,13 +268,13 @@
             <div class="grid gap-4">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2"
-                           for="id_last_institution">Last Institution</label>
+                           for="id_previous_institution">Last Institution</label>
                     <input type="text"
-                           name="last_institution"
-                           id="id_last_institution"
+                           name="previous_institution"
+                           id="id_previous_institution"
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
-                    {% if form.last_institution.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.last_institution.errors }}</p>
+                    {% if form.previous_institution.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.previous_institution.errors }}</p>
                     {% endif %}
                 </div>
                 <div>

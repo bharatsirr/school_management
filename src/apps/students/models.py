@@ -62,6 +62,7 @@ class PreviousInstitutionDetail(models.Model):
     def save(self, *args, **kwargs):
         # Auto-calculate percentage before saving
         self.percent = self.calculate_percent()
+        self.previous_institution = self.previous_institution.upper()
         super().save(*args, **kwargs)
 
 

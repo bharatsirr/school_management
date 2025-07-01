@@ -311,14 +311,12 @@ class StudentRegistrationForm(forms.Form):
 
                 fee_due_generate(student)
 
-                if self.cleaned_data["previous_institution"] and self.cleaned_data["score"] and self.cleaned_data["mm"] and self.cleaned_data["rte"]:
-                    percent = (self.cleaned_data["score"] / self.cleaned_data["mm"]) * 100
+                if self.cleaned_data["previous_institution"] and self.cleaned_data["score"] and self.cleaned_data["mm"]:
                     PreviousInstitutionDetail.objects.create(
                         student=student,
                         previous_institution=self.cleaned_data["previous_institution"],
                         score=self.cleaned_data["score"],
                         mm=self.cleaned_data["mm"],
-                        percent=percent,
                         rte=self.cleaned_data["rte"]
                     )
                 
