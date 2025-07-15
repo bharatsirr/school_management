@@ -133,7 +133,7 @@
                     <input type="text"
                            name="phone_number"
                            id="id_phone_number"
-                           pattern="[0-9]{10}"
+                           pattern="^\+?[1-9][0-9]{7,14}$"
                            title="Please enter a valid 10-digit phone number"
                            class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
                     {% if form.phone_number.errors %}<p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors }}</p>{% endif %}
