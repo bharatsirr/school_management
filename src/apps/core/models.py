@@ -2,6 +2,8 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+import phonenumbers
 
 
 
@@ -126,9 +128,34 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Phone(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='phones')
-    phone_number = models.CharField(max_length=10, unique=True)
+    phone_number = models.CharField(max_length=15, unique=True)
     is_whatsapp = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        try:
+            # Parse the number (assume default region if no country code, e.g., 'US' or 'IN')
+            parsed = phonenumbers.parse(self.phone_number, 'IN')  # Change 'IN' to your default region
+            if not phonenumbers.is_valid_number(parsed):
+                raise ValidationError("Invalid phone number.")
+
+            # Normalize to E.164 (e.g., +19876543210)
+            normalized = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
+
+        except phonenumbers.NumberParseException:
+            raise ValidationError("Phone number could not be parsed.")
+
+        # Check if normalized version already exists
+        existing = Phone.objects.exclude(pk=self.pk).filter(phone_number=normalized)
+        if existing.exists():
+            raise ValidationError("This phone number or a variant already exists.")
+
+        # Store the normalized version
+        self.phone_number = normalized
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.phone_number
