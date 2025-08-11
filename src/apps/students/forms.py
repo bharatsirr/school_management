@@ -447,6 +447,14 @@ class PayFamilyFeeDuesForm(forms.Form):
                 member_type=FamilyMember.MemberType.PARENT, user__gender='Male'
             ).first() or family.members.filter(
                 member_type=FamilyMember.MemberType.PARENT, user__gender='Female'
+            ).first() or family.members.filter(
+                member_type=FamilyMember.MemberType.GRANDPARENT, user__gender='Male'
+            ).first() or family.members.filter(
+                member_type=FamilyMember.MemberType.GRANDPARENT, user__gender='Female'
+            ).first() or family.members.filter(
+                member_type=FamilyMember.MemberType.OTHER, user__gender='Male'
+            ).first() or family.members.filter(
+                member_type=FamilyMember.MemberType.OTHER, user__gender='Female'
             ).first()
 
             if not family_parent:
