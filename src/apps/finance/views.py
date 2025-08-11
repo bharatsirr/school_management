@@ -24,7 +24,7 @@ class FamilyPaymentDatesView(LoginRequiredMixin, ListView):
         # Get parent members (both male and female)
         parents = FamilyMember.objects.filter(
             family=family,
-            member_type='parent'
+            member_type__in=['parent', 'grandparent', 'other']
         ).select_related('user')
         
         # Get all payment summaries for these parents
@@ -55,7 +55,7 @@ class FamilyPaymentDetailsView(LoginRequiredMixin, TemplateView):
         # Get parent members
         parents = FamilyMember.objects.filter(
             family=family,
-            member_type='parent'
+            member_type__in=['parent', 'grandparent', 'other']
         ).select_related('user')
         
         # Get all payment summaries for the given date
