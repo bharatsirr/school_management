@@ -299,12 +299,20 @@ class WalletTopupForm(forms.Form):
                 family.wallet_balance += self.cleaned_data['amount']
                 family.save()
 
-                # Try to get a male member first
-                family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Male').first()
+                family_parent = family.members.filter(
+                    member_type=FamilyMember.MemberType.PARENT, user__gender='Male'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.PARENT, user__gender='Female'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.GRANDPARENT, user__gender='Male'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.GRANDPARENT, user__gender='Female'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.OTHER, user__gender='Male'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.OTHER, user__gender='Female'
+                ).first()
 
-                # If no male member exists, get the first female member
-                if not family_parent:
-                    family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Female').first()
 
                 if not family_parent:
                     raise ValueError("No family user found.")
@@ -391,9 +399,19 @@ class FamilyDiscountForm(forms.Form):
                 # Try to get a male member first
                 family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Male').first()
 
-                # If no male member exists, get the first female member
-                if not family_parent:
-                    family_parent = family.members.filter(member_type=FamilyMember.MemberType.PARENT, user__gender='Female').first()
+                family_parent = family.members.filter(
+                    member_type=FamilyMember.MemberType.PARENT, user__gender='Male'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.PARENT, user__gender='Female'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.GRANDPARENT, user__gender='Male'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.GRANDPARENT, user__gender='Female'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.OTHER, user__gender='Male'
+                ).first() or family.members.filter(
+                    member_type=FamilyMember.MemberType.OTHER, user__gender='Female'
+                ).first()
 
                 if not family_parent:
                     raise ValueError("No family Parent found.")
