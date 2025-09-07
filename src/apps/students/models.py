@@ -98,8 +98,11 @@ class BoardAcademicDetails(models.Model):
         if self.score > self.mm:
             raise ValidationError("Score cannot be greater than MM.")
         # Auto-calculate percentage before saving
+        if self.mm:
+            self.percent = self.calculate_percent()
         self.percent = self.calculate_percent()
-        self.subject_group = self.subject_group.upper().strip()
+        if self.subject_group:
+            self.subject_group = self.subject_group.upper().strip()
         self.board = self.board.upper().strip()
         self.school = self.school.upper().strip()
         super().save(*args, **kwargs)
