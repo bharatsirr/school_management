@@ -1,13 +1,16 @@
+import datetime
 from apps.core.utils import fee_due_generate
 import logging
 from PIL import Image
 from django.db import transaction
+from django.forms import ModelChoiceField
+from django.db.models import Subquery, OuterRef
 from django.contrib.auth import get_user_model
 from django import forms
-from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutionDetail, FeeStructure, FeeType, FeeDue
+from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutionDetail, FeeStructure, FeeType, FeeDue, BoardAcademicDetails
 from apps.finance.models import BankAccountDetail, PaymentTransaction, PaymentSummary, LedgerEntry, LedgerAccountType, WalletTransaction
 from apps.core.utils import pay_family_fee_dues
-from apps.core.models import FamilyMember
+from apps.core.models import FamilyMember, Family
 from django.core.validators import RegexValidator
 import uuid
 
@@ -91,6 +94,17 @@ class StudentRegistrationForm(forms.Form):
     score = forms.DecimalField(max_digits=7, decimal_places=2, required=False)
     mm = forms.DecimalField(max_digits=7, decimal_places=2, required=False)
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
+    passing_year = forms.IntegerField(
+        label='Passing Year',
+        min_value=1000,  # Enforces 4-digit minimum
+        max_value=9999,  # Enforces 4-digit maximum
+        widget=forms.NumberInput(attrs={
+            'type': 'number',
+            'placeholder': 'Enter year like 2002',
+            'min': '1000',
+            'max': '9999'
+        })
+    )
     rte = forms.TypedChoiceField(
         choices=[(False, 'No'), (True, 'Yes')],
         coerce=lambda x: x == 'True',
@@ -317,7 +331,8 @@ class StudentRegistrationForm(forms.Form):
                         previous_institution=self.cleaned_data["previous_institution"],
                         score=self.cleaned_data["score"],
                         mm=self.cleaned_data["mm"],
-                        rte=self.cleaned_data["rte"]
+                        rte=self.cleaned_data["rte"],
+                        passing_year=self.cleaned_data["passing_year"]
                     )
                 
                 return student_admission
@@ -514,3 +529,65 @@ class PayFamilyFeeDuesForm(forms.Form):
                 description=f"Fee dues payment of ₹{amount_paid}"
             )
 
+CLASS_CHOICES = [(i, str(i)) for i in range(9, 13)]
+BOARD_CHOICES = [
+    ('UPMSP', 'UPMSP'),
+    ('CBSE', 'CBSE'),
+    ('ICSE', 'ICSE'),
+]
+
+class BoardAcademicDetailsForm(forms.ModelForm):
+    student = ModelChoiceField(
+        queryset=Student.objects.none(),  # Initially empty queryset
+        label="Student",
+    )
+    
+    student_class = forms.ChoiceField(choices=CLASS_CHOICES, label="Class")
+    board = forms.ChoiceField(choices=BOARD_CHOICES, label="Board")
+    passing_year = forms.IntegerField(min_value=1000, max_value=datetime.date.today().year, label="Year of Passing")
+    is_passed = forms.TypedChoiceField(
+        choices=[(True, 'Yes'), (False, 'No')],
+        coerce=lambda x: x == 'True',
+        widget=forms.RadioSelect,
+        required=False
+    )
+
+    class Meta:
+        model = BoardAcademicDetails
+        fields = ['student', 'student_class', 'roll_no', 'board', 'school', 'passing_year', 'is_passed']
+        widgets = {
+            'roll_no': forms.NumberInput(attrs={'min': 1}),
+            'passing_year': forms.NumberInput(attrs={'min': 1000, 'max': datetime.date.today().year}),
+            'school': forms.TextInput(attrs={'placeholder': 'School name'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # Get the queryset for the student field
+        queryset = Student.objects.filter(
+            admissions__student_class__in=[9, 10, 11, 12]
+        ).distinct()
+
+        # Annotate students
+        students = queryset.annotate(
+            student_class=Subquery(
+                StudentAdmission.objects.filter(student=OuterRef('pk')).values('student_class')[:1]
+            ),
+            family_name=Subquery(
+                Family.objects.filter(
+                    members__user=OuterRef('user')
+                ).values('family_name')[:1]
+            )
+        )
+
+        # Update the queryset of the student field
+        self.fields['student'].queryset = students
+
+        # Set the label of the student field
+        self.fields['student'].label_from_instance = lambda student: f"{student.user.first_name} {student.user.last_name} - Class: {student.admissions.order_by('admission_date').last().student_class} ({student.family_name})"
+
+        # If a user is provided, filter students based on the user
+        if user and hasattr(user, 'student'):
+            self.fields['student'].queryset = self.fields['student'].queryset.filter(user=user)

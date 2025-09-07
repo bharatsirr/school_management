@@ -12,7 +12,10 @@ from .views import (StudentRegistrationView,
                     admission_print_view,
                     promotion_class_selection,
                     bulk_promote_view,
-                    DownloadStudentsListView
+                    DownloadStudentsListView,
+                    BoardAcademicCreateView,
+                    BoardAcademicUpdateView,
+                    BoardAcademicListView
                 )
 
 urlpatterns = [
@@ -35,4 +38,8 @@ urlpatterns = [
     path('students/promote/<str:class_code>', bulk_promote_view, name='bulk_promote'),
 
     path('students/download/', DownloadStudentsListView.as_view(), name='download_students'),
+
+    path('board-academic/create/', BoardAcademicCreateView.as_view(), name='board_create'),
+    path('board-academic/<uuid:pk>/update/', BoardAcademicUpdateView.as_view(), name='board_update'),
+    path('board-academic/', BoardAcademicListView.as_view(), name='board_list'),
 ]

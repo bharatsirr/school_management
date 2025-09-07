@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
-from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail
+from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -671,3 +671,58 @@ class DownloadStudentsListView(LoginRequiredMixin, View):
 
         # Render HTML template
         return render(request, 'students/download_students_list_format.html', {'serials': serials, 'school_name': school_name})
+
+
+
+class BoardAcademicCreateView(LoginRequiredMixin, CreateView):
+    model = BoardAcademicDetails
+    form_class = BoardAcademicDetailsForm
+    template_name = 'students/board_academic_details_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        if hasattr(self.request.user, 'student'):
+            obj.student = self.request.user.student
+        obj.save()
+        messages.success(self.request, "Board academic details saved.")
+        return redirect('home')
+
+
+
+class BoardAcademicUpdateView(LoginRequiredMixin, UpdateView):
+    model = BoardAcademicDetails
+    form_class = BoardAcademicDetailsForm
+    template_name = 'students/board_academic_details_form.html'  # same template as create
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        if hasattr(self.request.user, 'student'):
+            obj.student = self.request.user.student
+        obj.save()
+        messages.success(self.request, "Board academic details updated.")
+        return redirect('board_list')  # change to wherever you want after update
+
+
+
+class BoardAcademicListView(LoginRequiredMixin, ListView):
+    model = BoardAcademicDetails
+    template_name = 'students/board_academic_details_list.html'
+    context_object_name = 'boards'
+    paginate_by = 10  # optional, adds pagination
+
+    def get_queryset(self):
+        qs = super().get_queryset().select_related('student', 'student__user')
+        if hasattr(self.request.user, 'student'):
+            # If student logs in, only show their records
+            qs = qs.filter(student=self.request.user.student)
+        return qs

@@ -278,6 +278,19 @@
                     {% endif %}
                 </div>
                 <div>
+                    <label class="block text-gray-700 font-medium mb-2"
+                           for="id_passing_year">Passing Year</label>
+                    <input type="number"
+                           name="passing_year"
+                           id="id_passing_year"
+                           min="1900"
+                           max="9999"
+                           class="border border-gray-300 p-2 rounded-md focus:outline-none w-full focus:ring-2 focus:ring-blue-500">
+                    {% if form.passing_year.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.passing_year.errors }}</p>
+                    {% endif %}
+                </div>
+                <div>
                     <label class="block text-gray-700 font-medium mb-2" for="id_score">Score</label>
                     <input type="number"
                            step="any"

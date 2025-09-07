@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, StudentSerial, StudentAdmission, FeeStructure, PreviousInstitutionDetail, FeeDue, FeeType
+from .models import Student, StudentSerial, StudentAdmission, FeeStructure, PreviousInstitutionDetail, FeeDue, FeeType, BoardAcademicDetails
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -49,7 +49,7 @@ class FeeDueAdmin(admin.ModelAdmin):
 
 @admin.register(PreviousInstitutionDetail)
 class PreviousInstitutionDetailAdmin(admin.ModelAdmin):
-    list_display = ('student', 'previous_institution', 'score', 'mm', 'percent')
+    list_display = ('student', 'previous_institution', 'score', 'mm', 'percent', 'passing_year', 'rte', 'created_at')
     search_fields = ('student__user__username', 'previous_institution')
 
 @admin.register(FeeStructure)
@@ -61,3 +61,8 @@ class FeeStructureAdmin(admin.ModelAdmin):
 class FeeTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'amount')
     search_fields = ('name',)
+
+@admin.register(BoardAcademicDetails)
+class BoardAcademicDetailsAdmin(admin.ModelAdmin):
+    list_display = ('id','student', 'student_class', 'roll_no', 'board', 'passing_year', 'created_at')
+    search_fields = ('student__user__username', 'board', 'roll_no')

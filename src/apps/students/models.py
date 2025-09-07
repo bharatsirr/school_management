@@ -49,6 +49,7 @@ class PreviousInstitutionDetail(models.Model):
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
     rte = models.BooleanField(default=False, help_text="Was the student a Right to Education (RTE) beneficiary in the previous institution ?")
     created_at = models.DateTimeField(auto_now_add=True)
+    passing_year = models.PositiveIntegerField(help_text="Year of passing", null=True, blank=True)
 
     def __str__(self):
         return f"{self.student.user.first_name} {self.student.user.last_name} - {self.previous_institution}"
@@ -66,7 +67,20 @@ class PreviousInstitutionDetail(models.Model):
         super().save(*args, **kwargs)
 
 
+class BoardAcademicDetails(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='board_academic_details')
+    student_class = models.PositiveIntegerField(help_text="Class")
+    roll_no = models.PositiveIntegerField(help_text="Roll number")
+    board = models.CharField(max_length=255, help_text="Board name")
+    school = models.CharField(max_length=255, help_text="School name")
+    passing_year = models.PositiveIntegerField(help_text="Year of passing")
+    is_passed = models.BooleanField(null=True, blank=True, default=None)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"{self.student.user.first_name} {self.student.user.last_name} - {self.board}"
 
 
 class ActiveFeeStructureManager(models.Manager):
