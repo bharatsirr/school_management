@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -738,3 +738,16 @@ class BoardAcademicListView(LoginRequiredMixin, ListView):
             # If student logs in, only show their records
             qs = qs.filter(student=self.request.user.student)
         return qs
+
+
+
+class StudentAdmissionUpdateView(LoginRequiredMixin, UpdateView):
+    model = StudentAdmission
+    form_class = StudentAdmissionForm
+    template_name = 'students/update_admission.html'  # Template for the form
+    context_object_name = 'student_admission'
+    # Ensure the correct URL argument for UUID
+    pk_url_kwarg = 'id'  # This makes sure Django uses the 'id' in the URL to find the object
+    
+    # Define where to redirect after successful update
+    success_url = reverse_lazy('student_admission_list')  # Change this URL to match your URL pattern

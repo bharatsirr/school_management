@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% block content %}
+<div class="container max-w-2xl px-4 py-6">
+   <h1>Update Student Admission</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}  <!-- Render form fields as paragraphs -->
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Update Admission</button>
+    </form>
+
+    <br>
+    <button class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+    <a class="text-white hover:underline" href="{% url 'student_admission_list' %}">Back to Admissions List</a>
+    </button>
+</div>
+{% endblock content %}

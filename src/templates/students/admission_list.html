@@ -99,7 +99,7 @@
                                     <span class="text-gray-400">-</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ admission.student_serial_number|default:"-" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><a href="{% url 'update_admission' admission.id %}">{{ admission.student_serial_number|default:"-" }}</a></td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ admission.get_student_class_display }} {{ admission.section }}
                             </td>

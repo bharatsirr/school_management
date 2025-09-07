@@ -591,3 +591,9 @@ class BoardAcademicDetailsForm(forms.ModelForm):
         # If a user is provided, filter students based on the user
         if user and hasattr(user, 'student'):
             self.fields['student'].queryset = self.fields['student'].queryset.filter(user=user)
+
+
+class StudentAdmissionForm(forms.ModelForm):
+    class Meta:
+        model = StudentAdmission
+        fields = [ 'student_class', 'section', 'status', 'roll_number', 'session', 'is_rte', 'course']
