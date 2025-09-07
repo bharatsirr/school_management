@@ -222,6 +222,9 @@ def admission_print_view(request, studentadmission_id):
     student = student_admission.student  # Fetch the related student
     student_class = student_admission.student_class if student_admission else None
     
+    course = student_admission.course
+    subject_names = ', '.join(course.subjects.values_list('name', flat=True)) if course else None
+    
     # Fetch board details
     board_details = None
     if student_class in ['9', '10', '11']:
@@ -282,6 +285,8 @@ def admission_print_view(request, studentadmission_id):
         profile_photo_url = profile_photo.file_path.url
 
     context = {
+        "subject_names": subject_names,
+        "board_details": board_details,
         "mother": mother,
         "father": father,
         "student": student,
@@ -300,8 +305,6 @@ def admission_print_view(request, studentadmission_id):
         "student_serial": student_serial,
         "school_code": school_code,
     }
-    if board_details:
-        context["board_details"] = board_details
 
     return render(request, "students/admission_printout.html", context)
 

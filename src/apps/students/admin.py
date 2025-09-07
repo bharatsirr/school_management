@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, StudentSerial, StudentAdmission, FeeStructure, PreviousInstitutionDetail, FeeDue, FeeType, BoardAcademicDetails
+from .models import Student, StudentSerial, StudentAdmission, FeeStructure, PreviousInstitutionDetail, FeeDue, FeeType, BoardAcademicDetails, Subjects, Courses
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -66,3 +66,20 @@ class FeeTypeAdmin(admin.ModelAdmin):
 class BoardAcademicDetailsAdmin(admin.ModelAdmin):
     list_display = ('id','student', 'student_class', 'roll_no', 'board', 'passing_year', 'created_at','score', 'mm', 'percent', 'is_passed')
     search_fields = ('student__user__username', 'board', 'roll_no')
+
+# Admin configuration for Subjects model
+@admin.register(Subjects)
+class SubjectsAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'created_at', 'updated_at')  # Display fields in list view
+    search_fields = ('name', 'description')  # Enable search for name and description
+
+# Admin configuration for Courses model
+@admin.register(Courses)
+class CoursesAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'created_at', 'updated_at', 'get_subjects')  # Display associated subjects
+    search_fields = ('name', 'description')  # Enable search for course name and description
+
+    # Custom method to display associated subjects in the list view
+    def get_subjects(self, obj):
+        return ", ".join([subject.name for subject in obj.subjects.all()])
+    get_subjects.short_description = 'Subjects'  # Display name for the column in the admin interface

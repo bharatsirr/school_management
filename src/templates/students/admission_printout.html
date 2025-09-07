@@ -63,7 +63,7 @@
                      height="200">
                 <!-- Details Container -->
                 <div class="flex-1 bg-gray-100 p-4 rounded-lg">
-                    <h3 class="text-xl font-bold text-blue-800 border-b border-gray-300 pb-2 mb-3">Student Information</h3>
+                    <h3 class="text-xl font-bold text-blue-800 border-b border-gray-300 pb-2 mb-3">Student Information {% if subject_names %}({{ subject_names }}){% endif %}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                         <div class="col-span-2">
                             <h4 class="text-lg font-semibold text-gray-800">{{ student.user.first_name }} {{ student.user.last_name }}</h4>

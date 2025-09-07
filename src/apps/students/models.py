@@ -282,6 +282,7 @@ class StudentAdmission(models.Model):
     admission_date = models.DateTimeField(auto_now_add=True)
     session = models.CharField(max_length=9, help_text="e.g., 2023-2024 leave blank to set to current session", default=generate_session)
     student_class = models.CharField(max_length=20, help_text="Class (e.g., 10, 12, etc.)" , choices=CLASS_CHOICES)
+    course = models.ForeignKey('Courses', on_delete=models.SET_NULL, null=True, blank=True)
     fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="student_admissions")
     total_fee = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total fee amount")
     no_dues = models.BooleanField(default=False)
@@ -412,3 +413,29 @@ class StudentAdmission(models.Model):
         except Exception as e:
             logger.error(f"Error in saving student admission: {e}")
             raise e
+
+
+
+class Courses(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    subjects = models.ManyToManyField('Subjects', related_name='courses')
+
+    def __str__(self):
+        formatted_created_at = self.created_at.strftime('%b %d, %Y')  
+        subject_names = ', '.join(self.subjects.values_list('name', flat=True))
+        
+        return f"{self.name} ({formatted_created_at})| Sub: {subject_names} - {self.description}"
+
+
+class Subjects(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        formatted_created_at = self.created_at.strftime('%b %d, %Y')  
+        return f"{self.name} ({formatted_created_at}) - {self.description}"
