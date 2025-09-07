@@ -423,6 +423,10 @@ class Courses(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     subjects = models.ManyToManyField('Subjects', related_name='courses')
 
+    def save(self, *args, **kwargs):
+        self.name = self.name.upper()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         formatted_created_at = self.created_at.strftime('%b %d, %Y')  
         subject_names = ', '.join(self.subjects.values_list('name', flat=True))
@@ -435,6 +439,10 @@ class Subjects(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         formatted_created_at = self.created_at.strftime('%b %d, %Y')  
