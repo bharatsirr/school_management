@@ -554,7 +554,7 @@ class BoardAcademicDetailsForm(forms.ModelForm):
 
     class Meta:
         model = BoardAcademicDetails
-        fields = ['student', 'student_class', 'roll_no', 'board', 'school', 'passing_year', 'is_passed']
+        fields = ['student', 'student_class', 'roll_no', 'board', 'school', 'passing_year', 'is_passed', 'score', 'mm', 'subject_group']
         widgets = {
             'roll_no': forms.NumberInput(attrs={'min': 1}),
             'passing_year': forms.NumberInput(attrs={'min': 1000, 'max': datetime.date.today().year}),

@@ -61,6 +61,8 @@ class PreviousInstitutionDetail(models.Model):
         return 0
 
     def save(self, *args, **kwargs):
+        if self.score > self.mm:
+            raise ValidationError("Score cannot be greater than MM.")
         # Auto-calculate percentage before saving
         self.percent = self.calculate_percent()
         self.previous_institution = self.previous_institution.upper()
@@ -73,7 +75,11 @@ class BoardAcademicDetails(models.Model):
     student_class = models.PositiveIntegerField(help_text="Class")
     roll_no = models.PositiveIntegerField(help_text="Roll number")
     board = models.CharField(max_length=255, help_text="Board name")
+    subject_group = models.CharField(max_length=255, null=True, blank=True, help_text="Subjects: write names of the subjects with comma separated")
     school = models.CharField(max_length=255, help_text="School name")
+    score = models.DecimalField(max_digits=7, decimal_places=2, help_text="Obtained marks", blank=True, null=True)
+    mm = models.DecimalField(max_digits=7, decimal_places=2, help_text="Maximum marks", blank=True, null=True)
+    percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
     passing_year = models.PositiveIntegerField(help_text="Year of passing")
     is_passed = models.BooleanField(null=True, blank=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -81,6 +87,22 @@ class BoardAcademicDetails(models.Model):
 
     def __str__(self):
         return f"{self.student.user.first_name} {self.student.user.last_name} - {self.board}"
+
+    def calculate_percent(self):
+        """Auto-calculate percentage."""
+        if self.mm > 0:
+            return (self.score / self.mm) * 100
+        return 0
+
+    def save(self, *args, **kwargs):
+        if self.score > self.mm:
+            raise ValidationError("Score cannot be greater than MM.")
+        # Auto-calculate percentage before saving
+        self.percent = self.calculate_percent()
+        self.subject_group = self.subject_group.upper().strip()
+        self.board = self.board.upper().strip()
+        self.school = self.school.upper().strip()
+        super().save(*args, **kwargs)
 
 
 class ActiveFeeStructureManager(models.Manager):

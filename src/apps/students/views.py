@@ -221,6 +221,13 @@ def admission_print_view(request, studentadmission_id):
     student_admission = get_object_or_404(StudentAdmission, id=studentadmission_id)
     student = student_admission.student  # Fetch the related student
     student_class = student_admission.student_class if student_admission else None
+    
+    # Fetch board details
+    board_details = None
+    if student_class in ['9', '10', '11']:
+        board_details = student.board_academic_details.filter(student_class=(str(int(student_class)-1))).order_by('-passing_year').first()
+    elif student_class in ['12']:
+        board_details = student.board_academic_details.filter(student_class=(str(int(student_class)-2))).order_by('-passing_year').first()
 
     # Determine School Name
     if student_admission:
@@ -293,6 +300,8 @@ def admission_print_view(request, studentadmission_id):
         "student_serial": student_serial,
         "school_code": school_code,
     }
+    if board_details:
+        context["board_details"] = board_details
 
     return render(request, "students/admission_printout.html", context)
 

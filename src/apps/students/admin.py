@@ -64,5 +64,5 @@ class FeeTypeAdmin(admin.ModelAdmin):
 
 @admin.register(BoardAcademicDetails)
 class BoardAcademicDetailsAdmin(admin.ModelAdmin):
-    list_display = ('id','student', 'student_class', 'roll_no', 'board', 'passing_year', 'created_at')
+    list_display = ('id','student', 'student_class', 'roll_no', 'board', 'passing_year', 'created_at','score', 'mm', 'percent', 'is_passed')
     search_fields = ('student__user__username', 'board', 'roll_no')

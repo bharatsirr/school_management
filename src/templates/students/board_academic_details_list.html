@@ -13,6 +13,9 @@
         <th class="px-4 py-2 border">Board</th>
         <th class="px-4 py-2 border">School</th>
         <th class="px-4 py-2 border">Year</th>
+        <th class="px-4 py-2 border">Marks</th>
+        <th class="px-4 py-2 border">Percentage</th>
+        <th class="px-4 py-2 border">Subjects</th>
         <th class="px-4 py-2 border">Passed?</th>
         <th class="px-4 py-2 border">Actions</th>
       </tr>
@@ -26,6 +29,9 @@
           <td class="px-4 py-2">{{ b.board }}</td>
           <td class="px-4 py-2">{{ b.school }}</td>
           <td class="px-4 py-2">{{ b.passing_year }}</td>
+          <td class="px-4 py-2">{{ b.score }}/ {{ b.mm }}</td>
+          <td class="px-4 py-2">{{ b.percent }}</td>
+          <td class="px-4 py-2">{{ b.subject_group }}</td>
           <td class="px-4 py-2">{{ b.is_passed|yesno:"Yes,No" }}</td>
           <td class="px-4 py-2">
             <a href="{% url 'board_update' b.pk %}" class="text-blue-600 hover:underline">Edit</a>

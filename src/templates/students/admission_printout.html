@@ -221,6 +221,32 @@
                     </p>
                 </div>
             </div>
+            <!-- Board Details -->
+            {% if board_details %}
+            <div class="bg-gray-100 p-4 rounded-lg my-6">
+                <h3 class="text-lg font-bold text-blue-800 border-b border-gray-300 pb-2 mb-3">Class {{ board_details.student_class }} Details {% if board_details.subject_group %}({{ board_details.subject_group }}){% endif %}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p class="text-sm">
+                        <span class="font-medium text-gray-600">Roll Number:</span> {{ board_details.roll_no }}
+                    </p>
+                    <p class="text-sm">
+                        <span class="font-medium text-gray-600">Board:</span> {{ board_details.board }}
+                    </p>
+                    <p class="text-sm">
+                        <span class="font-medium text-gray-600">College:</span> {{ board_details.school }}
+                    </p>
+                    <p class="text-sm">
+                        <span class="font-medium text-gray-600">Passing Year:</span> {{ board_details.passing_year }}
+                    </p>
+                    <p class="text-sm">
+                        <span class="font-medium text-gray-600">Obtained Marks:</span> {{ board_details.score }}/{{ board_details.mm }}
+                    </p>
+                    <p class="text-sm">
+                        <span class="font-medium text-gray-600">Percentage:</span> {{ board_details.percent }}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
             <!-- Signatures Section -->
             <div class="mt-10 border-t border-gray-300 pt-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
