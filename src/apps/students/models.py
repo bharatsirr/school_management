@@ -285,7 +285,7 @@ class StudentAdmission(models.Model):
     admission_date = models.DateTimeField(auto_now_add=True)
     session = models.CharField(max_length=9, help_text="e.g., 2023-2024 leave blank to set to current session", default=generate_session)
     student_class = models.CharField(max_length=20, help_text="Class (e.g., 10, 12, etc.)" , choices=CLASS_CHOICES)
-    course = models.ForeignKey('Courses', on_delete=models.SET_NULL, null=True, blank=True)
+    course = models.ForeignKey('Course', on_delete=models.SET_NULL, null=True, blank=True)
     fee_structure = models.ForeignKey(FeeStructure, on_delete=models.CASCADE, related_name="student_admissions")
     total_fee = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total fee amount")
     no_dues = models.BooleanField(default=False)
@@ -419,12 +419,14 @@ class StudentAdmission(models.Model):
 
 
 
-class Courses(models.Model):
+class Course(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField()
+    subjects = models.ManyToManyField("Subject", through="CourseSubject", related_name="courses")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    subjects = models.ManyToManyField('Subjects', related_name='courses')
+    #subjects = models.ManyToManyField('Subject', related_name='courses')
 
     def save(self, *args, **kwargs):
         self.name = self.name.upper()
@@ -437,7 +439,8 @@ class Courses(models.Model):
         return f"{self.name} ({formatted_created_at})| Sub: {subject_names} - {self.description}"
 
 
-class Subjects(models.Model):
+class Subject(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -450,3 +453,19 @@ class Subjects(models.Model):
     def __str__(self):
         formatted_created_at = self.created_at.strftime('%b %d, %Y')  
         return f"{self.name} ({formatted_created_at}) - {self.description}"
+
+
+
+class CourseSubject(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="coursesubjects")
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="subjectcourses")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['course', 'subject'], name='unique_course_subject')
+        ]
+
+    def __str__(self):
+        return f"{self.course.name} - {self.subject.name}"
