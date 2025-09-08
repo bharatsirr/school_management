@@ -36,7 +36,11 @@ class Migration(migrations.Migration):
             model_name='courses',
             name='subjects',
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='studentadmission',
+            name='course',
+        ),
+        migrations.AddField(
             model_name='studentadmission',
             name='course',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='students.course'),
