@@ -295,8 +295,8 @@ class StudentAdmission(models.Model):
     def __str__(self):
         return f"{self.student.user.first_name} {self.student.user.last_name} - {self.student_class} {self.section}"
 
-
-        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ['-admission_date']
 
     def generate_kdpv_serial(self, student):
         """
@@ -469,3 +469,34 @@ class CourseSubject(models.Model):
 
     def __str__(self):
         return f"{self.course.name} - {self.subject.name}"
+
+
+
+class Session(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    start_date = models.DateField(unique=True)  # Optional: unique constraint
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-start_date']
+
+    def clean(self):
+        if self.end_date <= self.start_date:
+            raise ValidationError("End date must be after start date.")
+
+        if self.is_active:
+            existing = Session.objects.filter(is_active=True)
+            if self.pk:
+                existing = existing.exclude(pk=self.pk)
+            if existing.exists():
+                raise ValidationError("Only one session can be active at a time.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Calls clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.start_date.year}–{self.end_date.year}"
