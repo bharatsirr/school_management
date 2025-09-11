@@ -1,0 +1,38 @@
+<!-- templates/students/marks_entry.html -->
+{% extends "base.html" %}
+{% block content %}
+{% load custom_tags %}
+<h2>Enter Marks – {{ exam_course_subject.exam.name }} / {{ exam_course_subject.course_subject.subject.name }}</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <table border="1" cellpadding="5">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Marks (A = Absent)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for form, student in formset.forms|zip_lists:students %}
+  <tr>
+    <td>{{ student.student.user.get_full_name }}</td>
+    <td>
+      {{ form.score }}
+      {{ form.student_admission }}
+      {{ form.exam_course_subject }}
+      {{ form.id }}
+    </td>
+  </tr>
+{% endfor %}
+
+    </tbody>
+  </table>
+  <button type="submit">Save Marks</button>
+</form>
+
+<a href="{% url 'subject_list' exam_course_subject.exam.session.id exam_course_subject.exam.id course_id %}">
+  ← Back to Subjects
+</a>
+{% endblock content %}

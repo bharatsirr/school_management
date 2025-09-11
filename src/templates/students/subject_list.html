@@ -1,0 +1,16 @@
+<!-- templates/students/subject_list.html -->
+{% extends "base.html" %}
+{% block content %}
+<h2>Subjects for {{ course.name }} in {{ exam.name }}</h2>
+<ul>
+  {% for ecs in subjects %}
+    <li>
+      {{ ecs.course_subject.subject.name }}
+      <a href="{% url 'marks_entry' ecs.id course.id %}">Enter Marks</a>
+    </li>
+  {% empty %}
+    <li>No subjects found for this exam/class.</li>
+  {% endfor %}
+</ul>
+<a href="{% url 'select_exam_class' %}">← Back</a>
+{% endblock content %}

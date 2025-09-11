@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, StudentSerial, StudentAdmission, FeeStructure, PreviousInstitutionDetail, FeeDue, FeeType, BoardAcademicDetails, Subject, Course, CourseSubject
+from .models import Student, StudentSerial, StudentAdmission, FeeStructure, PreviousInstitutionDetail, FeeDue, FeeType, BoardAcademicDetails, Subject, Course, CourseSubject, Exam, ExamCourseSubject, Session, Score, ExamType
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -96,3 +96,37 @@ class CourseAdmin(admin.ModelAdmin):
 class CourseSubjectAdmin(admin.ModelAdmin):
     list_display = ('course', 'subject')
     search_fields = ('course__name', 'subject__name')
+
+
+
+
+class ExamCourseSubjectInline(admin.TabularInline):
+    model = ExamCourseSubject
+    extra = 1
+    autocomplete_fields = ["course_subject"]
+
+@admin.register(Exam)
+class ExamAdmin(admin.ModelAdmin):
+    list_display = ["exam_type", "session", "date"]
+    inlines = [ExamCourseSubjectInline]
+
+
+
+@admin.register(ExamType)
+class ExamTypeAdmin(admin.ModelAdmin):
+    list_display = ["name", "description"]
+
+
+@admin.register(Session)
+class SessionAdmin(admin.ModelAdmin):
+    list_display = ["start_date", "end_date", "is_active", "created_at"]
+
+
+
+@admin.register(Score)
+class ScoreAdmin(admin.ModelAdmin):
+    list_display = ["student_admission", "exam_course_subject", "score", "get_mm", "percent"]
+
+    def get_mm(self, obj):
+        return obj.exam_course_subject.mm
+    get_mm.short_description = 'MM'

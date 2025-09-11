@@ -16,7 +16,10 @@ from .views import (StudentRegistrationView,
                     BoardAcademicCreateView,
                     BoardAcademicUpdateView,
                     BoardAcademicListView,
-                    StudentAdmissionUpdateView
+                    StudentAdmissionUpdateView,
+                    SelectSessionExamClassView,
+                    SubjectListView,
+                    MarksEntryView
                 )
 
 urlpatterns = [
@@ -44,4 +47,11 @@ urlpatterns = [
     path('board-academic/<uuid:pk>/update/', BoardAcademicUpdateView.as_view(), name='board_update'),
     path('board-academic/', BoardAcademicListView.as_view(), name='board_list'),
     path('update-admission/<uuid:id>/', StudentAdmissionUpdateView.as_view(), name='update_admission'),
+    
+    path("select/", SelectSessionExamClassView.as_view(), name="select_exam_class"),
+    path("subjects/<uuid:session_id>/<uuid:exam_id>/<uuid:course_id>/", 
+         SubjectListView.as_view(), name="subject_list"),
+    path("marks/<uuid:examcoursesubject_id>/<uuid:course_id>/", 
+         MarksEntryView.as_view(), name="marks_entry"),
+
 ]

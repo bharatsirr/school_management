@@ -1,4 +1,5 @@
 import datetime
+from django.forms import modelformset_factory
 from apps.core.utils import fee_due_generate
 import logging
 from PIL import Image
@@ -7,7 +8,7 @@ from django.forms import ModelChoiceField
 from django.db.models import Subquery, OuterRef
 from django.contrib.auth import get_user_model
 from django import forms
-from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutionDetail, FeeStructure, FeeType, FeeDue, BoardAcademicDetails
+from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutionDetail, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, Course, Score
 from apps.finance.models import BankAccountDetail, PaymentTransaction, PaymentSummary, LedgerEntry, LedgerAccountType, WalletTransaction
 from apps.core.utils import pay_family_fee_dues
 from apps.core.models import FamilyMember, Family
@@ -597,3 +598,35 @@ class StudentAdmissionForm(forms.ModelForm):
     class Meta:
         model = StudentAdmission
         fields = [ 'student_class', 'section', 'status', 'roll_number', 'session', 'is_rte', 'course']
+
+
+
+
+class SessionExamClassForm(forms.Form):
+    session = forms.ModelChoiceField(queryset=Session.objects.all(), required=True)
+    exam = forms.ModelChoiceField(queryset=Exam.objects.none(), required=True)
+    course = forms.ModelChoiceField(queryset=Course.objects.all(), required=True)
+
+    def __init__(self, *args, **kwargs):
+        active_session = kwargs.pop("active_session", None)
+        super().__init__(*args, **kwargs)
+
+        # Default session
+        if active_session:
+            self.fields["session"].initial = active_session
+
+        # Dynamically load exams for active session
+        if active_session:
+            self.fields["exam"].queryset = Exam.objects.filter(session=active_session)
+
+
+
+
+class ScoreForm(forms.ModelForm):
+    class Meta:
+        model = Score
+        fields = ["score", "student_admission", "exam_course_subject"]
+        widgets = {
+            "student_admission": forms.HiddenInput(),
+            "exam_course_subject": forms.HiddenInput(),
+        }

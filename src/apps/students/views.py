@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
+from django.forms import modelformset_factory
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
-from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm
+from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, ExamCourseSubject, Course, Score
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm, SessionExamClassForm, ScoreForm
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -751,3 +752,114 @@ class StudentAdmissionUpdateView(LoginRequiredMixin, UpdateView):
     
     # Define where to redirect after successful update
     success_url = reverse_lazy('student_admission_list')  # Change this URL to match your URL pattern
+
+
+
+
+class SelectSessionExamClassView(View):
+    template_name = 'students/select_session_exam_class.html'
+
+    def get(self, request):
+        active_session = Session.objects.filter(is_active=True).first()
+        form = SessionExamClassForm(active_session=active_session)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request):
+        active_session = Session.objects.filter(is_active=True).first()
+        form = SessionExamClassForm(request.POST, active_session=active_session)
+        if form.is_valid():
+            session = form.cleaned_data["session"].id
+            exam = form.cleaned_data["exam"].id
+            course = form.cleaned_data["course"].id
+            return redirect("subject_list", session_id=session, exam_id=exam, course_id=course)
+        return render(request, self.template_name, {"form": form})
+
+
+
+
+
+class SubjectListView(View):
+    template_name = "students/subject_list.html"
+
+    def get(self, request, session_id, exam_id, course_id):
+        exam = get_object_or_404(Exam, id=exam_id, session_id=session_id)
+        course = get_object_or_404(Course, id=course_id)
+
+        subjects = ExamCourseSubject.objects.filter(
+            exam=exam,
+            course_subject__course=course
+        ).select_related("course_subject__subject")
+
+        return render(request, self.template_name, {
+            "exam": exam,
+            "course": course,
+            "subjects": subjects
+        })
+
+
+
+
+class MarksEntryView(View):
+    template_name = "students/marks_entry.html"
+
+    def get(self, request, examcoursesubject_id, course_id):
+        exam_course_subject = get_object_or_404(ExamCourseSubject, id=examcoursesubject_id)
+        students = StudentAdmission.objects.filter(course_id=course_id).order_by("roll_number")
+
+        # ensure score rows exist
+        for student in students:
+            Score.objects.get_or_create(
+                student_admission=student,
+                exam_course_subject=exam_course_subject,
+                defaults={"score": None},
+            )
+
+        queryset = Score.objects.filter(
+            exam_course_subject=exam_course_subject,
+            student_admission__in=students
+        ).order_by("student_admission__roll_number")
+
+        ScoreFormSet = modelformset_factory(Score, form=ScoreForm, extra=0, can_delete=False)
+        formset = ScoreFormSet(queryset=queryset)
+
+        return render(request, self.template_name, {
+            "formset": formset,
+            "exam_course_subject": exam_course_subject,
+            "students": students,
+            "course_id": course_id,
+        })
+
+
+    def post(self, request, examcoursesubject_id, course_id):
+        exam_course_subject = get_object_or_404(ExamCourseSubject, id=examcoursesubject_id)
+        students = StudentAdmission.objects.filter(course_id=course_id).order_by("roll_number")
+
+        queryset = Score.objects.filter(
+            exam_course_subject=exam_course_subject,
+            student_admission__in=students
+        ).order_by("student_admission__id")
+
+        ScoreFormSet = modelformset_factory(Score, form=ScoreForm, extra=0, can_delete=False)
+        formset = ScoreFormSet(request.POST, queryset=queryset)
+
+        if formset.is_valid():
+            formset.save()
+            return redirect(
+                "subject_list",
+                session_id=exam_course_subject.exam.session.id,
+                exam_id=exam_course_subject.exam.id,
+                course_id=course_id
+            )
+        if not formset.is_valid():
+            print("Formset errors:", formset.errors)
+            print("Non-form errors:", formset.non_form_errors())
+
+
+        print(formset.errors)
+        return render(request, self.template_name, {
+            "formset": formset,
+            "exam_course_subject": exam_course_subject,
+            "students": students,
+            "course_id": course_id,
+        })
+

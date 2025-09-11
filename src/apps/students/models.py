@@ -194,8 +194,10 @@ class StudentSerial(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def clean(self):
+    def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
         # Check if a StudentSerial already exists for this student and school_name
+        
         if StudentSerial.objects.filter(student=self.student, school_name=self.school_name).exists():
             raise ValidationError(f"A serial number already exists for {self.student} at {self.school_name}.")
 
@@ -297,6 +299,12 @@ class StudentAdmission(models.Model):
 
     class Meta:
         ordering = ['-admission_date']
+
+    def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
+        if self.course:
+            if self.student_class != self.course.applicable_for:
+                raise ValidationError("The student's class does not match the course's applicable class.")
 
     def generate_kdpv_serial(self, student):
         """
@@ -422,8 +430,9 @@ class StudentAdmission(models.Model):
 class Course(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.CharField(max_length=255, null=True, blank=True)
     subjects = models.ManyToManyField("Subject", through="CourseSubject", related_name="courses")
+    applicable_for = models.CharField(max_length=20, help_text="Class (e.g., 10, 12, etc.)" , choices=StudentAdmission.CLASS_CHOICES, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     #subjects = models.ManyToManyField('Subject', related_name='courses')
@@ -433,16 +442,16 @@ class Course(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        formatted_created_at = self.created_at.strftime('%b %d, %Y')  
-        subject_names = ', '.join(self.subjects.values_list('name', flat=True))
-        
-        return f"{self.name} ({formatted_created_at})| Sub: {subject_names} - {self.description}"
+        formatted_created_at = self.created_at.strftime('%b %d, %Y') if self.created_at else "N/A"
+        subject_names = ', '.join([subject.name for subject in self.subjects.all()])
+        return f"{self.name} ({formatted_created_at}) | Sub: {subject_names} - {self.description or ''}"
+
 
 
 class Subject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -483,7 +492,8 @@ class Session(models.Model):
     class Meta:
         ordering = ['-start_date']
 
-    def clean(self):
+    def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
         if self.end_date <= self.start_date:
             raise ValidationError("End date must be after start date.")
 
@@ -500,3 +510,102 @@ class Session(models.Model):
 
     def __str__(self):
         return f"{self.start_date.year}–{self.end_date.year}"
+
+
+
+
+
+class ExamType(models.Model):
+    """
+    A template for types of exams (e.g., Half-Yearly, Monthly, Finals).
+    Reused across years/sessions.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)  # e.g., "HALF YEARLY"
+    description = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Optional extra info, e.g., 'Monthly-1'"
+    )
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.upper()
+        if self.description:
+            self.description = self.description.upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.description})" if self.description else self.name
+
+
+class Exam(models.Model):
+    """
+    A concrete exam instance tied to a session/year.
+    E.g., Half-Yearly 2025 for Class 9.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    exam_type = models.ForeignKey(ExamType, on_delete=models.PROTECT, related_name="exams")
+    session = models.ForeignKey("Session", on_delete=models.PROTECT, related_name="exams")
+    date = models.DateField(null=True, blank=True)  # optional: date exam starts
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("exam_type", "session")
+
+    def __str__(self):
+        return f"{self.exam_type.name} - {self.session.start_date.year}-{self.session.end_date.year}"
+
+
+class ExamCourseSubject(models.Model):
+    """
+    Links an exam to a subject in a course for a given session.
+    Allows different maximum marks per subject/exam.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="exam_subjects")
+    course_subject = models.ForeignKey("CourseSubject", on_delete=models.PROTECT, related_name="exam_subjects")
+    mm = models.DecimalField(max_digits=7, decimal_places=2, help_text="Maximum marks")
+
+    class Meta:
+        unique_together = ("exam", "course_subject")
+
+    def __str__(self):
+        return f"{self.exam} - {self.course_subject} (MM: {self.mm})"
+
+
+class Score(models.Model):
+    """
+    Stores marks per student per exam-subject.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student_admission = models.ForeignKey("StudentAdmission", on_delete=models.CASCADE, related_name="scores")
+    exam_course_subject = models.ForeignKey(ExamCourseSubject, on_delete=models.CASCADE, related_name="scores")
+    score = models.DecimalField(max_digits=7, decimal_places=2, help_text="Obtained marks", null=True, blank=True)
+    percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Percentage (auto-calculated)")
+
+
+    def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
+        if self.score is not None and self.exam_course_subject and self.exam_course_subject.mm is not None:
+            if self.score > self.exam_course_subject.mm:
+                raise ValidationError("Marks cannot exceed maximum marks for this subject.")
+
+    class Meta:
+        unique_together = ("student_admission", "exam_course_subject")
+
+    def save(self, *args, **kwargs):
+        if self.score is not None and self.exam_course_subject and self.exam_course_subject.mm > 0:
+            self.percent = round((self.score / self.exam_course_subject.mm) * 100, 2)
+        else:
+            self.percent = None
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
+        student = self.student_admission.student.user.username
+        subj = self.exam_course_subject.course_subject.subject.name
+        score_display = f"{self.score}/{self.exam_course_subject.mm}" if self.score is not None else "N/A"
+        return f"{student} - {subj} {score_display}"
+
