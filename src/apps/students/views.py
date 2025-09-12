@@ -523,7 +523,7 @@ class StudentAdmissionListView(LoginRequiredMixin, ListView):
         ).prefetch_related(
             Prefetch('student__user__phones'), 
             Prefetch('student__previous_institution')
-        ).order_by('roll_number')
+        ).order_by('-admission_date')
 
         filters = {}
         if class_code:
