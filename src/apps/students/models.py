@@ -435,7 +435,7 @@ class Course(models.Model):
     applicable_for = models.CharField(max_length=20, help_text="Class (e.g., 10, 12, etc.)" , choices=StudentAdmission.CLASS_CHOICES, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    #subjects = models.ManyToManyField('Subject', related_name='courses')
+    
 
     def save(self, *args, **kwargs):
         self.name = self.name.upper()
