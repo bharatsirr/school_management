@@ -601,6 +601,10 @@ class Score(models.Model):
         unique_together = ("student_admission", "exam_course_subject")
 
     def save(self, *args, **kwargs):
+        minm = self.exam_course_subject.mm
+        minm = minm*33/100
+        if self.score is None or self.score < minm:
+            self.score = minm
         if self.score is not None and self.exam_course_subject and self.exam_course_subject.mm > 0:
             self.percent = round((self.score / self.exam_course_subject.mm) * 100, 2)
         else:
