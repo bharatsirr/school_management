@@ -53,7 +53,7 @@ urlpatterns = [
     path("select/", SelectSessionExamClassView.as_view(), name="select_exam_class"),
     path("subjects/<uuid:session_id>/<uuid:exam_id>/<uuid:course_id>/", 
          SubjectListView.as_view(), name="subject_list"),
-    path("marks/<uuid:examcoursesubject_id>/<uuid:course_id>/", 
+    path("marks/<uuid:examcoursesubject_id>/<uuid:course_id>/<uuid:session_id>/", 
          MarksEntryView.as_view(), name="marks_entry"),
     path("exam-course-subjects/<uuid:exam_id>/<uuid:course_id>/", exam_course_subject_setup, name="exam_course_subjects"),
     path("select-exam-course/", select_exam_course_view, name="select_exam_course"),

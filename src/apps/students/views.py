@@ -784,6 +784,7 @@ class SubjectListView(View):
     def get(self, request, session_id, exam_id, course_id):
         exam = get_object_or_404(Exam, id=exam_id, session_id=session_id)
         course = get_object_or_404(Course, id=course_id)
+        session = get_object_or_404(Session, id=session_id)
 
         subjects = ExamCourseSubject.objects.filter(
             exam=exam,
@@ -793,7 +794,8 @@ class SubjectListView(View):
         return render(request, self.template_name, {
             "exam": exam,
             "course": course,
-            "subjects": subjects
+            "subjects": subjects,
+            "session": session
         })
 
 
@@ -802,9 +804,11 @@ class SubjectListView(View):
 class MarksEntryView(View):
     template_name = "students/marks_entry.html"
 
-    def get(self, request, examcoursesubject_id, course_id):
+    def get(self, request, examcoursesubject_id, course_id, session_id):
         exam_course_subject = get_object_or_404(ExamCourseSubject, id=examcoursesubject_id)
-        students = StudentAdmission.objects.filter(course_id=course_id).order_by("roll_number")
+        session_obj = Session.objects.filter(id=session_id).first()
+        session = f"{session_obj.start_date.year}-{session_obj.end_date.year}"
+        students = StudentAdmission.objects.filter(course_id=course_id, session=session).order_by("roll_number")
 
         # ensure score rows exist
         for student in students:
@@ -830,9 +834,11 @@ class MarksEntryView(View):
         })
 
 
-    def post(self, request, examcoursesubject_id, course_id):
+    def post(self, request, examcoursesubject_id, course_id, session_id):
         exam_course_subject = get_object_or_404(ExamCourseSubject, id=examcoursesubject_id)
-        students = StudentAdmission.objects.filter(course_id=course_id).order_by("roll_number")
+        session_obj = Session.objects.filter(id=session_id).first()
+        session = f"{session_obj.start_date.year}-{session_obj.end_date.year}"
+        students = StudentAdmission.objects.filter(course_id=course_id, session=session).order_by("roll_number")
 
         queryset = Score.objects.filter(
             exam_course_subject=exam_course_subject,
@@ -846,7 +852,7 @@ class MarksEntryView(View):
             formset.save()
             return redirect(
                 "subject_list",
-                session_id=exam_course_subject.exam.session.id,
+                session_id=session_id,
                 exam_id=exam_course_subject.exam.id,
                 course_id=course_id
             )

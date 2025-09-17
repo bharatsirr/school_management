@@ -6,7 +6,7 @@
   {% for ecs in subjects %}
     <li>
       {{ ecs.course_subject.subject.name }}
-      <a href="{% url 'marks_entry' ecs.id course.id %}">Enter Marks</a>
+      <a href="{% url 'marks_entry' ecs.id course.id session.id %}">Enter Marks</a>
     </li>
   {% empty %}
     <li>No subjects found for this exam/class.</li>
