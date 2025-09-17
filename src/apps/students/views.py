@@ -996,9 +996,12 @@ def select_exam_course_view(request):
 
 
 
+from django.db.models import Sum
+
 @login_required
 def score_list_view(request, course_id, session_id):
     course = get_object_or_404(Course, id=course_id)
+    class_var = course.applicable_for
     session_obj = get_object_or_404(Session, id=session_id)
     session = f"{session_obj.start_date.year}-{session_obj.end_date.year}"
     
@@ -1036,28 +1039,49 @@ def score_list_view(request, course_id, session_id):
         exams_for_subject = [ecs.exam.name for ecs in ecs if ecs.course_subject_id == cs.id]
         headers.append({"subject": cs.subject.name, "exams": exams_for_subject})
     
-    # Build rows
+    # Build rows with totals
     rows = []
-    # Inside your score_list_view
     for student in students:
         row_scores = {}
+        total = 0
         for h in headers:
             for exam in h["exams"]:
                 key = f"{h['subject']}|{exam}"
-                row_scores[key] = score_map.get((student.id, h["subject"], exam), "-")
-
+                val = score_map.get((student.id, h["subject"], exam), None)
+                if val is None:
+                    row_scores[key] = "-"
+                else:
+                    row_scores[key] = val
+                    total += val
         rows.append({
             "student": student.student.user.get_full_name(),
-            "scores": row_scores
+            "scores": row_scores,
+            "total": total
         })
-
     
+    # Assign ranks
+    sorted_rows = sorted(rows, key=lambda r: r["total"], reverse=True)
+    rank_map = {}
+    current_rank = 1
+    for idx, row in enumerate(sorted_rows):
+        if idx > 0 and row["total"] == sorted_rows[idx-1]["total"]:
+            rank_map[row["student"]] = rank_map[sorted_rows[idx-1]["student"]]  # same rank for tie
+        else:
+            rank_map[row["student"]] = current_rank
+        current_rank += 1
+    
+    # Add rank back to rows
+    for row in rows:
+        row["rank"] = rank_map[row["student"]]
+
     context = {
+        "class_var": class_var,
         "course": course,
         "headers": headers,
         "rows": rows
     }
     return render(request, "students/score_list.html", context)
+
 
 
 

@@ -126,7 +126,8 @@ class FeeStructure(models.Model):
     active_objects = ActiveFeeStructureManager()  # Custom manager
 
     def __str__(self):
-        return self.name
+        status = "active" if self.is_active else "inactive"
+        return f"{self.name}({status})-{self.start_date}"
 
     class Meta:
         verbose_name = "Fee Structure"
