@@ -1,5 +1,5 @@
 {% load custom_tags %}
-<h1>Score List of Class {{ class_var }}</h1>
+<h1>Score List of Class {{ class_var }} ({{ session }})</h1>
 <table border="1" cellpadding="5">
   <thead>
     <tr>
@@ -8,6 +8,7 @@
         <th colspan="{{ h.exams|length }}">{{ h.subject }}</th>
       {% endfor %}
       <th rowspan="2">Total</th>
+      <th rowspan="2">Percentage</th>
     </tr>
     <tr>
       {% for h in headers %}
@@ -27,6 +28,7 @@
           {% endfor %}
         {% endfor %}
         <td>{{ row.total }}</td>
+        <td>{{ row.percentage }}%</td>
       </tr>
     {% endfor %}
   </tbody>

@@ -996,8 +996,6 @@ def select_exam_course_view(request):
 
 
 
-from django.db.models import Sum
-
 @login_required
 def score_list_view(request, course_id, session_id):
     course = get_object_or_404(Course, id=course_id)
@@ -1006,7 +1004,9 @@ def score_list_view(request, course_id, session_id):
     session = f"{session_obj.start_date.year}-{session_obj.end_date.year}"
     
     # Students
-    students = StudentAdmission.objects.filter(course=course, session=session).select_related("student__user").order_by("roll_number")
+    students = StudentAdmission.objects.filter(
+        course=course, session=session
+    ).select_related("student__user").order_by("roll_number")
     
     # Subjects for this course
     course_subjects = CourseSubject.objects.filter(course=course).select_related("subject")
@@ -1017,6 +1017,9 @@ def score_list_view(request, course_id, session_id):
         exam__session_id=session_id
     ).select_related("exam", "course_subject__subject")
     
+    # Max possible marks for this course+session
+    max_total = sum(e.mm for e in ecs if e.mm is not None)
+    
     # Map for quick lookup
     ecs_map = {(e.course_subject.subject.name, e.exam.name): e.id for e in ecs}
     
@@ -1024,7 +1027,11 @@ def score_list_view(request, course_id, session_id):
     scores = Score.objects.filter(
         student_admission__in=students,
         exam_course_subject__in=ecs
-    ).select_related("student_admission", "exam_course_subject__exam", "exam_course_subject__course_subject__subject")
+    ).select_related(
+        "student_admission", 
+        "exam_course_subject__exam", 
+        "exam_course_subject__course_subject__subject"
+    )
     
     # Scores lookup dict
     score_map = {}
@@ -1039,7 +1046,7 @@ def score_list_view(request, course_id, session_id):
         exams_for_subject = [ecs.exam.name for ecs in ecs if ecs.course_subject_id == cs.id]
         headers.append({"subject": cs.subject.name, "exams": exams_for_subject})
     
-    # Build rows with totals
+    # Build rows with totals & percentages
     rows = []
     for student in students:
         row_scores = {}
@@ -1053,10 +1060,14 @@ def score_list_view(request, course_id, session_id):
                 else:
                     row_scores[key] = val
                     total += val
+        
+        percentage = (total / max_total * 100) if max_total > 0 else 0
+        
         rows.append({
             "student": student.student.user.get_full_name(),
             "scores": row_scores,
-            "total": total
+            "total": total,
+            "percentage": round(percentage, 2)  # keep 2 decimal places
         })
     
     # Assign ranks
@@ -1070,7 +1081,6 @@ def score_list_view(request, course_id, session_id):
             rank_map[row["student"]] = current_rank
         current_rank += 1
     
-    # Add rank back to rows
     for row in rows:
         row["rank"] = rank_map[row["student"]]
 
@@ -1078,9 +1088,11 @@ def score_list_view(request, course_id, session_id):
         "class_var": class_var,
         "course": course,
         "headers": headers,
-        "rows": rows
+        "rows": rows,
+        "session": session,
     }
     return render(request, "students/score_list.html", context)
+
 
 
 
