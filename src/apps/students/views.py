@@ -20,6 +20,9 @@ from apps.core.models import Family, FamilyMember, Phone
 from django.templatetags.static import static
 from apps.core.utils import fee_due_generate
 User = get_user_model()
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -872,21 +875,54 @@ class MarksEntryView(View):
 
 
 
+
 @login_required
 def exam_course_subject_setup(request, exam_id, course_id):
     exam = get_object_or_404(Exam, id=exam_id)
     course = get_object_or_404(Course, id=course_id)
 
-    # All subjects for this course
-    course_subjects = CourseSubject.objects.filter(course=course).select_related("subject")
+    # 1) load course subjects in a stable order
+    course_subjects = CourseSubject.objects.filter(course=course).select_related("subject").order_by("id")
 
-    # Fetch existing ECS for this exam+course
-    existing = ExamCourseSubject.objects.filter(
+    # 2) existing ECS for this exam+course (may be incomplete)
+    existing_qs = ExamCourseSubject.objects.filter(
         exam=exam,
         course_subject__in=course_subjects
     ).select_related("course_subject")
 
-    ecs_map = {ecs.course_subject_id: ecs for ecs in existing}
+    # map existing by course_subject id
+    ecs_map = {ecs.course_subject_id: ecs for ecs in existing_qs}
+
+    # 3) create missing ECS entries BEFORE formset is created (avoids mismatches)
+    created_any = False
+    for cs in course_subjects:
+        if cs.id not in ecs_map:
+            # default mm logic (adjust to your naming conventions)
+            name_lower = (exam.name or "").strip().lower()
+            if name_lower.startswith("fa"):
+                default_mm = 20
+            elif name_lower.startswith("sa1"):
+                default_mm = 30
+            elif name_lower.startswith("sa2"):
+                default_mm = 50
+            elif "half" in name_lower:
+                default_mm = 50
+            else:
+                default_mm = 100
+
+            ecs = ExamCourseSubject.objects.create(
+                exam=exam,
+                course_subject=cs,
+                mm=default_mm
+            )
+            ecs_map[cs.id] = ecs
+            created_any = True
+
+    # 4) rebuild queryset now that all rows exist and order it to match course_subjects
+    existing = ExamCourseSubject.objects.filter(
+        exam=exam,
+        course_subject__in=course_subjects
+    ).select_related("course_subject").order_by("course_subject__id")
 
     ExamCourseSubjectFormSet = modelformset_factory(
         ExamCourseSubject,
@@ -897,42 +933,41 @@ def exam_course_subject_setup(request, exam_id, course_id):
 
     if request.method == "POST":
         formset = ExamCourseSubjectFormSet(request.POST, queryset=existing)
-        if formset.is_valid():
-            # Save existing ECS first
-            instances = formset.save(commit=False)
-            for obj in instances:
-                obj.exam = exam
-                obj.save()
-
-            # Now handle missing ones
-            for cs in course_subjects:
-                if cs.id not in ecs_map:
-                    # apply defaults (ex: half-yearly default 50)
-                    if exam.name.lower().startswith("fa"):
-                        default_mm = 20
-                    elif exam.name.lower().startswith("sa1"):
-                        default_mm = 30
-                    elif exam.name.lower().startswith("sa2"):
-                        default_mm = 50
-
-                    ExamCourseSubject.objects.create(
-                        exam=exam,
-                        course_subject=cs,
-                        mm=default_mm
-                    )
-            return redirect("select_exam_course")  # or your own page
+        if not formset.is_valid():
+            # debug info for you (view console / logs)
+            logger.debug("ExamCourseSubject formset invalid. errors: %s", formset.errors)
+            logger.debug("Non-form errors: %s", formset.non_form_errors())
+            # attach message to show in UI if you render messages
+            messages.error(request, "There were errors saving. See logs or scroll up for details.")
+        else:
+            # Explicit save inside transaction
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    # save changed/created instances
+                    for inst in instances:
+                        # ensure exam and course_subject are consistent (should already be)
+                        inst.exam = exam
+                        # inst.course_subject must already be set on instance (from queryset)
+                        inst.save()
+                    # If can_delete=True and some were deleted: handle them
+                    for obj in getattr(formset, "deleted_objects", []):
+                        obj.delete()
+                    # commit any m2m if present (not likely here)
+                    formset.save_m2m()
+                messages.success(request, "Exam subjects saved successfully.")
+                # redirect back to same page to show updated values
+                return redirect("exam_course_subjects", exam_id=exam.id, course_id=course.id)
+            except Exception as e:
+                logger.exception("Failed to save ExamCourseSubject formset: %s", e)
+                messages.error(request, "Failed to save changes. Check server logs.")
     else:
-        # Prepopulate formset with existing ECS or defaults
-        initial_data = []
-        for cs in course_subjects:
-            if cs.id in ecs_map:
-                ecs = ecs_map[cs.id]
-                initial_data.append({"id": ecs.id, "mm": ecs.mm})
-            else:
-                default_mm = 50 if exam.name.lower() == "half yearly" else 100
-                initial_data.append({"mm": default_mm})
+        # GET: build formset from existing queryset
+        formset = ExamCourseSubjectFormSet(queryset=existing)
 
-        formset = ExamCourseSubjectFormSet(queryset=existing, initial=initial_data)
+        # If we just created missing rows, optionally notify
+        if created_any:
+            messages.info(request, "Default exam-subject rows created for missing subjects. Adjust marks if needed.")
 
     return render(request, "students/exam_course_subject_setup.html", {
         "exam": exam,
@@ -940,6 +975,7 @@ def exam_course_subject_setup(request, exam_id, course_id):
         "course_subjects": course_subjects,
         "formset": formset,
     })
+
 
 
 
