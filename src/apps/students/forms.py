@@ -8,7 +8,7 @@ from django.forms import ModelChoiceField
 from django.db.models import Subquery, OuterRef
 from django.contrib.auth import get_user_model
 from django import forms
-from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutionDetail, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, Course, Score
+from .models import Student, StudentSerial, StudentAdmission, PreviousInstitutionDetail, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, Course, Score, ExamCourseSubject
 from apps.finance.models import BankAccountDetail, PaymentTransaction, PaymentSummary, LedgerEntry, LedgerAccountType, WalletTransaction
 from apps.core.utils import pay_family_fee_dues
 from apps.core.models import FamilyMember, Family
@@ -630,3 +630,17 @@ class ScoreForm(forms.ModelForm):
             "student_admission": forms.HiddenInput(),
             "exam_course_subject": forms.HiddenInput(),
         }
+
+
+
+
+class ExamCourseSubjectForm(forms.ModelForm):
+    class Meta:
+        model = ExamCourseSubject
+        fields = ["mm"]
+
+
+
+class ExamCourseSelectForm(forms.Form):
+    exam = forms.ModelChoiceField(queryset=Exam.objects.all(), required=True)
+    course = forms.ModelChoiceField(queryset=Course.objects.all(), required=True)

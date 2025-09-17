@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+{% block content %}
+<h2>Setup Exam Subjects – {{ exam.name }} / {{ course.name }}</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <table border="1" cellpadding="5">
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>Max Marks</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for form, cs in formset.forms|zip_lists:course_subjects %}
+        <tr>
+          <td>{{ cs.subject.name }}</td>
+          <td>{{ form.mm }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors" type="submit">Save</button>
+</form>
+{% endblock content %}

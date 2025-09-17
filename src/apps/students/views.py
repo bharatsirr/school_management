@@ -1,8 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
-from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, ExamCourseSubject, Course, Score
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm, SessionExamClassForm, ScoreForm
+from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, ExamCourseSubject, Course, Score, CourseSubject
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm, SessionExamClassForm, ScoreForm, ExamCourseSubjectForm, ExamCourseSelectForm
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -863,3 +863,91 @@ class MarksEntryView(View):
             "course_id": course_id,
         })
 
+
+
+
+@login_required
+def exam_course_subject_setup(request, exam_id, course_id):
+    exam = get_object_or_404(Exam, id=exam_id)
+    course = get_object_or_404(Course, id=course_id)
+
+    # All subjects for this course
+    course_subjects = CourseSubject.objects.filter(course=course).select_related("subject")
+
+    # Fetch existing ECS for this exam+course
+    existing = ExamCourseSubject.objects.filter(
+        exam=exam,
+        course_subject__in=course_subjects
+    ).select_related("course_subject")
+
+    ecs_map = {ecs.course_subject_id: ecs for ecs in existing}
+
+    ExamCourseSubjectFormSet = modelformset_factory(
+        ExamCourseSubject,
+        form=ExamCourseSubjectForm,
+        extra=0,
+        can_delete=False
+    )
+
+    if request.method == "POST":
+        formset = ExamCourseSubjectFormSet(request.POST, queryset=existing)
+        if formset.is_valid():
+            # Save existing ECS first
+            instances = formset.save(commit=False)
+            for obj in instances:
+                obj.exam = exam
+                obj.save()
+
+            # Now handle missing ones
+            for cs in course_subjects:
+                if cs.id not in ecs_map:
+                    # apply defaults (ex: half-yearly default 50)
+                    if exam.name.lower().startswith("fa"):
+                        default_mm = 20
+                    elif exam.name.lower().startswith("sa1"):
+                        default_mm = 30
+                    elif exam.name.lower().startswith("sa2"):
+                        default_mm = 50
+
+                    ExamCourseSubject.objects.create(
+                        exam=exam,
+                        course_subject=cs,
+                        mm=default_mm
+                    )
+            return redirect("select_exam_course")  # or your own page
+    else:
+        # Prepopulate formset with existing ECS or defaults
+        initial_data = []
+        for cs in course_subjects:
+            if cs.id in ecs_map:
+                ecs = ecs_map[cs.id]
+                initial_data.append({"id": ecs.id, "mm": ecs.mm})
+            else:
+                default_mm = 50 if exam.name.lower() == "half yearly" else 100
+                initial_data.append({"mm": default_mm})
+
+        formset = ExamCourseSubjectFormSet(queryset=existing, initial=initial_data)
+
+    return render(request, "students/exam_course_subject_setup.html", {
+        "exam": exam,
+        "course": course,
+        "course_subjects": course_subjects,
+        "formset": formset,
+    })
+
+
+
+
+@login_required
+def select_exam_course_view(request):
+    if request.method == "POST":
+        form = ExamCourseSelectForm(request.POST)
+        if form.is_valid():
+            exam = form.cleaned_data['exam']
+            course = form.cleaned_data['course']
+            # Redirect to your create/update view for exam course subjects
+            return redirect('exam_course_subjects', exam_id=exam.id, course_id=course.id)
+    else:
+        form = ExamCourseSelectForm()
+
+    return render(request, "students/select_exam_course.html", {"form": form})
