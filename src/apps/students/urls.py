@@ -21,7 +21,9 @@ from .views import (StudentRegistrationView,
                     SubjectListView,
                     MarksEntryView,
                     exam_course_subject_setup,
-                    select_exam_course_view
+                    select_exam_course_view,
+                    score_list_view,
+                    crosslist_class_select_view
                 )
 
 urlpatterns = [
@@ -57,5 +59,7 @@ urlpatterns = [
          MarksEntryView.as_view(), name="marks_entry"),
     path("exam-course-subjects/<uuid:exam_id>/<uuid:course_id>/", exam_course_subject_setup, name="exam_course_subjects"),
     path("select-exam-course/", select_exam_course_view, name="select_exam_course"),
+    path("score-list-view/<uuid:course_id>/<uuid:session_id>/", score_list_view, name="score_list_view"),
+    path("crosslist-class-select/", crosslist_class_select_view, name="crosslist_class_select")
 
 ]

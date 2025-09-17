@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, ExamCourseSubject, Course, Score, CourseSubject
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm, SessionExamClassForm, ScoreForm, ExamCourseSubjectForm, ExamCourseSelectForm
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm, SessionExamClassForm, ScoreForm, ExamCourseSubjectForm, ExamCourseSelectForm, CrossListClassSelectForm
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -957,3 +957,84 @@ def select_exam_course_view(request):
         form = ExamCourseSelectForm()
 
     return render(request, "students/select_exam_course.html", {"form": form})
+
+
+
+@login_required
+def score_list_view(request, course_id, session_id):
+    course = get_object_or_404(Course, id=course_id)
+    session_obj = get_object_or_404(Session, id=session_id)
+    session = f"{session_obj.start_date.year}-{session_obj.end_date.year}"
+    
+    # Students
+    students = StudentAdmission.objects.filter(course=course, session=session).select_related("student__user").order_by("roll_number")
+    
+    # Subjects for this course
+    course_subjects = CourseSubject.objects.filter(course=course).select_related("subject")
+    
+    # All exam-subjects for this course+session
+    ecs = ExamCourseSubject.objects.filter(
+        course_subject__in=course_subjects,
+        exam__session_id=session_id
+    ).select_related("exam", "course_subject__subject")
+    
+    # Map for quick lookup
+    ecs_map = {(e.course_subject.subject.name, e.exam.name): e.id for e in ecs}
+    
+    # All scores in bulk
+    scores = Score.objects.filter(
+        student_admission__in=students,
+        exam_course_subject__in=ecs
+    ).select_related("student_admission", "exam_course_subject__exam", "exam_course_subject__course_subject__subject")
+    
+    # Scores lookup dict
+    score_map = {}
+    for s in scores:
+        subj = s.exam_course_subject.course_subject.subject.name
+        exam = s.exam_course_subject.exam.name
+        score_map[(s.student_admission.id, subj, exam)] = s.score
+    
+    # Build headers grouped by subject
+    headers = []
+    for cs in course_subjects:
+        exams_for_subject = [ecs.exam.name for ecs in ecs if ecs.course_subject_id == cs.id]
+        headers.append({"subject": cs.subject.name, "exams": exams_for_subject})
+    
+    # Build rows
+    rows = []
+    # Inside your score_list_view
+    for student in students:
+        row_scores = {}
+        for h in headers:
+            for exam in h["exams"]:
+                key = f"{h['subject']}|{exam}"
+                row_scores[key] = score_map.get((student.id, h["subject"], exam), "-")
+
+        rows.append({
+            "student": student.student.user.get_full_name(),
+            "scores": row_scores
+        })
+
+    
+    context = {
+        "course": course,
+        "headers": headers,
+        "rows": rows
+    }
+    return render(request, "students/score_list.html", context)
+
+
+
+@login_required
+def crosslist_class_select_view(request):
+    if request.method =="POST":
+        form = CrossListClassSelectForm(request.POST)
+        if form.is_valid():
+            course = form.cleaned_data['course']
+            session = form.cleaned_data['session']
+
+            return redirect('score_list_view', course_id=course.id, session_id=session.id)
+    else:
+        form = CrossListClassSelectForm()
+    
+    return render(request, "students/crosslist_class_select.html", {"form": form})

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% block content %}
+<!-- templates/select_exam_course.html -->
+<h2>Select Session and Course</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form | crispy }}
+    <button type="submit">Go</button>
+</form>
+{% endblock content %}

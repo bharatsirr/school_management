@@ -1,0 +1,32 @@
+{% load custom_tags %}
+
+<table border="1" cellpadding="5">
+  <thead>
+    <tr>
+      <th rowspan="2">Student</th>
+      {% for h in headers %}
+        <th colspan="{{ h.exams|length }}">{{ h.subject }}</th>
+      {% endfor %}
+    </tr>
+    <tr>
+      {% for h in headers %}
+        {% for exam in h.exams %}
+          <th>{{ exam }}</th>
+        {% endfor %}
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      <tr>
+        <td>{{ row.student }}</td>
+        {% for h in headers %}
+          {% for exam in h.exams %}
+            <td>{% get_score row.scores h.subject exam %}</td>
+
+          {% endfor %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

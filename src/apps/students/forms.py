@@ -644,3 +644,9 @@ class ExamCourseSubjectForm(forms.ModelForm):
 class ExamCourseSelectForm(forms.Form):
     exam = forms.ModelChoiceField(queryset=Exam.objects.all(), required=True)
     course = forms.ModelChoiceField(queryset=Course.objects.all(), required=True)
+
+
+
+class CrossListClassSelectForm(forms.Form):
+    session = forms.ModelChoiceField(queryset=Session.objects.all(), required=True)
+    course = forms.ModelChoiceField(queryset=Course.objects.all(), required=True)
