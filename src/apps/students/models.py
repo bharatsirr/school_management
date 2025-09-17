@@ -545,6 +545,7 @@ class Exam(models.Model):
     E.g., Half-Yearly 2025 for Class 9.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, null=True, blank=True)
     exam_type = models.ForeignKey(ExamType, on_delete=models.PROTECT, related_name="exams")
     session = models.ForeignKey("Session", on_delete=models.PROTECT, related_name="exams")
     date = models.DateField(null=True, blank=True)  # optional: date exam starts
@@ -553,8 +554,13 @@ class Exam(models.Model):
     class Meta:
         unique_together = ("exam_type", "session")
 
+    def save(self, *args, **kwargs):
+        if self.name and self.name != None:
+            self.name = self.name.upper()
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.exam_type.name} - {self.session.start_date.year}-{self.session.end_date.year}"
+        return f"{self.name} | {self.exam_type.name} - {self.session.start_date.year}-{self.session.end_date.year}"
 
 
 class ExamCourseSubject(models.Model):

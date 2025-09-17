@@ -107,7 +107,7 @@ class ExamCourseSubjectInline(admin.TabularInline):
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ["exam_type", "session", "date"]
+    list_display = ["name", "exam_type", "session", "date"]
     inlines = [ExamCourseSubjectInline]
 
 
