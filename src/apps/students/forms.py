@@ -97,6 +97,7 @@ class StudentRegistrationForm(forms.Form):
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
     passing_year = forms.IntegerField(
         label='Passing Year',
+        required=False,
         min_value=1000,  # Enforces 4-digit minimum
         max_value=9999,  # Enforces 4-digit maximum
         widget=forms.NumberInput(attrs={
