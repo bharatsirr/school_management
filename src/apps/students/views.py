@@ -1071,18 +1071,11 @@ def score_list_view(request, course_id, session_id):
         })
     
     # Assign ranks
-    sorted_rows = sorted(rows, key=lambda r: r["total"], reverse=True)
-    rank_map = {}
-    current_rank = 1
-    for idx, row in enumerate(sorted_rows):
-        if idx > 0 and row["total"] == sorted_rows[idx-1]["total"]:
-            rank_map[row["student"]] = rank_map[sorted_rows[idx-1]["student"]]  # same rank for tie
-        else:
-            rank_map[row["student"]] = current_rank
-        current_rank += 1
-    
-    for row in rows:
-        row["rank"] = rank_map[row["student"]]
+    totals_sorted = sorted({r["total"] for r in rows}, reverse=True)
+    rank_for_total = {total: idx+1 for idx, total in enumerate(totals_sorted)}
+    for r in rows:
+        r["rank"] = rank_for_total[r["total"]]
+
 
     context = {
         "class_var": class_var,
