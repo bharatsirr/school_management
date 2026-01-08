@@ -173,6 +173,8 @@ AUTHENTICATION_BACKENDS = [
     'apps.core.auth_backend.CustomAuthBackend',
 ]
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv('SESSION_EXPIRE_AT_BROWSER_CLOSE', 'True').lower() == 'true'
+
 LOGIN_REDIRECT_URL = 'home'
 
 LOGOUT_REDIRECT_URL = 'home'
