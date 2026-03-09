@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_tailwind',
     'storages',
+    'django_htmx',
     # Add your apps here
     'apps.core',
     'apps.students',
