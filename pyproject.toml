@@ -23,8 +23,10 @@ dependencies = [
     "graphene-django (>=3.2.3,<4.0.0)",
     "phonenumbers (>=9.0.9,<10.0.0)",
     "gunicorn (>=23.0.0,<24.0.0)",
-    "urllib3 (>=2.6.0,<3.0.0)",
+    "urllib3 (==2.6.3)",
     "django-htmx (>=1.27.0,<2.0.0)",
+    "pillow (==12.1.1)",
+    "sqlparse (==0.5.4)",
 ]
 
 [project.optional-dependencies]
