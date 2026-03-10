@@ -24,7 +24,7 @@
         </title>
     </head>
     <body class="font-mono min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative overflow-x-hidden" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-    <div hx-get="{% url 'ping' %}" hx-trigger="every 100s" hx-swap="none" ></div>
+    {% if user.is_authenticated %} <div hx-get="{% url 'ping' %}" hx-trigger="every 100s" hx-swap="none" ></div>{% endif %}
     <!-- Animated background elements -->
         <div class="fixed inset-0 -z-10">
             <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
