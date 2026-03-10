@@ -22,6 +22,12 @@ class HomeView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'core/home.html')
 
+class ResetLoginSessionTime(LoginRequiredMixin, View):
+    def get(self, request):
+        # Accessing the session or just hitting the view
+        # triggers the SessionMiddleware to update 'last_modified'
+        return HttpResponse(status=204)
+
 class SignupView(View):
     def get(self, request):
         form = UserCreationForm()

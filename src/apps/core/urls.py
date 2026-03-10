@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, UserDocumentUploadView, UserDocumentDeleteView, FamilyDiscountView, generate_fee_due_view, GenerateAllFeeDuesView
-
+from apps.core.views import HomeView, SignupView, LoginView, LogoutView, FamilyListView, FamilyCreateView, \
+    AddFamilyMemberView, UserProfileView, UserProfileUpdateView, UserProfilePhotoUpdateView, WalletTopupView, \
+    UserDocumentUploadView, UserDocumentDeleteView, FamilyDiscountView, generate_fee_due_view, GenerateAllFeeDuesView, \
+    ResetLoginSessionTime
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -19,4 +21,5 @@ urlpatterns = [
     path('families/<uuid:family_id>/discount_topup/', FamilyDiscountView.as_view(), name='discount_topup'),
     path('generate_fee_dues/', generate_fee_due_view, name='generate_fee_dues'),
     path('generate_all_fee_dues/', GenerateAllFeeDuesView.as_view(), name='generate_all_fee_dues'),
+    path('ping/', ResetLoginSessionTime.as_view(), name='ping'),
 ]

@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 ]
 
 ROOT_URLCONF = 'school_management_backend.urls'
@@ -175,7 +176,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv('SESSION_EXPIRE_AT_BROWSER_CLOSE', 'True').lower() == 'true'
-SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', 300))
+SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', 120))
 SESSION_SAVE_EVERY_REQUEST = os.getenv('SESSION_SAVE_EVERY_REQUEST', 'True').lower() == 'true'
 
 LOGIN_REDIRECT_URL = 'home'
