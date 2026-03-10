@@ -1,8 +1,13 @@
+import datetime
+
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView, FormView
 from .models import Student, StudentAdmission, FeeStructure, FeeType, FeeDue, BoardAcademicDetails, Session, Exam, ExamCourseSubject, Course, Score, CourseSubject
-from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm, SessionExamClassForm, ScoreForm, ExamCourseSubjectForm, ExamCourseSelectForm, CrossListClassSelectForm
+from .forms import StudentRegistrationForm, FeeStructureForm, FeeTypeForm, StudentUpdateForm, StudentDocumentForm, \
+    PayFamilyFeeDuesForm, StudentSerial, PreviousInstitutionDetail, BoardAcademicDetailsForm, StudentAdmissionForm, \
+    SessionExamClassForm, ScoreForm, ExamCourseSubjectForm, ExamCourseSelectForm, CrossListClassSelectForm, \
+    PrintAdmitCardForm
 from django.views import View
 from django.utils import timezone
 from django.shortcuts import render, redirect
@@ -1103,3 +1108,118 @@ def crosslist_class_select_view(request):
         form = CrossListClassSelectForm()
     
     return render(request, "students/crosslist_class_select.html", {"form": form})
+
+
+
+@login_required
+def print_admit_card_view(request):
+    form = PrintAdmitCardForm()
+    if request.htmx:
+        if request.method == "POST":
+            form = PrintAdmitCardForm(request.POST)
+            if form.is_valid():
+                course = form.cleaned_data['course']
+                session = form.cleaned_data['session']
+                exam = form.cleaned_data['exam']
+                school_name = "Keshmati Devi Intermediate College, Affi: 86/20-05-2023 Clg: 1553 U-DISE: 09600104005"
+
+                # 1. Setup Reusable Prefetches
+                # Prefetch phones for family members
+                family_user_phones = Prefetch(
+                    'user__phones',
+                    queryset=Phone.objects.all(),
+                    to_attr='prefetched_phones'
+                )
+
+                # Prefetch the family members (and their nested users + phones)
+                family_members_prefetch = Prefetch(
+                    'student__user__family_member__family__members',
+                    queryset=FamilyMember.objects.select_related('user').prefetch_related(family_user_phones),
+                    to_attr='prefetched_family_members'
+                )
+
+                # Prefetch phones specifically for the student
+                student_phones_prefetch = Prefetch(
+                    'student__user__phones',
+                    queryset=Phone.objects.all(),
+                    to_attr='prefetched_phones'
+                )
+
+                # 2. The Main Query
+                # Note: Adjust 'student__user__address' based on your actual Address model relationship
+                admissions = (
+                    StudentAdmission.objects
+                    .filter(course=course, session=f"{session.start_date.year}-{session.end_date.year}")
+                    .select_related(
+                        'student__user',
+                        # 'student__user__address' # Uncomment if Address is a OneToOne/ForeignKey on User
+                    )
+                    .prefetch_related(
+                        student_phones_prefetch,
+                        family_members_prefetch
+                    ).order_by("roll_number")
+                )
+
+                # 3. Flatten the Data for the Template/Export
+                student_data_list = []
+
+                for admission in admissions:
+                    student = admission.student
+                    student_user = student.user
+
+                    # --- Safely Extract Student Data ---
+                    # Assuming address is directly on the user object via select_related
+                    # address_obj = getattr(student_user, 'address', None)
+                    # full_address = address_obj.full_address if address_obj else "N/A"
+
+                    # Safely extract Student Phone (from the prefetched list)
+                    student_phones = getattr(student_user, 'prefetched_phones', [])
+                    student_phone_number = student_phones[0].phone_number if student_phones else "No Phone"
+
+                    # --- Safely Extract Parent Data ---
+                    father_name, father_phone = "N/A", "N/A"
+                    mother_name, mother_phone = "N/A", "N/A"
+
+                    # Safely navigate to the prefetched family members list
+                    family_member_link = getattr(student_user, 'family_member', None)
+                    family = getattr(family_member_link, 'family', None) if family_member_link else None
+                    members = getattr(family, 'prefetched_family_members', [])
+
+                    for member in members:
+                        # Check for Father
+                        if member.member_type == FamilyMember.MemberType.PARENT and member.user.gender == 'Male':
+                            father_name = f"{member.user.first_name} {member.user.last_name}".strip()
+                            f_phones = getattr(member.user, 'prefetched_phones', [])
+                            father_phone = f_phones[0].phone_number if f_phones else "No Phone"
+
+                        # Check for Mother
+                        elif member.member_type == FamilyMember.MemberType.PARENT and member.user.gender == 'Female':
+                            mother_name = f"{member.user.first_name} {member.user.last_name}".strip()
+                            m_phones = getattr(member.user, 'prefetched_phones', [])
+                            mother_phone = m_phones[0].phone_number if m_phones else "No Phone"
+
+                    # 4. Append to our clean dictionary list
+                    student_data_list.append({
+                        'admission_number': admission.id,  # Or whatever your admission ID field is
+                        'student_name': f"{student_user.first_name} {student_user.last_name}".strip(),
+                        'student_phone': student_phone_number,
+                        'father_name': student_user.father_name,
+                        'father_phone': father_phone,
+                        'mother_name': student_user.mother_name,
+                        'mother_phone': mother_phone,
+                        'address': student_user.village,
+                        'roll_no': admission.roll_number,
+                        'school_name': school_name,
+                        'student_img': student_user.profile_photo,
+                        'student_class': admission.student_class,
+                        'school_contact': '7706843352/8081499366',
+                        'school_address': 'Raishree Chauraha, Gauri Bazar',
+                        'session': f"{session.start_date.year}-{session.end_date.year}",
+                        'date': datetime.date.today(),
+                        'exam': exam.name,
+                    })
+
+
+
+                return render(request, "students/print_admit_card_list.html", {"students": student_data_list})
+    return render(request, "students/print_admit_card_view.html", {"form": form})

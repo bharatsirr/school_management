@@ -552,9 +552,6 @@ class Exam(models.Model):
     date = models.DateField(null=True, blank=True)  # optional: date exam starts
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ("exam_type", "session")
-
     def save(self, *args, **kwargs):
         if self.name and self.name != None:
             self.name = self.name.upper()

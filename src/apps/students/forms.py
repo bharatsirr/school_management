@@ -651,3 +651,17 @@ class ExamCourseSelectForm(forms.Form):
 class CrossListClassSelectForm(forms.Form):
     session = forms.ModelChoiceField(queryset=Session.objects.all(), required=True)
     course = forms.ModelChoiceField(queryset=Course.objects.all(), required=True)
+
+
+
+class PrintAdmitCardForm(forms.Form):
+    session = ModelChoiceField(
+        queryset=Session.objects.all(),  # Initially empty queryset
+        label="Session",
+    )
+    course = ModelChoiceField(
+        queryset=Course.objects.all(), label="Course",
+    )
+    exam = ModelChoiceField(
+        queryset=Exam.objects.all(), label="Exam",
+    )

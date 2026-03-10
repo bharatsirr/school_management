@@ -27,6 +27,7 @@ dependencies = [
     "django-htmx (>=1.27.0,<2.0.0)",
     "pillow (==12.1.1)",
     "sqlparse (==0.5.4)",
+    "boto3-stubs (>=1.40.67,<1.41.0)",
 ]
 
 [project.optional-dependencies]

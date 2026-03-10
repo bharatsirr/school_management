@@ -1,0 +1,118 @@
+{% load static %}
+{% block extra_css %}
+    <style>
+    @font-face {
+                font-family: 'Algerian';
+                src: url('{% static "fonts/algerian.ttf" %}') format('truetype');
+            }
+            .school {
+                font-family: 'Algerian', serif;
+                color: #0000a5ff;
+            }
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #cards, #cards * {
+    visibility: visible;
+  }
+
+  #cards {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  .card-component {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+    </style>
+{% endblock extra_css %}
+<div id="cards" class="grid grid-cols-2
+            gap-4
+            ">
+
+    {% for student in students %}
+    <div class="w-[3.2in] h-[1.8in]
+                border border-gray-400
+                rounded-lg p-2
+                flex flex-col justify-between
+                bg-white text-gray-900
+                font-sans shadow-md
+                print:shadow-none
+                break-inside-avoid
+                overflow-hidden
+                box-border relative card-component">
+
+        <!-- Header -->
+        <div class="flex items-center border-b border-gray-300 pb-1 mb-1 shrink-0">
+            <img src="{% static 'images/kdic.png' %}"
+                 alt="logo"
+                 class="h-20 object-contain">
+
+            <div class="flex-1 text-center leading-tight ml-1">
+                <h1 class="text-[10px] font-bold uppercase text-blue-800 tracking-tight school">
+                    {{ student.school_name }}
+                </h1>
+                <p class="text-[6px] text-gray-600">{{ student.school_address }}</p>
+                <p class="text-[6px] text-gray-600">Ph: {{ student.school_contact }}</p>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="flex justify-between flex-1 gap-2">
+
+            <div class="flex-1 flex flex-col space-y-[2px]">
+                <h2 class="text-[9px] font-bold uppercase">{{ student.student_name }}</h2>
+
+                <div class="flex justify-between">
+                    <p class="text-[6px]"><strong>Class:</strong> {{ student.student_class }}</p>
+                    <p class="text-[6px]"><strong>Roll:</strong> {{ student.roll_no }}</p>
+                </div>
+
+                <p class="text-[6px]"><strong>Session:</strong> {{ student.session }}</p>
+
+                <div class="space-y-[1px]">
+                    <p class="text-[5px] truncate"><strong>F:</strong> {{ student.father_name }} ({{ student.father_phone }})</p>
+                    <p class="text-[5px] truncate"><strong>M:</strong> {{ student.mother_name }} ({{ student.mother_phone }})</p>
+                    <p class="text-[5px] truncate"><strong>Ph:</strong> {{ student.student_phone }}</p>
+                </div>
+            </div>
+
+            <!-- Photo -->
+            <div class="w-12 flex flex-col items-center shrink-0">
+                <img src="{{ student.student_img }}"
+                     class="w-10 h-12 object-cover border border-gray-300 rounded-sm bg-gray-50">
+
+                <p class="text-[5px] text-gray-500 mt-[2px] text-center">
+                    Date: {{ student.date }}
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="pt-[2px] border-t border-gray-300 flex justify-between items-end">
+
+            <p class="text-[5px] text-gray-400">
+                Valid for {{ student.exam }}
+            </p>
+
+            <div class="flex flex-col items-center">
+                <img src="{% static 'images/principal_sign.jpg' %}"
+                     alt="principal_sign"
+                     class="h-10 object-contain">
+
+
+            </div> <p class="">
+                    Principal
+                </p>
+
+        </div>
+
+    </div>
+    {% endfor %}
+
+</div>
