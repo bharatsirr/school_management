@@ -1007,80 +1007,81 @@ def score_list_view(request, course_id, session_id):
     class_var = course.applicable_for
     session_obj = get_object_or_404(Session, id=session_id)
     session = f"{session_obj.start_date.year}-{session_obj.end_date.year}"
-    
+
     # Students
     students = StudentAdmission.objects.filter(
         course=course, session=session
     ).select_related("student__user").order_by("roll_number")
-    
+
     # Subjects for this course
     course_subjects = CourseSubject.objects.filter(course=course).select_related("subject")
-    
+
     # All exam-subjects for this course+session
     ecs = ExamCourseSubject.objects.filter(
         course_subject__in=course_subjects,
         exam__session_id=session_id
     ).select_related("exam", "course_subject__subject")
-    
+
     # Max possible marks for this course+session
     max_total = sum(e.mm for e in ecs if e.mm is not None)
-    
+
     # Map for quick lookup
     ecs_map = {(e.course_subject.subject.name, e.exam.name): e.id for e in ecs}
-    
+
     # All scores in bulk
     scores = Score.objects.filter(
         student_admission__in=students,
         exam_course_subject__in=ecs
     ).select_related(
-        "student_admission", 
-        "exam_course_subject__exam", 
+        "student_admission",
+        "exam_course_subject__exam",
         "exam_course_subject__course_subject__subject"
     )
-    
+
     # Scores lookup dict
     score_map = {}
     for s in scores:
         subj = s.exam_course_subject.course_subject.subject.name
         exam = s.exam_course_subject.exam.name
         score_map[(s.student_admission.id, subj, exam)] = s.score
-    
+
     # Build headers grouped by subject
     headers = []
     for cs in course_subjects:
         exams_for_subject = [ecs.exam.name for ecs in ecs if ecs.course_subject_id == cs.id]
         headers.append({"subject": cs.subject.name, "exams": exams_for_subject})
-    
+
     # Build rows with totals & percentages
     rows = []
     for student in students:
-        row_scores = {}
+        # INSTEAD of a dictionary, we now use a list to store scores in the exact
+        # order they will be displayed in the HTML table columns.
+        ordered_scores = []
         total = 0
+
         for h in headers:
             for exam in h["exams"]:
-                key = f"{h['subject']}|{exam}"
                 val = score_map.get((student.id, h["subject"], exam), None)
                 if val is None:
-                    row_scores[key] = "-"
+                    ordered_scores.append("-")  # Append placeholder if no score exists
                 else:
-                    row_scores[key] = val
+                    ordered_scores.append(val)  # Append actual score
                     total += val
-        
+
         percentage = (total / max_total * 100) if max_total > 0 else 0
-        
+
         rows.append({
             "student": student.student.user.get_full_name(),
-            "scores": row_scores,
+            "ordered_scores": ordered_scores,  # Pass the ordered list to the context
             "total": total,
-            "percentage": round(percentage, 2)  # keep 2 decimal places
+            "percentage": round(percentage, 2)
         })
-    
+
     # Assign ranks
     totals_sorted = sorted({r["total"] for r in rows}, reverse=True)
-    rank_for_total = {total: idx+1 for idx, total in enumerate(totals_sorted)}
+    rank_for_total = {total: idx + 1 for idx, total in enumerate(totals_sorted)}
     for r in rows:
         r["rank"] = rank_for_total[r["total"]]
-
 
     context = {
         "class_var": class_var,
@@ -1088,6 +1089,12 @@ def score_list_view(request, course_id, session_id):
         "headers": headers,
         "rows": rows,
         "session": session,
+
+        "students": students,
+        "totals_sorted": totals_sorted,
+        "rank_for_total": rank_for_total,
+        "scores": scores,
+
     }
     return render(request, "students/score_list.html", context)
 
