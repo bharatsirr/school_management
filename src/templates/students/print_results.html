@@ -1,0 +1,353 @@
+{% load static %}
+
+<style>
+    @font-face {
+        font-family: 'Algerian';
+        src: url('{% static "fonts/algerian.ttf" %}');
+    }
+
+    /* ── Screen styles ── */
+    .report-wrapper {
+        max-width: 794px;
+        margin: 0 auto 50px;
+        font-family: 'Georgia', 'Times New Roman', serif;
+        color: #1a1a1a;
+    }
+
+    .report-card {
+        background: #fff;
+        border: 2px solid #1a1a1a;
+        padding: 36px 40px 32px;
+        position: relative;
+        box-shadow: 4px 4px 0 #b0a898;
+    }
+
+    /* Watermark */
+    .report-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url('{{ school_logo_url }}');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 340px 340px;
+        opacity: 0.045;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .report-card > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ── Header ── */
+    .header {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 14px;
+    }
+
+    .header img {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        flex-shrink: 0;
+        border: 1.5px solid #c8bfaf;
+        border-radius: 4px;
+        padding: 3px;
+        background: #faf9f7;
+    }
+
+    .header-text { flex: 1; }
+
+    .school-name {
+        font-family: 'Algerian', serif;
+        font-size: 1.55rem;
+        letter-spacing: 1.5px;
+        margin: 0 0 3px;
+        line-height: 1.2;
+        color: #0d0d0d;
+    }
+
+    .school-meta {
+        font-size: 0.78rem;
+        color: #444;
+        margin: 0;
+        line-height: 1.6;
+        letter-spacing: 0.3px;
+    }
+
+    .header-rule {
+        border: none;
+        border-top: 2.5px solid #1a1a1a;
+        margin: 0 0 10px;
+    }
+
+    .report-title {
+        text-align: center;
+        margin-bottom: 16px;
+    }
+
+    .report-title span {
+        display: inline-block;
+        background: #1a1a1a;
+        color: #fff;
+        font-size: 0.78rem;
+        font-family: 'Georgia', serif;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        padding: 5px 22px;
+        border-radius: 2px;
+    }
+
+    /* --- UPDATED: Student Info Box --- */
+    .student-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        border: 1px solid #d0c8bc;
+        background: #faf8f5;
+        padding: 12px 18px;
+        border-radius: 3px;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .info-col p { margin: 0; }
+    .info-right { text-align: right; }
+    /* --------------------------------- */
+
+    .marks-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-bottom: 24px;
+    }
+
+    .marks-table thead tr { background: #1a1a1a; color: #fff; }
+
+    .marks-table th {
+        padding: 8px 10px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        border: 1px solid #333;
+        text-align: center;
+    }
+
+    .marks-table th:first-child { text-align: left; }
+
+    .marks-table td {
+        padding: 7px 10px;
+        border: 1px solid #c8c0b4;
+        text-align: center;
+        color: #1a1a1a;
+    }
+
+    .marks-table td:first-child    { text-align: left; }
+    .marks-table tbody tr:nth-child(even) { background: #f7f5f1; }
+    .marks-table tbody tr:hover    { background: #eeeae3; }
+    .total-row  { background: #f0ece4 !important; font-size: 0.88rem; }
+    .grand-cell { background: #ddd8cc !important; }
+
+    .bottom-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 10px;
+        margin-bottom: 28px;
+    }
+
+    .rank-block {
+        border: 2px solid #1a1a1a;
+        padding: 10px 28px;
+        text-align: center;
+        background: #faf8f5;
+        border-radius: 3px;
+        line-height: 1.3;
+    }
+
+    .rank-label {
+        font-size: 0.65rem;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        display: block;
+        color: #555;
+        font-family: 'Georgia', serif;
+    }
+
+    .rank-number {
+        font-size: 2.2rem;
+        font-weight: bold;
+        display: block;
+        line-height: 1.1;
+        color: #1a1a1a;
+    }
+
+    /* --- UPDATED: Signatures & Date --- */
+    .signatures {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 48px;
+        font-size: 0.82rem;
+    }
+
+    .date-block {
+        font-weight: bold;
+    }
+
+    .sig-block {
+        text-align: center;
+        min-width: 160px;
+        border-top: 1.5px solid #555;
+        padding-top: 6px;
+    }
+    .sig-block p, .date-block p {
+        margin: 0;
+        line-height: 1.5;
+    }
+    /* ---------------------------------- */
+
+    @media print {
+        body {
+            visibility: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .report-scope, .report-scope * { visibility: visible !important; }
+
+        .report-scope {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        .report-wrapper { max-width: 100%; margin: 0; padding: 0; }
+
+        .report-card {
+            box-shadow: none !important;
+            border: 2px solid #000 !important;
+            padding: 22px 28px 20px !important;
+            margin: 0 !important;
+            break-before: page;
+            page-break-before: always;
+        }
+
+        .report-wrapper:first-child .report-card {
+            break-before: auto !important;
+            page-break-before: auto !important;
+        }
+
+        .report-card::before { opacity: 0.07 !important; }
+        .marks-table thead tr                { background: #1a1a1a !important; color: #fff !important; }
+        .marks-table tbody tr:nth-child(even){ background: #f5f3ef !important; }
+        .total-row                           { background: #eae6de !important; }
+        .grand-cell                          { background: #d8d3c8 !important; }
+        .rank-block                          { border: 2px solid #000 !important; }
+        .report-title span                   { background: #1a1a1a !important; color: #fff !important; }
+        .header img { width: 90px !important; height: 90px !important; }
+    }
+</style>
+
+<div class="report-scope">
+{% for report in student_reports %}
+  <div class="report-wrapper">
+    <div class="report-card">
+
+      <div class="header">
+        <img src="{{ school_logo_url }}" alt="School Logo">
+        <div class="header-text">
+          <h1 class="school-name">{{ school_name }}</h1>
+          <p class="school-meta">
+            {{ school_address }}<br>
+            {{ school_contact }}
+          </p>
+        </div>
+      </div>
+
+      <hr class="header-rule">
+
+      <div class="report-title">
+        <span>Report Card &nbsp;·&nbsp; Class {{ class_name }} &nbsp;·&nbsp; {{ session }}</span>
+      </div>
+
+      <div class="student-info">
+        <div class="info-col">
+            <p><strong>Student Name:</strong> {{ report.name }}</p>
+            <p><strong>Father's Name:</strong> {{ report.father_name|default:"-" }}</p>
+            <p><strong>Mother's Name:</strong> {{ report.mother_name|default:"-" }}</p>
+        </div>
+        <div class="info-col info-right">
+            <p><strong>Roll Number:</strong> {{ report.roll_number }}</p>
+            <p><strong>Date of Birth:</strong> {{ report.dob|date:"d M Y"|default:"-" }}</p>
+        </div>
+      </div>
+
+      <table class="marks-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Subject</th>
+            {% for exam in exam_headers %}
+              <th>{{ exam.name }}<br><small style="font-weight:400;">({{ exam.mm }})</small></th>
+            {% endfor %}
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for subject in report.subjects %}
+          <tr>
+            <td>{{ subject.subject_name }}</td>
+            {% for score_obj in subject.exam_scores %}
+              <td>{{ score_obj.score }}</td>
+            {% endfor %}
+            <td><strong>{{ subject.subject_total }}</strong></td>
+          </tr>
+          {% endfor %}
+
+          <tr class="total-row">
+            <td style="text-align:left;"><strong>TOTAL EXAM SCORE</strong></td>
+            {% for total in report.ordered_exam_totals %}
+              <td><strong>{{ total }}</strong></td>
+            {% endfor %}
+            <td class="grand-cell">
+              <strong>{{ report.grand_total }} / {{ grand_max_total }}</strong><br>
+              <small>({{ report.percentage }}%)</small>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="bottom-section">
+        <div class="grade-block">
+          <p style="margin:0; font-size:0.82rem; color:#555; letter-spacing:1px; text-transform:uppercase;">Final Grade</p>
+          <p style="margin:4px 0 0; font-size:2rem; font-weight:bold; letter-spacing:2px;">{{ report.grade }}</p>
+        </div>
+        <div class="rank-block">
+          <span class="rank-label">Class Rank</span>
+          <span class="rank-number">{{ report.rank }}</span>
+        </div>
+      </div>
+
+      <div class="signatures">
+        <div class="date-block">
+            <p>Date: {{ issue_date|date:"d M Y" }}</p>
+        </div>
+        <div class="sig-block">
+            <p>Class Teacher</p>
+        </div>
+        <div class="sig-block">
+            <p>Principal</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+{% endfor %}
+</div>

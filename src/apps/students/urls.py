@@ -23,7 +23,7 @@ from .views import (StudentRegistrationView,
                     exam_course_subject_setup,
                     select_exam_course_view,
                     score_list_view,
-                    crosslist_class_select_view, print_admit_card_view
+                    crosslist_class_select_view, print_admit_card_view, print_results_view
                     )
 
 urlpatterns = [
@@ -62,5 +62,7 @@ urlpatterns = [
     path("score-list-view/<uuid:course_id>/<uuid:session_id>/", score_list_view, name="score_list_view"),
     path("crosslist-class-select/", crosslist_class_select_view, name="crosslist_class_select"),
     path("print-admit-card/", print_admit_card_view, name="print_admit_card"),
+
+    path("print-results/", print_results_view, name="print_result_view"),
 
 ]

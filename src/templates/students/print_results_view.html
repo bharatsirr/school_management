@@ -1,0 +1,15 @@
+{%  extends "base.html" %}
+{% load tailwind_filters %}
+
+{% block title %}Print Results{% endblock title %}
+
+{% block content %}
+      <h2 class="text-xl font-bold mb-4">Print Results Of Students.</h2>
+    <form hx-post="{% url 'print_result_view' %}" hx-target="#results_section" hx-swap="innerHTML">
+        {{ form|crispy }}
+    <button type="submit"
+    class="bg-blue-500 inline-block hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Load</button>
+    </form>
+
+    <div id="results_section"></div>
+{% endblock content %}

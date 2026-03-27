@@ -1,4 +1,5 @@
 import datetime
+import decimal
 
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
@@ -1230,3 +1231,173 @@ def print_admit_card_view(request):
 
                 return render(request, "students/print_admit_card_list.html", {"students": student_data_list})
     return render(request, "students/print_admit_card_view.html", {"form": form})
+
+
+
+# Helper function to calculate grades (You can customize this logic)
+def calculate_grade(percentage):
+    if percentage >= 90:
+        return "A+"
+    elif percentage >= 80:
+        return "A"
+    elif percentage >= 70:
+        return "B"
+    elif percentage >= 60:
+        return "C"
+    elif percentage >= 50:
+        return "D"
+    else:
+        return "F (Needs Improvement)"
+
+@login_required
+def print_results_view(request):
+    if request.htmx:
+        if request.method == "POST":
+            form = PrintAdmitCardForm(request.POST)
+            if form.is_valid():
+                course = form.cleaned_data['course']
+                session = form.cleaned_data['session']
+
+                session_name = f"{session.start_date.year}-{session.end_date.year}"
+
+                students = StudentAdmission.objects.filter(
+                    course=course, session=session_name
+                ).select_related("student__user").order_by("roll_number")
+
+                ecs_qs = ExamCourseSubject.objects.filter(
+                    course_subject__course=course,
+                    exam__session=session
+                ).select_related("exam", "course_subject__subject")
+
+                exam_dict = {}
+                for ecs in ecs_qs:
+                    if ecs.exam.name not in exam_dict:
+                        exam_dict[ecs.exam.name] = ecs.mm or 0
+
+                exam_names = sorted(list(exam_dict.keys()))
+                exam_headers = [{"name": name, "mm": exam_dict[name]} for name in exam_names]
+
+                grand_max_total = sum(ecs.mm for ecs in ecs_qs if ecs.mm is not None)
+
+                scores = Score.objects.filter(
+                    student_admission__in=students,
+                    exam_course_subject__in=ecs_qs
+                ).select_related(
+                    "exam_course_subject__exam",
+                    "exam_course_subject__course_subject__subject"
+                )
+
+                score_map = {}
+                for s in scores:
+                    subj = s.exam_course_subject.course_subject.subject.name
+                    exam = s.exam_course_subject.exam.name
+                    score_map[(s.student_admission.id, subj, exam)] = s.score
+
+                subject_sort_map = {}
+                for ecs in ecs_qs:
+                    subj = ecs.course_subject.subject
+                    if subj.name not in subject_sort_map:
+                        subject_sort_map[subj.name] = subj.description or 'z'
+
+                ordered_subject_names = sorted(
+                    subject_sort_map.keys(),
+                    key=lambda name: str(subject_sort_map[name]).lower()
+                )
+
+                student_reports = []
+
+                for student in students:
+                    student_total = 0
+                    subject_results = []
+                    exam_totals = {exam: 0 for exam in exam_names}
+
+                    for subj_name in ordered_subject_names:
+                        subj_data = {
+                            "subject_name": subj_name,
+                            "exam_scores": [],
+                            "subject_total": 0
+                        }
+
+                        for exam_name in exam_names:
+                            val = score_map.get((student.id, subj_name, exam_name), "-")
+                            subj_data["exam_scores"].append({
+                                "exam": exam_name,
+                                "score": val
+                            })
+
+                            try:
+                                num_val = float(val)
+                                subj_data["subject_total"] += num_val
+                                student_total += num_val
+                                exam_totals[exam_name] += num_val
+                            except (ValueError, TypeError):
+                                pass
+
+                        if float(subj_data["subject_total"]).is_integer():
+                            subj_data["subject_total"] = int(subj_data["subject_total"])
+                        else:
+                            subj_data["subject_total"] = round(subj_data["subject_total"], 2)
+
+                        subject_results.append(subj_data)
+
+                    if float(student_total).is_integer():
+                        student_total = int(student_total)
+                    else:
+                        student_total = round(student_total, 2)
+
+                    safe_student_total = float(student_total)
+                    safe_grand_total = float(grand_max_total)
+
+                    percentage = (safe_student_total / safe_grand_total * 100) if safe_grand_total > 0 else 0
+
+                    ordered_exam_totals = []
+                    for exam in exam_names:
+                        et = exam_totals[exam]
+                        if float(et).is_integer():
+                            ordered_exam_totals.append(int(et))
+                        else:
+                            ordered_exam_totals.append(round(et, 2))
+
+                    student_reports.append({
+                        "id": student.id,
+                        "name": student.student.user.get_full_name(),
+                        "roll_number": student.roll_number,
+
+                        # --- NEW FIELDS EXTRACTED FROM USER MODEL ---
+                        "father_name": student.student.user.father_name,
+                        "mother_name": student.student.user.mother_name,
+                        # If your field is named 'dob', change the line below to student.student.user.dob
+                        "dob": student.student.user.dob,
+                        # --------------------------------------------
+
+                        "subjects": subject_results,
+                        "ordered_exam_totals": ordered_exam_totals,
+                        "grand_total": student_total,
+                        "percentage": round(percentage, 2),
+                        "grade": calculate_grade(percentage),
+                    })
+
+                totals_sorted = sorted({r["grand_total"] for r in student_reports}, reverse=True)
+                rank_for_total = {total: idx + 1 for idx, total in enumerate(totals_sorted)}
+                for report in student_reports:
+                    report["rank"] = rank_for_total[report["grand_total"]]
+
+                context = {
+                    "school_name": "Keshmati Devi Intermediate College",
+                    "school_address": "Raishree Chauraha, Gauri Bazar",
+                    "school_contact": "keshmatideviintermediatcollege@gmail.com | +91 7706843352",
+                    "school_logo_url": f"{static('images/kdic.png')}",
+                    "class_name": course.applicable_for,
+                    "session": session_name,
+                    "exam_headers": exam_headers,
+                    "grand_max_total": grand_max_total,
+                    "student_reports": student_reports,
+
+                    # --- NEW FIELD: PASSING SESSION END DATE ---
+                    "issue_date": session.end_date,
+                }
+
+                return render(request, "students/print_results.html", context)
+
+    form = PrintAdmitCardForm()
+    return render(request, "students/print_results_view.html", {"form": form})
